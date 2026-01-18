@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { formatCurrency } from '@/utils/formatCurrency';
 
 const WalletIcon = () => (
@@ -76,59 +75,7 @@ export function UpcomingExpensesWidget({ onAddTransaction }: UpcomingExpensesWid
           </div>
           <p className="text-sm text-gray-400 dark:text-gray-500">Nenhuma despesa pendente</p>
         </div>
-      ) : (
-        <div className="space-y-0 flex-1">
-          {expenses.map((expense: any, index: number) => (
-            <div
-              key={expense.id}
-              className={`
-                py-4 ${index < sortedExpenses.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''}
-                flex items-center justify-between
-              `}
-            >
-              {/* Left side - Info */}
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                  {expense.description}
-                </p>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                  {formatDueDate(expense.dueDate)}
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">
-                  {getAccountLabel(expense.accountType, expense.bankName, expense.lastFourDigits)}
-                </p>
-              </div>
-
-              {/* Right side - Amount and button */}
-              <div className="flex items-center gap-3 ml-4">
-                <div className="text-right">
-                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    {formatCurrency(expense.amount)}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleMarkAsPaid(expense.id)}
-                  className="
-                    w-8 h-8 rounded-full
-                    border border-gray-300 dark:border-gray-600
-                    bg-white dark:bg-gray-700
-                    flex items-center justify-center
-                    hover:bg-success-light dark:hover:bg-success/20 
-                    hover:border-success dark:hover:border-success 
-                    hover:text-success-dark dark:hover:text-success
-                    transition-colors duration-200
-                    flex-shrink-0
-                  "
-                  aria-label="Marcar como paga"
-                >
-                  <CheckIcon />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }
