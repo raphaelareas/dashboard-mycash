@@ -72,7 +72,7 @@ export function Sidebar() {
         style={{ width: sidebarWidth }}
       >
         {/* Header com Logo - mesma altura da barra fixa */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700 min-h-[80px]">
+        <div className="relative flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700 h-20">
           <Logo isExpanded={isExpanded} />
         </div>
 
@@ -129,11 +129,11 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Botão de toggle */}
+        {/* Botão de toggle - centralizado verticalmente no header da logo */}
         <button
           onClick={toggle}
           className="
-            absolute -right-4 top-8
+            absolute -right-4
             w-8 h-8 rounded-full
             bg-white border-2 border-gray-200
             flex items-center justify-center
@@ -141,6 +141,7 @@ export function Sidebar() {
             transition-shadow duration-200
             z-50
           "
+          style={{ top: '40px', transform: 'translateY(-50%)' }}
           aria-label={isExpanded ? 'Colapsar sidebar' : 'Expandir sidebar'}
         >
           {isExpanded ? (
