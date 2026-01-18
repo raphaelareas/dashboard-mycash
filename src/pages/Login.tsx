@@ -61,7 +61,18 @@ export default function Login() {
       } else {
         const { error } = await signIn(email, password);
         if (error) {
-          setError(error.message || 'Email ou senha inválidos');
+          // Tratamento específico para erro de e-mail não confirmado
+          let errorMessage = error.message || 'Email ou senha inválidos';
+          
+          if (error.message?.includes('Email not confirmed') || 
+              error.message?.includes('email_not_confirmed') ||
+              error.message?.toLowerCase().includes('email') && error.message?.toLowerCase().includes('confirm')) {
+            errorMessage = 'E-mail não confirmado. Verifique sua caixa de entrada e confirme seu e-mail antes de fazer login.';
+          } else if (error.message?.includes('Invalid login credentials')) {
+            errorMessage = 'Email ou senha inválidos';
+          }
+          
+          setError(errorMessage);
           setLoading(false);
         } else {
           // Login bem-sucedido - mostrar feedback
