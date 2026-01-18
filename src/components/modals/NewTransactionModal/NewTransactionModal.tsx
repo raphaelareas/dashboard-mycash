@@ -35,6 +35,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const { addTransaction, bankAccounts, creditCards, familyMembers } = useFinance();
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [amount, setAmount] = useState('');
+  const [amountDisplay, setAmountDisplay] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<TransactionCategory | ''>('');
   const [customCategory, setCustomCategory] = useState('');
@@ -61,6 +62,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       const today = new Date();
       setType('expense');
       setAmount('');
+      setAmountDisplay('');
       setDescription('');
       setCategory('');
       setCustomCategory('');
@@ -90,10 +92,50 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
     }
   }, [isRecurring]);
 
+  // Função para formatar valor automaticamente conforme o usuário digita
+  const handleAmountChange = (value: string) => {
+    // Remove tudo exceto números
+    const numbersOnly = value.replace(/\D/g, '');
+    
+    if (!numbersOnly) {
+      setAmountDisplay('');
+      setAmount('');
+      return;
+    }
+
+    // Se tiver mais de 2 dígitos, os últimos 2 são centavos
+    // Caso contrário, todos são centavos
+    let reais = '0';
+    let centavos = '00';
+
+    if (numbersOnly.length <= 2) {
+      // Apenas centavos (ex: "89" → "0,89")
+      centavos = numbersOnly.padStart(2, '0');
+    } else {
+      // Reais + centavos (ex: "8000" → "80,00" mas precisamos "8.000,00")
+      // ou "75689" → "756,89"
+      centavos = numbersOnly.slice(-2);
+      reais = numbersOnly.slice(0, -2);
+    }
+
+    // Formata reais com pontos de milhar
+    const reaisFormatted = parseInt(reais || '0').toLocaleString('pt-BR');
+    
+    // Monta o valor formatado
+    const formatted = `${reaisFormatted},${centavos}`;
+    
+    setAmountDisplay(formatted);
+    
+    // Salva o valor numérico (reais + centavos como número decimal)
+    const numericValue = parseFloat(reais || '0') + (parseInt(centavos) / 100);
+    setAmount(numericValue.toString());
+  };
+
   const handleSubmit = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!amount || parseFloat(amount) <= 0) {
+    const numericAmount = parseFloat(amount);
+    if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
       newErrors.amount = 'Valor deve ser maior que zero';
     }
 
@@ -117,11 +159,10 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       setErrors(newErrors);
       return;
     }
-
     addTransaction({
       type,
       category: category as TransactionCategory,
-      amount: parseFloat(amount),
+      amount: numericAmount,
       description: category === 'other' && customCategory ? `${customCategory}: ${description}` : description,
       date: new Date(transactionDate),
       accountId,
@@ -207,10 +248,10 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             <div className="flex items-center gap-3">
               <span className="text-gray-600 font-medium">R$</span>
               <input
-                type="number"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                type="text"
+                inputMode="numeric"
+                value={amountDisplay}
+                onChange={(e) => handleAmountChange(e.target.value)}
                 className={`
                   flex-1 h-14 px-4 rounded-lg border
                   ${errors.amount ? 'border-red-500' : 'border-gray-200'}
@@ -274,7 +315,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <button
                 type="button"
                 onClick={() => setIsCreateCategoryModalOpen(true)}
-                className="px-6 h-14 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+                style={{ borderColor: '#1F2937' }}
               >
                 Adicionar categoria
               </button>
@@ -327,7 +369,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <button
                 type="button"
                 onClick={() => setIsAddMemberModalOpen(true)}
-                className="px-6 h-14 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+                style={{ borderColor: '#1F2937' }}
               >
                 Adicionar membro
               </button>
@@ -369,7 +412,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <button
                 type="button"
                 onClick={() => setIsAddCardModalOpen(true)}
-                className="px-6 h-14 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+                style={{ borderColor: '#1F2937' }}
               >
                 Criar novo método
               </button>
