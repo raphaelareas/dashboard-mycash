@@ -20,78 +20,14 @@ const CheckIcon = () => (
   </svg>
 );
 
-// Mock data de despesas futuras (simulando contas a pagar)
-const mockUpcomingExpenses = [
-  {
-    id: 'exp-1',
-    description: 'Conta de luz',
-    dueDate: new Date(2025, 1, 15),
-    amount: 385.72,
-    accountType: 'credit',
-    bankName: 'Nubank',
-    lastFourDigits: '1234',
-  },
-  {
-    id: 'exp-2',
-    description: 'Gás',
-    dueDate: new Date(2025, 1, 21),
-    amount: 95.0,
-    accountType: 'credit',
-    bankName: 'Nubank',
-    lastFourDigits: '1234',
-  },
-  {
-    id: 'exp-3',
-    description: 'Netflix',
-    dueDate: new Date(2025, 1, 20),
-    amount: 60.0,
-    accountType: 'credit',
-    bankName: 'Nubank',
-    lastFourDigits: '1234',
-  },
-  {
-    id: 'exp-4',
-    description: 'Wellhub',
-    dueDate: new Date(2025, 1, 10),
-    amount: 89.9,
-    accountType: 'credit',
-    bankName: 'Nubank',
-    lastFourDigits: '1234',
-  },
-];
-
-function formatDueDate(date: Date): string {
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  return `Vence dia ${day}/${month}`;
-}
-
-function getAccountLabel(accountType: string, bankName: string, lastFourDigits?: string): string {
-  if (accountType === 'checking') {
-    return `${bankName} conta`;
-  }
-  if (accountType === 'credit' && lastFourDigits) {
-    return `Crédito ${bankName} **** ${lastFourDigits}`;
-  }
-  return bankName;
-}
-
 interface UpcomingExpensesWidgetProps {
   onAddTransaction?: () => void;
 }
 
 export function UpcomingExpensesWidget({ onAddTransaction }: UpcomingExpensesWidgetProps) {
-  const [expenses, setExpenses] = useState(mockUpcomingExpenses);
-
-  const sortedExpenses = [...expenses].sort((a, b) => 
-    a.dueDate.getTime() - b.dueDate.getTime()
-  );
-
-  const handleMarkAsPaid = (id: string) => {
-    // Animação e remoção
-    setExpenses(prev => prev.filter(exp => exp.id !== id));
-    // Aqui você pode adicionar lógica para criar transação paga, criar próxima recorrência, etc.
-  };
+  // TODO: Implementar lógica de despesas pendentes baseada em transações recorrentes
+  // Por enquanto, sempre mostra empty state
+  const expenses: any[] = [];
 
   return (
     <div className="
@@ -124,7 +60,7 @@ export function UpcomingExpensesWidget({ onAddTransaction }: UpcomingExpensesWid
       </div>
 
       {/* Expenses List */}
-      {sortedExpenses.length === 0 ? (
+      {expenses.length === 0 ? (
         <div className="
           py-12 px-4
           flex flex-col items-center justify-center
@@ -142,7 +78,7 @@ export function UpcomingExpensesWidget({ onAddTransaction }: UpcomingExpensesWid
         </div>
       ) : (
         <div className="space-y-0 flex-1">
-          {sortedExpenses.map((expense, index) => (
+          {expenses.map((expense: any, index: number) => (
             <div
               key={expense.id}
               className={`

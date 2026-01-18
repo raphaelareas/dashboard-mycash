@@ -79,7 +79,17 @@ export function CreditCardsWidget({ onAddCard, onCardClick }: CreditCardsWidgetP
 
       {/* Cards List */}
       <div className="space-y-3 flex-1">
-        {creditCards.filter(c => c.isActive).map((card, index) => {
+        {creditCards.filter(c => c.isActive).length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
+              <CreditCardIcon />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">Nenhum cartão cadastrado</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs">Clique no botão + para adicionar</p>
+          </div>
+        ) : (
+          <>
+            {creditCards.filter(c => c.isActive).map((card, index) => {
           const usage = calculateUsagePercentage(card.currentBalance, card.limit);
           const bgColor = getCardColor(index);
           const textColor = getTextColor(bgColor);
@@ -124,7 +134,9 @@ export function CreditCardsWidget({ onAddCard, onCardClick }: CreditCardsWidgetP
               </div>
             </div>
           );
-        })}
+          })}
+          </>
+        )}
       </div>
     </div>
   );
