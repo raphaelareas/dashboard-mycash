@@ -44,7 +44,7 @@ export function DashboardHeader() {
   return (
     <>
       <div className="fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" style={{ marginLeft: isDesktop ? (isExpanded ? '280px' : '80px') : '0' }}>
-        <div className="max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-4">
+        <div className="max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 h-20 flex items-center">
           {/* Barra dividida em 2 blocos: Esquerda (Pesquisa + Filtros + Data + Membros) | Direita (Nova Transação) */}
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
           {/* BLOCO ESQUERDO: Pesquisa + Filtros + Date Picker + Membros */}
@@ -127,7 +127,7 @@ export function DashboardHeader() {
           <div className="flex-shrink-0 w-full lg:w-auto">
             <button
               onClick={() => setIsNewTransactionOpen(true)}
-              className="w-full lg:w-auto px-6 py-2 bg-gray-900 dark:bg-primary text-white dark:text-gray-900 rounded-[40px] hover:bg-gray-800 dark:hover:bg-lime-600 flex items-center justify-center gap-2 whitespace-nowrap"
+              className="w-full lg:w-auto pl-4 pr-6 py-2 bg-gray-900 dark:bg-primary text-white dark:text-gray-900 rounded-[40px] hover:bg-gray-800 dark:hover:bg-lime-600 flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <span>+</span>
               <span>Nova Transação</span>
