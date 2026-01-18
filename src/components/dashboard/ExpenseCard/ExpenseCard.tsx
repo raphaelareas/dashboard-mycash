@@ -32,8 +32,8 @@ export function ExpenseCard() {
         </div>
       </div>
 
-      {/* Título (menor) */}
-      <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-3">Despesas</h3>
+      {/* Título (menor) - mesmo estilo do "Saldo total" */}
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Despesas</p>
 
       {/* Valor (maior) */}
       <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">

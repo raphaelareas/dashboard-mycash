@@ -24,16 +24,15 @@ export function IncomeCard() {
       <div className="mb-3">
         <div className="
           w-10 h-10 rounded-full
-          bg-gray-100 dark:bg-gray-700
           flex items-center justify-center
           text-gray-900 dark:text-gray-100
-        ">
+        " style={{ backgroundColor: '#D1FAE4' }}>
           <IncomeIcon />
         </div>
       </div>
 
-      {/* Título (menor) */}
-      <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-3">Receitas</h3>
+      {/* Título (menor) - mesmo estilo do "Saldo total" */}
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Receitas</p>
 
       {/* Valor (maior) */}
       <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">

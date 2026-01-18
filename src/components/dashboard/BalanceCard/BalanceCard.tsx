@@ -15,40 +15,30 @@ export function BalanceCard() {
 
   return (
     <div className="
-      relative w-full p-6 rounded-lg
-      bg-gray-900 text-white
-      overflow-hidden
+      w-full p-6 rounded-lg
+      bg-white dark:bg-gray-800 
+      border border-gray-200 dark:border-gray-700
     ">
-      {/* Círculo decorativo verde-limão desfocado */}
-      <div className="
-        absolute -top-20 -right-20
-        w-40 h-40 rounded-full
-        bg-lime-500/20
-        blur-3xl
-      " />
-
       {/* Estrutura: Ícone > Título > Valor */}
-      <div className="relative z-10">
-        {/* Ícone no topo - dentro de círculo como os outros cards */}
-        <div className="mb-3">
-          <div className="
-            w-10 h-10 rounded-full
-            bg-white/10 dark:bg-white/20
-            flex items-center justify-center
-            text-white
-          ">
-            <DollarIcon />
-          </div>
+      {/* Ícone no topo */}
+      <div className="mb-3">
+        <div className="
+          w-10 h-10 rounded-full
+          bg-gray-100 dark:bg-gray-700
+          flex items-center justify-center
+          text-gray-900 dark:text-gray-100
+        ">
+          <DollarIcon />
         </div>
-
-        {/* Título (menor) - padding reduzido para alinhar valores */}
-        <p className="text-sm text-gray-300 mb-3">Saldo total</p>
-
-        {/* Valor (maior) - alinhado com os outros cards */}
-        <p className="text-3xl font-bold">
-          {formatCurrency(animatedBalance)}
-        </p>
       </div>
+
+      {/* Título (menor) - mesmo estilo para todos os cards */}
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Saldo total</p>
+
+      {/* Valor (maior) */}
+      <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+        {formatCurrency(animatedBalance)}
+      </p>
     </div>
   );
 }
