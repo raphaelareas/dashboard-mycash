@@ -18,6 +18,7 @@ export default {
         // Cores semânticas
         primary: 'var(--color-primary)',
         secondary: 'var(--color-secondary)',
+        'brand-100': 'var(--color-brand-100)',
         success: {
           DEFAULT: 'var(--color-success)',
           light: 'var(--color-success-light)',

@@ -31,6 +31,7 @@
      ======================================== */
   --color-primary: var(--lime-500);
   --color-secondary: var(--gray-600);
+  --color-brand-100: #FBFFE6; /* Cor brand/100 do Figma para hover de botões outline */
   --color-success: #10B981;
   --color-success-light: #D1FAE5;
   --color-success-dark: #059669;

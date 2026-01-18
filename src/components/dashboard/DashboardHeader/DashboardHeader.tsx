@@ -132,7 +132,7 @@ export function DashboardHeader() {
                   /* Empty state - botão para adicionar membros (outline) */
                   <button
                     onClick={() => setIsAddMemberOpen(true)}
-                    className="flex-shrink-0 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-[40px] bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300 whitespace-nowrap"
+                    className="flex-shrink-0 px-4 py-2 border border-gray-800 rounded-[40px] bg-transparent hover:bg-brand-100 flex items-center justify-center gap-2 text-gray-900 whitespace-nowrap transition-colors"
                   >
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
