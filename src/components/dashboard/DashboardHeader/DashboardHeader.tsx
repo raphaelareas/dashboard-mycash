@@ -44,9 +44,9 @@ export function DashboardHeader() {
   return (
     <>
       <div className="fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" style={{ marginLeft: isDesktop ? (isExpanded ? '280px' : '80px') : '0' }}>
-        <div className="max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 h-20 flex items-center">
+        <div className="w-full px-4 md:px-6 lg:px-8 h-20 flex items-center">
           {/* Barra dividida em 2 blocos: Esquerda (Pesquisa + Filtros + Data + Membros) | Direita (Nova Transação) */}
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center w-full">
           {/* BLOCO ESQUERDO: Pesquisa + Filtros + Date Picker + Membros */}
           <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full items-start sm:items-center">
             {/* Campo de Busca - Fill Container - Ícone dentro do input */}
