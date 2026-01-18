@@ -4,6 +4,7 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { NewTransactionModal } from '@/components/modals/NewTransactionModal';
 import { FiltersMobileModal } from '@/components/modals/FiltersMobileModal';
+import { AddMemberModal } from '@/components/modals/AddMemberModal';
 
 const SearchIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -36,6 +37,7 @@ export function DashboardHeader() {
   const { isDesktop, isExpanded } = useSidebar();
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isNewTransactionOpen, setIsNewTransactionOpen] = useState(false);
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
 
   const formatPeriod = () => {
     return `${formatDateShort(dateRange.startDate)} - ${formatDateShort(dateRange.endDate)}`;
@@ -87,39 +89,55 @@ export function DashboardHeader() {
             </div>
 
             {/* Widget Membros da Família - avatares em linha (apenas desktop) */}
-            {isDesktop && familyMembers.length > 0 && (
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {familyMembers.map((member) => {
-                  const isSelected = selectedMember === member.id;
-                  return (
-                    <button
-                      key={member.id}
-                      onClick={() => setSelectedMember(isSelected ? null : member.id)}
-                      className={`
-                        w-8 h-8 rounded-full border-2 transition-colors overflow-hidden
-                        ${isSelected 
-                          ? 'border-primary ring-2 ring-primary ring-offset-2' 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-primary'
-                        }
-                      `}
-                      title={member.name}
-                      aria-label={`Filtrar por ${member.name}`}
+            {isDesktop && (
+              <>
+                {familyMembers.length > 0 ? (
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {familyMembers.map((member) => {
+                      const isSelected = selectedMember === member.id;
+                      return (
+                        <button
+                          key={member.id}
+                          onClick={() => setSelectedMember(isSelected ? null : member.id)}
+                          className={`
+                            w-8 h-8 rounded-full border-2 transition-colors overflow-hidden
+                            ${isSelected 
+                              ? 'border-primary ring-2 ring-primary ring-offset-2' 
+                              : 'border-gray-200 dark:border-gray-700 hover:border-primary'
+                            }
+                          `}
+                          title={member.name}
+                          aria-label={`Filtrar por ${member.name}`}
+                        >
+                          {member.avatarUrl ? (
+                            <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
+                              {member.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                    {/* Botão adicionar membro */}
+                    <button 
+                      onClick={() => setIsAddMemberOpen(true)}
+                      className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors"
+                      title="Adicionar membro da família"
                     >
-                      {member.avatarUrl ? (
-                        <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
-                          {member.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                      <span className="text-lg">+</span>
                     </button>
-                  );
-                })}
-                {/* Botão adicionar membro */}
-                <button className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors">
-                  <span className="text-lg">+</span>
-                </button>
-              </div>
+                  </div>
+                ) : (
+                  /* Empty state - botão para adicionar membros */
+                  <button
+                    onClick={() => setIsAddMemberOpen(true)}
+                    className="flex-shrink-0 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-[40px] bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300 whitespace-nowrap text-sm"
+                  >
+                    <span>Adicionar membros</span>
+                  </button>
+                )}
+              </>
             )}
           </div>
 
@@ -140,6 +158,7 @@ export function DashboardHeader() {
       {/* Modals */}
       <NewTransactionModal isOpen={isNewTransactionOpen} onClose={() => setIsNewTransactionOpen(false)} />
       <FiltersMobileModal isOpen={isFiltersOpen} onClose={() => setIsFiltersOpen(false)} />
+      <AddMemberModal isOpen={isAddMemberOpen} onClose={() => setIsAddMemberOpen(false)} />
     </>
   );
 }
