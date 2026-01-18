@@ -88,59 +88,44 @@ export function DashboardHeader() {
               </button>
             </div>
 
-            {/* Widget Membros da Família - avatares em linha (apenas desktop) */}
-            {isDesktop && (
-              <>
-                {familyMembers.length > 0 ? (
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {familyMembers.map((member) => {
-                      const isSelected = selectedMember === member.id;
-                      return (
-                        <button
-                          key={member.id}
-                          onClick={() => setSelectedMember(isSelected ? null : member.id)}
-                          className={`
-                            w-8 h-8 rounded-full border-2 transition-colors overflow-hidden
-                            ${isSelected 
-                              ? 'border-primary ring-2 ring-primary ring-offset-2' 
-                              : 'border-gray-200 dark:border-gray-700 hover:border-primary'
-                            }
-                          `}
-                          title={member.name}
-                          aria-label={`Filtrar por ${member.name}`}
-                        >
-                          {member.avatarUrl ? (
-                            <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
-                              {member.name.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                    {/* Botão adicionar membro */}
-                    <button 
-                      onClick={() => setIsAddMemberOpen(true)}
-                      className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors"
-                      title="Adicionar membro da família"
+            {/* Widget Membros da Família - avatares em linha (apenas desktop, apenas quando há membros) */}
+            {isDesktop && familyMembers.length > 0 && (
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {familyMembers.map((member) => {
+                  const isSelected = selectedMember === member.id;
+                  return (
+                    <button
+                      key={member.id}
+                      onClick={() => setSelectedMember(isSelected ? null : member.id)}
+                      className={`
+                        w-8 h-8 rounded-full border-2 transition-colors overflow-hidden
+                        ${isSelected 
+                          ? 'border-primary ring-2 ring-primary ring-offset-2' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-primary'
+                        }
+                      `}
+                      title={member.name}
+                      aria-label={`Filtrar por ${member.name}`}
                     >
-                      <span className="text-lg">+</span>
+                      {member.avatarUrl ? (
+                        <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
+                          {member.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </button>
-                  </div>
-                ) : (
-                  /* Empty state - botão para adicionar membros (outline) */
-                  <button
-                    onClick={() => setIsAddMemberOpen(true)}
-                    className="flex-shrink-0 px-4 py-2 border border-gray-800 rounded-[40px] bg-transparent hover:bg-brand-100 flex items-center justify-center gap-2 text-gray-900 whitespace-nowrap transition-colors"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                    <span>Adicionar membros</span>
-                  </button>
-                )}
-              </>
+                  );
+                })}
+                {/* Botão adicionar membro */}
+                <button 
+                  onClick={() => setIsAddMemberOpen(true)}
+                  className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors"
+                  title="Adicionar membro da família"
+                >
+                  <span className="text-lg">+</span>
+                </button>
+              </div>
             )}
           </div>
 
