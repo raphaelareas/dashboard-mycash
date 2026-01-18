@@ -111,7 +111,7 @@ export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
         <h2 className="text-xl font-bold text-gray-900">Adicionar Conta/Cartão</h2>
         <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center">
           <CloseIcon />
@@ -191,15 +191,15 @@ export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Saldo Inicial
             </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600">R$</span>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-600 font-medium">R$</span>
               <input
                 type="number"
                 step="0.01"
                 value={balance}
                 onChange={(e) => setBalance(e.target.value)}
                 className={`
-                  w-full h-12 pl-12 pr-4 rounded-lg border
+                  flex-1 h-12 px-4 rounded-lg border
                   ${errors.balance ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
@@ -258,15 +258,15 @@ export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Limite Total
               </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600">R$</span>
+              <div className="flex items-center gap-3">
+                <span className="text-gray-600 font-medium">R$</span>
                 <input
                   type="number"
                   step="0.01"
                   value={limit}
                   onChange={(e) => setLimit(e.target.value)}
                   className={`
-                    w-full h-12 pl-12 pr-4 rounded-lg border
+                    flex-1 h-12 px-4 rounded-lg border
                     ${errors.limit ? 'border-red-500' : 'border-gray-200'}
                     focus:outline-none focus:ring-2 focus:ring-primary
                   `}
@@ -321,7 +321,7 @@ export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+      <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 rounded-b-[16px]">
         <button
           onClick={onClose}
           className="px-6 py-3 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"

@@ -6,6 +6,10 @@ import {
   BankAccount,
   FamilyMember,
 } from '@/types';
+import { useAuth } from './AuthContext';
+import { transactionService } from '@/services/transactionService';
+import { accountService } from '@/services/accountService';
+import { familyMemberService } from '@/services/familyMemberService';
 
 interface DateRange {
   startDate: Date;
@@ -15,10 +19,13 @@ interface DateRange {
 interface FinanceContextType {
   // Dados
   transactions: Transaction[];
-  goals: Goal[];
+  goals: Goal[]; // TODO: Implementar goals service quando necessário
   creditCards: CreditCard[];
   bankAccounts: BankAccount[];
   familyMembers: FamilyMember[];
+
+  // Loading states
+  loading: boolean;
 
   // Filtros
   selectedMember: string | null;
@@ -33,29 +40,30 @@ interface FinanceContextType {
   setSearchText: (text: string) => void;
 
   // CRUD Transactions
-  addTransaction: (transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateTransaction: (id: string, transaction: Partial<Transaction>) => void;
-  deleteTransaction: (id: string) => void;
+  addTransaction: (transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateTransaction: (id: string, transaction: Partial<Transaction>) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
+  refreshTransactions: () => Promise<void>;
 
-  // CRUD Goals
+  // CRUD Goals (mantido para compatibilidade, implementar depois)
   addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateGoal: (id: string, goal: Partial<Goal>) => void;
   deleteGoal: (id: string) => void;
 
   // CRUD CreditCards
-  addCreditCard: (card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateCreditCard: (id: string, card: Partial<CreditCard>) => void;
-  deleteCreditCard: (id: string) => void;
+  addCreditCard: (card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateCreditCard: (id: string, card: Partial<CreditCard>) => Promise<void>;
+  deleteCreditCard: (id: string) => Promise<void>;
 
   // CRUD BankAccounts
-  addBankAccount: (account: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateBankAccount: (id: string, account: Partial<BankAccount>) => void;
-  deleteBankAccount: (id: string) => void;
+  addBankAccount: (account: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateBankAccount: (id: string, account: Partial<BankAccount>) => Promise<void>;
+  deleteBankAccount: (id: string) => Promise<void>;
 
   // CRUD FamilyMembers
-  addFamilyMember: (member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateFamilyMember: (id: string, member: Partial<FamilyMember>) => void;
-  deleteFamilyMember: (id: string) => void;
+  addFamilyMember: (member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateFamilyMember: (id: string, member: Partial<FamilyMember>) => Promise<void>;
+  deleteFamilyMember: (id: string) => Promise<void>;
 
   // Funções de cálculo
   getFilteredTransactions: () => Transaction[];
@@ -68,9 +76,6 @@ interface FinanceContextType {
 }
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
-
-// Função para gerar IDs únicos
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 // Helper para obter início/fim do mês atual
 const getCurrentMonthRange = (): DateRange => {
@@ -85,12 +90,15 @@ interface FinanceProviderProps {
 }
 
 export function FinanceProvider({ children }: FinanceProviderProps) {
-  // Estado inicial dos dados (mock data)
+  const { user } = useAuth();
+
+  // Estado dos dados
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]); // TODO: Implementar quando necessário
   const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Filtros
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -98,115 +106,204 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   const [transactionType, setTransactionType] = useState<'all' | 'income' | 'expense'>('all');
   const [searchText, setSearchText] = useState('');
 
+  // Carregar dados do Supabase quando usuário estiver autenticado
+  useEffect(() => {
+    if (user) {
+      loadAllData();
+    } else {
+      // Limpar dados quando usuário sair
+      setTransactions([]);
+      setCreditCards([]);
+      setBankAccounts([]);
+      setFamilyMembers([]);
+      setGoals([]);
+      setLoading(false);
+    }
+  }, [user]);
+
+  const loadAllData = async () => {
+    if (!user?.id) return;
+
+    setLoading(true);
+    try {
+      // Carregar dados em paralelo
+      const [transactionsData, accountsData, membersData] = await Promise.all([
+        transactionService.getAll(user.id),
+        accountService.getAll(user.id),
+        familyMemberService.getAll(user.id),
+      ]);
+
+      setTransactions(transactionsData);
+      setCreditCards(accountsData.creditCards);
+      setBankAccounts(accountsData.bankAccounts);
+      setFamilyMembers(membersData);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshTransactions = async () => {
+    if (!user?.id) return;
+    try {
+      const data = await transactionService.getAll(user.id);
+      setTransactions(data);
+    } catch (error) {
+      console.error('Erro ao atualizar transações:', error);
+    }
+  };
+
   // CRUD Transactions
-  // TODO: integrar com Supabase - fazer insert/update/delete no banco via MCP
-  const addTransaction = (transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date();
-    const newTransaction: Transaction = {
-      ...transaction,
-      id: generateId(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    setTransactions((prev) => [...prev, newTransaction]);
+  const addTransaction = async (transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const newTransaction = await transactionService.create(transaction);
+      setTransactions((prev) => [newTransaction, ...prev]);
+    } catch (error) {
+      console.error('Erro ao criar transação:', error);
+      throw error;
+    }
   };
 
-  const updateTransaction = (id: string, updates: Partial<Transaction>) => {
-    setTransactions((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates, updatedAt: new Date() } : t))
-    );
+  const updateTransaction = async (id: string, updates: Partial<Transaction>) => {
+    try {
+      const updated = await transactionService.update(id, updates);
+      setTransactions((prev) =>
+        prev.map((t) => (t.id === id ? updated : t))
+      );
+    } catch (error) {
+      console.error('Erro ao atualizar transação:', error);
+      throw error;
+    }
   };
 
-  const deleteTransaction = (id: string) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
+  const deleteTransaction = async (id: string) => {
+    try {
+      await transactionService.delete(id);
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+    } catch (error) {
+      console.error('Erro ao deletar transação:', error);
+      throw error;
+    }
   };
 
-  // CRUD Goals
+  // CRUD Goals (mantido para compatibilidade - TODO: implementar service)
   const addGoal = (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date();
-    const newGoal: Goal = {
-      ...goal,
-      id: generateId(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    setGoals((prev) => [...prev, newGoal]);
+    // TODO: Implementar quando necessário
+    console.warn('Goals service não implementado ainda');
   };
 
-  const updateGoal = (id: string, updates: Partial<Goal>) => {
-    setGoals((prev) =>
-      prev.map((g) => (g.id === id ? { ...g, ...updates, updatedAt: new Date() } : g))
-    );
+  const updateGoal = (id: string, goal: Partial<Goal>) => {
+    // TODO: Implementar quando necessário
+    console.warn('Goals service não implementado ainda');
   };
 
   const deleteGoal = (id: string) => {
-    setGoals((prev) => prev.filter((g) => g.id !== id));
+    // TODO: Implementar quando necessário
+    console.warn('Goals service não implementado ainda');
   };
 
   // CRUD CreditCards
-  const addCreditCard = (card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date();
-    const newCard: CreditCard = {
-      ...card,
-      id: generateId(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    setCreditCards((prev) => [...prev, newCard]);
+  const addCreditCard = async (card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const newCard = await accountService.createCreditCard(card);
+      setCreditCards((prev) => [...prev, newCard]);
+      // Recarregar todos os dados para sincronizar
+      await loadAllData();
+    } catch (error) {
+      console.error('Erro ao criar cartão:', error);
+      throw error;
+    }
   };
 
-  const updateCreditCard = (id: string, updates: Partial<CreditCard>) => {
-    setCreditCards((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...updates, updatedAt: new Date() } : c))
-    );
+  const updateCreditCard = async (id: string, updates: Partial<CreditCard>) => {
+    try {
+      await accountService.update(id, updates);
+      setCreditCards((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, ...updates, updatedAt: new Date() } : c))
+      );
+    } catch (error) {
+      console.error('Erro ao atualizar cartão:', error);
+      throw error;
+    }
   };
 
-  const deleteCreditCard = (id: string) => {
-    setCreditCards((prev) => prev.filter((c) => c.id !== id));
+  const deleteCreditCard = async (id: string) => {
+    try {
+      await accountService.delete(id);
+      setCreditCards((prev) => prev.filter((c) => c.id !== id));
+    } catch (error) {
+      console.error('Erro ao deletar cartão:', error);
+      throw error;
+    }
   };
 
   // CRUD BankAccounts
-  const addBankAccount = (account: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date();
-    const newAccount: BankAccount = {
-      ...account,
-      id: generateId(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    setBankAccounts((prev) => [...prev, newAccount]);
+  const addBankAccount = async (account: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const newAccount = await accountService.createBankAccount(account);
+      setBankAccounts((prev) => [...prev, newAccount]);
+      // Recarregar todos os dados para sincronizar
+      await loadAllData();
+    } catch (error) {
+      console.error('Erro ao criar conta:', error);
+      throw error;
+    }
   };
 
-  const updateBankAccount = (id: string, updates: Partial<BankAccount>) => {
-    setBankAccounts((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, ...updates, updatedAt: new Date() } : a))
-    );
+  const updateBankAccount = async (id: string, updates: Partial<BankAccount>) => {
+    try {
+      await accountService.update(id, updates);
+      setBankAccounts((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, ...updates, updatedAt: new Date() } : a))
+      );
+    } catch (error) {
+      console.error('Erro ao atualizar conta:', error);
+      throw error;
+    }
   };
 
-  const deleteBankAccount = (id: string) => {
-    setBankAccounts((prev) => prev.filter((a) => a.id !== id));
+  const deleteBankAccount = async (id: string) => {
+    try {
+      await accountService.delete(id);
+      setBankAccounts((prev) => prev.filter((a) => a.id !== id));
+    } catch (error) {
+      console.error('Erro ao deletar conta:', error);
+      throw error;
+    }
   };
 
   // CRUD FamilyMembers
-  const addFamilyMember = (member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date();
-    const newMember: FamilyMember = {
-      ...member,
-      id: generateId(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    setFamilyMembers((prev) => [...prev, newMember]);
+  const addFamilyMember = async (member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const newMember = await familyMemberService.create(member);
+      setFamilyMembers((prev) => [...prev, newMember]);
+    } catch (error) {
+      console.error('Erro ao criar membro:', error);
+      throw error;
+    }
   };
 
-  const updateFamilyMember = (id: string, updates: Partial<FamilyMember>) => {
-    setFamilyMembers((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, ...updates, updatedAt: new Date() } : m))
-    );
+  const updateFamilyMember = async (id: string, updates: Partial<FamilyMember>) => {
+    try {
+      const updated = await familyMemberService.update(id, updates);
+      setFamilyMembers((prev) =>
+        prev.map((m) => (m.id === id ? updated : m))
+      );
+    } catch (error) {
+      console.error('Erro ao atualizar membro:', error);
+      throw error;
+    }
   };
 
-  const deleteFamilyMember = (id: string) => {
-    setFamilyMembers((prev) => prev.filter((m) => m.id !== id));
+  const deleteFamilyMember = async (id: string) => {
+    try {
+      await familyMemberService.delete(id);
+      setFamilyMembers((prev) => prev.filter((m) => m.id !== id));
+    } catch (error) {
+      console.error('Erro ao deletar membro:', error);
+      throw error;
+    }
   };
 
   // Funções de cálculo (com filtros aplicados)
@@ -302,244 +399,13 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     return ((income - expenses) / income) * 100;
   };
 
-  // Inicialização de dados mock (uma vez ao montar)
-  // TODO: integrar com Supabase - substituir por fetch de dados reais do backend
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    if (!isInitialized && transactions.length === 0 && familyMembers.length === 0) {
-      initializeMockData();
-      setIsInitialized(true);
-    }
-  }, [isInitialized]);
-
-  function initializeMockData() {
-    const now = new Date();
-    const threeMonthsAgo = new Date(now);
-    threeMonthsAgo.setMonth(now.getMonth() - 3);
-
-    // Mock Family Members
-    const mockMembers: FamilyMember[] = [
-      {
-        id: generateId(),
-        userId: 'user-1',
-        name: 'Raphael A.',
-        email: 'raphaelareas@gmail.com',
-        role: 'owner',
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: generateId(),
-        userId: 'user-2',
-        name: 'Maria Silva',
-        email: 'maria@example.com',
-        role: 'member',
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: generateId(),
-        userId: 'user-3',
-        name: 'João Santos',
-        email: 'joao@example.com',
-        role: 'member',
-        createdAt: now,
-        updatedAt: now,
-      },
-    ];
-    setFamilyMembers(mockMembers);
-
-    // Mock Bank Accounts
-    const mockAccounts: BankAccount[] = [
-      {
-        id: generateId(),
-        name: 'Conta Corrente',
-        bankName: 'Nubank',
-        accountNumber: '12345678',
-        type: 'checking',
-        balance: 5359.0,
-        currency: 'BRL',
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: generateId(),
-        name: 'Conta Poupança',
-        bankName: 'Inter',
-        accountNumber: '87654321',
-        type: 'savings',
-        balance: 12000.0,
-        currency: 'BRL',
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-    ];
-    setBankAccounts(mockAccounts);
-
-    // Mock Credit Cards
-    const mockCards: CreditCard[] = [
-      {
-        id: generateId(),
-        name: 'Cartão Nubank',
-        type: 'credit',
-        brand: 'mastercard',
-        lastFourDigits: '1234',
-        expirationMonth: 12,
-        expirationYear: 2025,
-        dueDay: 20,
-        limit: 5000,
-        currentBalance: 895.0,
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: generateId(),
-        name: 'Cartão Inter',
-        type: 'credit',
-        brand: 'visa',
-        lastFourDigits: '5678',
-        expirationMonth: 11,
-        expirationYear: 2025,
-        dueDay: 10,
-        limit: 3000,
-        currentBalance: 745.0,
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-    ];
-    setCreditCards(mockCards);
-
-    // Mock Transactions (25 transações nos últimos 3 meses)
-    const mockTransactions: Transaction[] = [];
-    const categories: Transaction['category'][] = ['rent', 'food', 'shopping', 'household', 'transport', 'entertainment', 'health'];
-    const descriptions = [
-      'Aluguel', 'Supermercado', 'Farmácia', 'Uber', 'Netflix',
-      'Restaurante', 'Academia', 'Roupas', 'Conta de luz', 'Gás',
-      'Internet', 'Celular', 'Padaria', 'Posto de gasolina', 'Cinema',
-      'Salário', 'Freelance', 'Dividendos', 'Venda', 'Reembolso',
-    ];
-
-    for (let i = 0; i < 25; i++) {
-      const isIncome = Math.random() > 0.7;
-      const daysAgo = Math.floor(Math.random() * 90);
-      const transactionDate = new Date(now);
-      transactionDate.setDate(transactionDate.getDate() - daysAgo);
-
-      mockTransactions.push({
-        id: generateId(),
-        type: isIncome ? 'income' : 'expense',
-        category: categories[Math.floor(Math.random() * categories.length)],
-        amount: isIncome 
-          ? Math.floor(Math.random() * 5000) + 1000
-          : Math.floor(Math.random() * 500) + 50,
-        description: descriptions[Math.floor(Math.random() * descriptions.length)],
-        date: transactionDate,
-        accountId: mockAccounts[0].id,
-        createdAt: transactionDate,
-        updatedAt: transactionDate,
-      });
-    }
-
-    // Adicionar algumas transações do mês atual para garantir 4 categorias
-    mockTransactions.push(
-      {
-        id: generateId(),
-        type: 'income',
-        category: 'other',
-        amount: 23000,
-        description: 'Salário',
-        date: new Date(now.getFullYear(), now.getMonth(), 1),
-        accountId: mockAccounts[0].id,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: generateId(),
-        type: 'expense',
-        category: 'rent',
-        amount: 4000,
-        description: 'Aluguel',
-        date: new Date(now.getFullYear(), now.getMonth(), 5),
-        accountId: mockAccounts[0].id,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: generateId(),
-        type: 'expense',
-        category: 'food',
-        amount: 2500,
-        description: 'Supermercado',
-        date: new Date(now.getFullYear(), now.getMonth(), 10),
-        accountId: mockAccounts[0].id,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: generateId(),
-        type: 'expense',
-        category: 'shopping',
-        amount: 1500,
-        description: 'Compras',
-        date: new Date(now.getFullYear(), now.getMonth(), 12),
-        accountId: mockAccounts[0].id,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: generateId(),
-        type: 'expense',
-        category: 'household',
-        amount: 1200,
-        description: 'Contas de casa',
-        date: new Date(now.getFullYear(), now.getMonth(), 15),
-        accountId: mockAccounts[0].id,
-        createdAt: now,
-        updatedAt: now,
-      }
-    );
-
-    setTransactions(mockTransactions);
-
-    // Mock Goals
-    const mockGoals: Goal[] = [
-      {
-        id: generateId(),
-        title: 'Viagem para Europa',
-        description: 'Economia para viagem de 15 dias',
-        targetAmount: 15000,
-        currentAmount: 8500,
-        deadline: new Date(now.getFullYear(), now.getMonth() + 6, 1),
-        status: 'active',
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: generateId(),
-        title: 'Reserva de Emergência',
-        description: '6 meses de despesas',
-        targetAmount: 50000,
-        currentAmount: 25000,
-        deadline: new Date(now.getFullYear() + 1, 0, 1),
-        status: 'active',
-        createdAt: now,
-        updatedAt: now,
-      },
-    ];
-    setGoals(mockGoals);
-  }
-
   const value: FinanceContextType = {
     transactions,
     goals,
     creditCards,
     bankAccounts,
     familyMembers,
+    loading,
     selectedMember,
     dateRange,
     transactionType,
@@ -551,6 +417,7 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     addTransaction,
     updateTransaction,
     deleteTransaction,
+    refreshTransactions,
     addGoal,
     updateGoal,
     deleteGoal,

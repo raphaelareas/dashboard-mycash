@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Modal } from '@/components/ui/Modal';
+import { CreateCategoryModal } from '@/components/modals/CreateCategoryModal';
+import { AddMemberModal } from '@/components/modals/AddMemberModal';
+import { AddCardModal } from '@/components/modals/AddCardModal';
 import { TransactionCategory } from '@/types';
 
 interface NewTransactionModalProps {
@@ -34,10 +37,20 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<TransactionCategory | ''>('');
+  const [customCategory, setCustomCategory] = useState('');
   const [memberId, setMemberId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState('');
   const [installments, setInstallments] = useState(1);
   const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<'weekly' | 'biweekly' | 'monthly' | 'yearly'>('monthly');
+  const [recurrenceCount, setRecurrenceCount] = useState(1);
+  const [transactionDate, setTransactionDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
+  const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const isCreditCard = creditCards.some(c => c.id === accountId);
@@ -45,17 +58,31 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   useEffect(() => {
     if (!isOpen) {
       // Reset form
+      const today = new Date();
       setType('expense');
       setAmount('');
       setDescription('');
       setCategory('');
+      setCustomCategory('');
       setMemberId(null);
       setAccountId('');
       setInstallments(1);
       setIsRecurring(false);
+      setRecurrenceFrequency('monthly');
+      setRecurrenceCount(1);
+      setTransactionDate(today.toISOString().split('T')[0]);
+      setIsCreateCategoryModalOpen(false);
+      setIsAddMemberModalOpen(false);
+      setIsAddCardModalOpen(false);
       setErrors({});
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (category !== 'other') {
+      setCustomCategory('');
+    }
+  }, [category]);
 
   useEffect(() => {
     if (isRecurring) {
@@ -78,6 +105,10 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       newErrors.category = 'Selecione uma categoria';
     }
 
+    if (category === 'other' && !customCategory.trim()) {
+      newErrors.customCategory = 'Informe o nome da categoria';
+    }
+
     if (!accountId) {
       newErrors.accountId = 'Selecione uma conta ou cartão';
     }
@@ -91,8 +122,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       type,
       category: category as TransactionCategory,
       amount: parseFloat(amount),
-      description,
-      date: new Date(),
+      description: category === 'other' && customCategory ? `${customCategory}: ${description}` : description,
+      date: new Date(transactionDate),
       accountId,
       memberId,
       installments: isCreditCard && type === 'expense' ? installments : 1,
@@ -104,9 +135,9 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} fullScreen>
+    <Modal isOpen={isOpen} onClose={onClose}>
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
         <div className="flex items-center gap-4">
           <div className={`
             w-16 h-16 rounded-full flex items-center justify-center
@@ -155,20 +186,33 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             </button>
           </div>
 
+          {/* Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Data da Transação
+            </label>
+            <input
+              type="date"
+              value={transactionDate}
+              onChange={(e) => setTransactionDate(e.target.value)}
+              className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
           {/* Amount */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Valor da Transação
             </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600">R$</span>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-600 font-medium">R$</span>
               <input
                 type="number"
                 step="0.01"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className={`
-                  w-full h-14 pl-12 pr-4 rounded-lg border
+                  flex-1 h-14 px-4 rounded-lg border
                   ${errors.amount ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
@@ -202,43 +246,76 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Categoria
             </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as TransactionCategory)}
-              className={`
-                w-full h-14 px-4 rounded-lg border
-                ${errors.category ? 'border-red-500' : 'border-gray-200'}
-                focus:outline-none focus:ring-2 focus:ring-primary
-              `}
-            >
-              <option value="">Selecione uma categoria</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat === 'rent' ? 'Aluguel' :
-                   cat === 'food' ? 'Alimentação' :
-                   cat === 'shopping' ? 'Compras' :
-                   cat === 'household' ? 'Contas de casa' :
-                   cat === 'transport' ? 'Transporte' :
-                   cat === 'entertainment' ? 'Entretenimento' :
-                   cat === 'health' ? 'Saúde' :
-                   cat === 'education' ? 'Educação' : 'Outros'}
-                </option>
-              ))}
-            </select>
+            <div className="flex gap-3">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as TransactionCategory)}
+                className={`
+                  flex-1 h-14 px-4 rounded-lg border
+                  ${errors.category ? 'border-red-500' : 'border-gray-200'}
+                  focus:outline-none focus:ring-2 focus:ring-primary
+                `}
+                style={{ paddingRight: '1rem' }}
+              >
+                <option value="">Selecione uma categoria</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat === 'rent' ? 'Aluguel' :
+                     cat === 'food' ? 'Alimentação' :
+                     cat === 'shopping' ? 'Compras' :
+                     cat === 'household' ? 'Contas de casa' :
+                     cat === 'transport' ? 'Transporte' :
+                     cat === 'entertainment' ? 'Entretenimento' :
+                     cat === 'health' ? 'Saúde' :
+                     cat === 'education' ? 'Educação' : 'Outros'}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setIsCreateCategoryModalOpen(true)}
+                className="px-6 h-14 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+              >
+                Adicionar categoria
+              </button>
+            </div>
             {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
+            
+            {/* Campo para categoria customizada quando "Outros" é selecionado */}
+            {category === 'other' && (
+              <div className="mt-3 animate-fade-in">
+                <input
+                  type="text"
+                  value={customCategory}
+                  onChange={(e) => {
+                    setCustomCategory(e.target.value);
+                    if (errors.customCategory) {
+                      setErrors({ ...errors, customCategory: '' });
+                    }
+                  }}
+                  placeholder="Nome da nova categoria"
+                  className={`
+                    w-full h-14 px-4 rounded-lg border
+                    ${errors.customCategory ? 'border-red-500' : 'border-gray-200'}
+                    focus:outline-none focus:ring-2 focus:ring-primary
+                  `}
+                />
+                {errors.customCategory && <p className="mt-1 text-sm text-red-600">{errors.customCategory}</p>}
+              </div>
+            )}
           </div>
 
-          {/* Member and Account Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Member */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Membro (opcional)
-              </label>
+          {/* Member */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Membro (opcional)
+            </label>
+            <div className="flex gap-3">
               <select
                 value={memberId || ''}
                 onChange={(e) => setMemberId(e.target.value || null)}
-                className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="flex-1 h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                style={{ paddingRight: '1rem' }}
               >
                 <option value="">Família (Geral)</option>
                 {familyMembers.map((member) => (
@@ -247,21 +324,31 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                   </option>
                 ))}
               </select>
+              <button
+                type="button"
+                onClick={() => setIsAddMemberModalOpen(true)}
+                className="px-6 h-14 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+              >
+                Adicionar membro
+              </button>
             </div>
+          </div>
 
-            {/* Account */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Conta / Cartão
-              </label>
+          {/* Account */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Conta / Cartão
+            </label>
+            <div className="flex gap-3">
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
                 className={`
-                  w-full h-14 px-4 rounded-lg border
+                  flex-1 h-14 px-4 rounded-lg border
                   ${errors.accountId ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
+                style={{ paddingRight: '1rem' }}
               >
                 <option value="">Selecione</option>
                 <optgroup label="Contas Bancárias">
@@ -279,8 +366,15 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                   ))}
                 </optgroup>
               </select>
-              {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}
+              <button
+                type="button"
+                onClick={() => setIsAddCardModalOpen(true)}
+                className="px-6 h-14 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+              >
+                Criar novo método
+              </button>
             </div>
+            {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}
           </div>
 
           {/* Installments (only for credit card expenses) */}
@@ -294,6 +388,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 onChange={(e) => setInstallments(parseInt(e.target.value))}
                 disabled={isRecurring}
                 className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                style={{ paddingRight: '1rem' }}
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
                   <option key={num} value={num}>
@@ -328,18 +423,55 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                   <p className="text-sm text-gray-600 mt-1">
                     {installments > 1
                       ? 'Não disponível para compras parceladas'
-                      : 'Esta despesa será repetida automaticamente todo mês'
+                      : 'Esta despesa será repetida automaticamente'
                     }
                   </p>
                 </div>
               </div>
+
+              {/* Campos de recorrência quando marcado */}
+              {isRecurring && installments === 1 && (
+                <div className="mt-4 space-y-4 animate-fade-in">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Frequência
+                      </label>
+                      <select
+                        value={recurrenceFrequency}
+                        onChange={(e) => setRecurrenceFrequency(e.target.value as 'weekly' | 'biweekly' | 'monthly' | 'yearly')}
+                        className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                        style={{ paddingRight: '1rem' }}
+                      >
+                        <option value="weekly">Semanal</option>
+                        <option value="biweekly">Quinzenal</option>
+                        <option value="monthly">Mensal</option>
+                        <option value="yearly">Anual</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Quantidade de Vezes
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={recurrenceCount}
+                        onChange={(e) => setRecurrenceCount(parseInt(e.target.value) || 1)}
+                        className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Ex: 12"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-white">
+      <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-white rounded-b-[16px]">
         <button
           onClick={onClose}
           className="px-6 py-3 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
@@ -353,6 +485,29 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           Salvar Transação
         </button>
       </div>
+
+      {/* Modal de Criar Categoria */}
+      <CreateCategoryModal
+        isOpen={isCreateCategoryModalOpen}
+        onClose={() => setIsCreateCategoryModalOpen(false)}
+        onSave={(categoryName) => {
+          setCategory('other');
+          setCustomCategory(categoryName);
+          setIsCreateCategoryModalOpen(false);
+        }}
+      />
+
+      {/* Modal de Adicionar Membro */}
+      <AddMemberModal
+        isOpen={isAddMemberModalOpen}
+        onClose={() => setIsAddMemberModalOpen(false)}
+      />
+
+      {/* Modal de Adicionar Cartão/Conta */}
+      <AddCardModal
+        isOpen={isAddCardModalOpen}
+        onClose={() => setIsAddCardModalOpen(false)}
+      />
     </Modal>
   );
 }

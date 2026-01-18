@@ -39,7 +39,7 @@ export function Modal({ isOpen, onClose, children, fullScreen = false }: ModalPr
       `}>
         <div
           className={`
-            bg-white rounded-lg shadow-xl
+            bg-white rounded-[16px] shadow-xl
             w-full max-w-2xl max-h-[90vh]
             flex flex-col
             ${fullScreen ? 'w-full h-full max-w-none max-h-none rounded-none' : ''}

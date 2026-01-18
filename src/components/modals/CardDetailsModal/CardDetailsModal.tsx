@@ -60,7 +60,7 @@ export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEd
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
         <h2 className="text-xl font-bold text-gray-900">{card.name}</h2>
         <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center">
           <CloseIcon />
@@ -204,7 +204,7 @@ export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEd
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between gap-3 p-6 border-t border-gray-200 bg-white">
+      <div className="flex items-center justify-between gap-3 p-6 border-t border-gray-200 bg-white rounded-b-[16px]">
         <button
           onClick={() => onEditCard?.(card)}
           className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
