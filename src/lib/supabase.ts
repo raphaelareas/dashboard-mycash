@@ -295,14 +295,30 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 const hasValidConfig = supabaseUrl && supabaseAnonKey && 
   !supabaseUrl.includes('placeholder') && 
-  !supabaseAnonKey.includes('placeholder');
+  !supabaseAnonKey.includes('placeholder') &&
+  supabaseUrl.startsWith('https://') &&
+  supabaseAnonKey.length > 20; // Chave anon geralmente tem mais de 20 caracteres
 
 if (!hasValidConfig) {
-  console.warn(
-    '⚠️ Supabase URL or Anon Key not found or invalid.\n' +
-    'Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables.\n' +
-    'Current values:', { url: supabaseUrl ? '***configured***' : 'missing', key: supabaseAnonKey ? '***configured***' : 'missing' }
-  );
+  const errorMsg = `⚠️ CONFIGURAÇÃO SUPABASE INVÁLIDA
+
+Variáveis de ambiente necessárias:
+- VITE_SUPABASE_URL: ${supabaseUrl ? '***configurado***' : '❌ FALTANDO'}
+- VITE_SUPABASE_ANON_KEY: ${supabaseAnonKey ? '***configurado***' : '❌ FALTANDO'}
+
+Por favor, configure essas variáveis na Vercel:
+1. Settings → Environment Variables
+2. Adicione VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY
+3. Faça redeploy
+
+Sem essas variáveis, o signup/login não funcionará.`;
+
+  console.error(errorMsg);
+  
+  // Mostrar alerta no navegador em desenvolvimento
+  if (import.meta.env.DEV) {
+    alert(errorMsg);
+  }
 }
 
 // @ts-ignore - Database types serão gerados depois das migrations
@@ -318,3 +334,6 @@ export const supabase = createClient<any>(
     },
   }
 );
+
+// Helper para verificar se Supabase está configurado
+export const isSupabaseConfigured = () => hasValidConfig;

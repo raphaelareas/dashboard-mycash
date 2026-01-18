@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -73,6 +73,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    // Verificar se Supabase está configurado antes de tentar
+    if (!isSupabaseConfigured()) {
+      const authError: any = {
+        message: 'Supabase não está configurado. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY nas variáveis de ambiente da Vercel.',
+      };
+      return { error: authError };
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -114,14 +122,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const authError: any = {
         message: err.message || 'Erro ao conectar com o servidor. Verifique sua conexão.',
       };
-      if (err.message?.includes('fetch') || err.message?.includes('network')) {
-        authError.message = 'Não foi possível conectar ao servidor. Verifique se as variáveis de ambiente do Supabase estão configuradas.';
+      if (err.message?.includes('fetch') || err.message?.includes('network') || err.message?.includes('Failed to fetch')) {
+        authError.message = 'Não foi possível conectar ao Supabase. Verifique se as variáveis de ambiente (VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY) estão configuradas corretamente na Vercel.';
       }
       return { error: authError };
     }
   };
 
   const signUp = async (email: string, password: string, name: string) => {
+    // Verificar se Supabase está configurado antes de tentar
+    if (!isSupabaseConfigured()) {
+      const authError: any = {
+        message: 'Supabase não está configurado. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY nas variáveis de ambiente da Vercel.',
+      };
+      return { error: authError };
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -154,8 +170,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const authError: any = {
         message: err.message || 'Erro ao conectar com o servidor. Verifique sua conexão.',
       };
-      if (err.message?.includes('fetch') || err.message?.includes('network')) {
-        authError.message = 'Não foi possível conectar ao servidor. Verifique se as variáveis de ambiente do Supabase estão configuradas.';
+      if (err.message?.includes('fetch') || err.message?.includes('network') || err.message?.includes('Failed to fetch')) {
+        authError.message = 'Não foi possível conectar ao Supabase. Verifique se as variáveis de ambiente (VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY) estão configuradas corretamente na Vercel.';
       }
       return { error: authError };
     }
