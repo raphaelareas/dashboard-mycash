@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -13,7 +12,6 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   
   const { signIn, signUp } = useAuth();
-  const navigate = useNavigate();
 
   // Efeito para gerenciar o redirecionamento após sucesso
   useEffect(() => {
@@ -25,8 +23,9 @@ export default function Login() {
       }, 1000);
 
       // Redirecionar após máximo 3 segundos (1s feedback + 2s loading)
+      // Usar window.location para forçar reload completo e garantir que AuthContext reconheça o usuário
       const redirectTimer = setTimeout(() => {
-        navigate('/');
+        window.location.href = '/';
       }, 3000);
 
       return () => {
@@ -34,7 +33,7 @@ export default function Login() {
         clearTimeout(redirectTimer);
       };
     }
-  }, [success, navigate]);
+  }, [success]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
