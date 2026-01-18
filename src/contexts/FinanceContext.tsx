@@ -188,17 +188,17 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   };
 
   // CRUD Goals (mantido para compatibilidade - TODO: implementar service)
-  const addGoal = (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addGoal = (_goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'>) => {
     // TODO: Implementar quando necessário
     console.warn('Goals service não implementado ainda');
   };
 
-  const updateGoal = (id: string, goal: Partial<Goal>) => {
+  const updateGoal = (_id: string, _goal: Partial<Goal>) => {
     // TODO: Implementar quando necessário
     console.warn('Goals service não implementado ainda');
   };
 
-  const deleteGoal = (id: string) => {
+  const deleteGoal = (_id: string) => {
     // TODO: Implementar quando necessário
     console.warn('Goals service não implementado ainda');
   };

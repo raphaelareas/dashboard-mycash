@@ -10,10 +10,6 @@ const mapTransactionTypeToDb = (type: TransactionType): 'INCOME' | 'EXPENSE' => 
   return type === 'income' ? 'INCOME' : 'EXPENSE';
 };
 
-const mapTransactionStatus = (status: string): 'PENDING' | 'COMPLETED' => {
-  return status === 'PENDING' ? 'PENDING' : 'COMPLETED';
-};
-
 // Mapear nome de categoria do banco para TransactionCategory
 const mapCategoryName = (categoryName: string | null | undefined): TransactionCategory => {
   if (!categoryName) return 'other';
