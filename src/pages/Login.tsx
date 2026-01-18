@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,15 +8,40 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
+  // Efeito para gerenciar o redirecionamento após sucesso
+  useEffect(() => {
+    if (success) {
+      // Mostrar feedback de sucesso por 1 segundo, depois tela de loading
+      const timer = setTimeout(() => {
+        setSuccess(false);
+        setRedirecting(true);
+      }, 1000);
+
+      // Redirecionar após máximo 3 segundos (1s feedback + 2s loading)
+      const redirectTimer = setTimeout(() => {
+        navigate('/');
+      }, 3000);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(redirectTimer);
+      };
+    }
+  }, [success, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    setSuccess(false);
+    setRedirecting(false);
 
     try {
       if (isSignUp) {
@@ -28,24 +53,40 @@ export default function Login() {
         const { error } = await signUp(email, password, name);
         if (error) {
           setError(error.message || 'Erro ao criar conta');
+          setLoading(false);
         } else {
-          // Signup bem-sucedido - redirecionar para dashboard
-          navigate('/');
+          // Signup bem-sucedido - mostrar feedback
+          setLoading(false);
+          setSuccess(true);
         }
       } else {
         const { error } = await signIn(email, password);
         if (error) {
           setError(error.message || 'Email ou senha inválidos');
+          setLoading(false);
         } else {
-          navigate('/');
+          // Login bem-sucedido - mostrar feedback
+          setLoading(false);
+          setSuccess(true);
         }
       }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro inesperado');
-    } finally {
       setLoading(false);
     }
   };
+
+  // Tela de loading de redirecionamento
+  if (redirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Redirecionando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -88,7 +129,7 @@ export default function Login() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="Seu nome"
                 />
               </div>
@@ -104,7 +145,7 @@ export default function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="seu@email.com"
               />
             </div>
@@ -119,7 +160,7 @@ export default function Login() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="••••••••"
                 minLength={6}
               />
@@ -138,10 +179,21 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full h-14 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || success}
+              className={`w-full h-14 font-medium rounded-[40px] transition-all disabled:cursor-not-allowed ${
+                success
+                  ? 'bg-green-600 text-white'
+                  : 'bg-black text-white hover:bg-gray-800 disabled:opacity-50'
+              }`}
             >
-              {loading ? 'Processando...' : isSignUp ? 'Criar conta' : 'Entrar'}
+              {success 
+                ? (isSignUp ? '✓ Conta criada com sucesso!' : '✓ Login realizado com sucesso!')
+                : loading 
+                  ? 'Processando...' 
+                  : isSignUp 
+                    ? 'Criar conta' 
+                    : 'Entrar'
+              }
             </button>
           </form>
 
