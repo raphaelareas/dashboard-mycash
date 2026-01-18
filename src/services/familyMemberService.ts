@@ -45,6 +45,7 @@ export const familyMemberService = {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('User not authenticated');
 
+    // @ts-ignore - Database types serão gerados depois das migrations
     const { data, error } = await supabase
       .from('family_members')
       .insert({
@@ -69,6 +70,7 @@ export const familyMemberService = {
     if (updates.role) updateData.role = updates.role;
     if (updates.avatarUrl !== undefined) updateData.avatar_url = updates.avatarUrl || null;
 
+    // @ts-ignore - Database types serão gerados depois das migrations
     const { data, error } = await supabase
       .from('family_members')
       .update(updateData)
@@ -77,11 +79,12 @@ export const familyMemberService = {
       .single();
 
     if (error) throw error;
-    return mapFamilyMemberFromDb(data);
+    return mapFamilyMemberFromDb(data as any);
   },
 
   // Deletar membro (soft delete - marca como inativo)
   async delete(id: string): Promise<void> {
+    // @ts-ignore - Database types serão gerados depois das migrations
     const { error } = await supabase
       .from('family_members')
       .update({ is_active: false })

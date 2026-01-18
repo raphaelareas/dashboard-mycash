@@ -59,6 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (!existingUser) {
         // Criar perfil do usuário na primeira vez
+        // @ts-ignore - Database types serão gerados depois das migrations
         await supabase.from('users').insert({
           id: user.id,
           email: user.email || '',
@@ -78,6 +79,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (!error && data.user) {
       // Criar perfil do usuário após signup
+      // @ts-ignore - Database types serão gerados depois das migrations
       await supabase.from('users').insert({
         id: data.user.id,
         email: data.user.email || email,

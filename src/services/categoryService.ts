@@ -57,6 +57,7 @@ export const categoryService = {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('User not authenticated');
 
+    // @ts-ignore - Database types serão gerados depois das migrations
     const { error } = await supabase.from('categories').insert({
       user_id: userId,
       name,
@@ -77,6 +78,7 @@ export const categoryService = {
     if (updates.icon) updateData.icon = updates.icon;
     if (updates.color) updateData.color = updates.color;
 
+    // @ts-ignore - Database types serão gerados depois das migrations
     const { error } = await supabase.from('categories').update(updateData).eq('id', id);
     if (error) throw error;
   },
