@@ -49,6 +49,12 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
+const AvatarIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M21 23V20.5557C21 19.5316 20.5837 18.5446 19.8359 17.8135C19.1341 17.1274 18.194 16.7201 17.1992 16.6719L17 16.667H7C5.93212 16.667 4.91254 17.0818 4.16406 17.8135C3.41632 18.5446 3 19.5316 3 20.5557V23C3 23.5523 2.55228 24 2 24C1.44772 24 1 23.5523 1 23V20.5557C1 18.9865 1.63801 17.4863 2.76562 16.3838C3.89248 15.282 5.41588 14.667 7 14.667H17C18.5841 14.667 20.1075 15.282 21.2344 16.3838C22.362 17.4863 23 18.9865 23 20.5557V23C23 23.5523 22.5523 24 22 24C21.4477 24 21 23.5523 21 23ZM16 5.88867C15.9999 3.76206 14.2304 2 12 2C9.76963 2 8.00012 3.76206 8 5.88867C8 8.01538 9.76956 9.77734 12 9.77734C14.2304 9.77734 16 8.01538 16 5.88867ZM18 5.88867C18 9.16208 15.2924 11.7773 12 11.7773C8.7076 11.7773 6 9.16208 6 5.88867C6.00012 2.61536 8.70767 0 12 0C15.2923 0 17.9999 2.61536 18 5.88867Z" fill="currentColor" />
+  </svg>
+);
+
 export function Sidebar() {
   const { isExpanded, isDesktop, toggle } = useSidebar();
 
@@ -116,7 +122,9 @@ export function Sidebar() {
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           {isExpanded ? (
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0"></div>
+              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0 flex items-center justify-center text-gray-600 dark:text-gray-400">
+                <AvatarIcon />
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">Raphael A.</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">raphaelareas@gmail.com</p>
@@ -124,7 +132,9 @@ export function Sidebar() {
             </div>
           ) : (
             <div className="flex items-center justify-center">
-              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0"></div>
+              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0 flex items-center justify-center text-gray-600 dark:text-gray-400">
+                <AvatarIcon />
+              </div>
             </div>
           )}
         </div>

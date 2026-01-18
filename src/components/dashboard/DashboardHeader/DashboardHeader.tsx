@@ -32,6 +32,16 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
+// Função helper para extrair iniciais de nomes completos
+// Ex: "Raphael Areas" → "RA", "Bruna Machado" → "BM"
+const getInitials = (name: string): string => {
+  const words = name.trim().split(/\s+/);
+  if (words.length === 0) return '';
+  if (words.length === 1) return words[0].charAt(0).toUpperCase();
+  // Pegar primeira letra do primeiro e último nome
+  return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+};
+
 export function DashboardHeader() {
   const { searchText, setSearchText, dateRange, familyMembers, selectedMember, setSelectedMember } = useFinance();
   const { isDesktop, isExpanded } = useSidebar();
@@ -110,8 +120,8 @@ export function DashboardHeader() {
                       {member.avatarUrl ? (
                         <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
-                          {member.name.charAt(0).toUpperCase()}
+                        <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400 font-medium">
+                          {getInitials(member.name)}
                         </div>
                       )}
                     </button>
