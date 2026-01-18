@@ -51,8 +51,8 @@ export function DashboardHeader() {
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center w-full">
           {/* BLOCO ESQUERDO: Pesquisa + Filtros + Date Picker + Membros */}
           <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full items-start sm:items-center">
-            {/* Campo de Busca - Fill Container - Ícone dentro do input */}
-            <div className="relative flex-1 w-full min-w-0">
+            {/* Campo de Busca - Máximo 600px - Ícone dentro do input */}
+            <div className="relative flex-1 w-full min-w-0 max-w-[600px]">
               <div className="flex items-center gap-2 pl-3 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-[40px] bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary">
                 <div className="text-gray-400 flex-shrink-0 pointer-events-none">
                   <SearchIcon />
