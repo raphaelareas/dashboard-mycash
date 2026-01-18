@@ -25,10 +25,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
+    let isMounted = true;
     
     // Timeout de segurança: se após 5 segundos ainda estiver carregando, forçar loading = false
     timeoutId = setTimeout(() => {
-      if (loading) {
+      if (isMounted) {
         console.warn('Timeout ao verificar autenticação - assumindo não autenticado');
         setLoading(false);
       }
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Verificar sessão inicial
     supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!isMounted) return;
       clearTimeout(timeoutId);
       if (error) {
         console.error('Erro ao obter sessão:', error);
@@ -44,6 +46,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(session?.user ?? null);
       setLoading(false);
     }).catch((error) => {
+      if (!isMounted) return;
       clearTimeout(timeoutId);
       console.error('Erro ao verificar sessão:', error);
       setSession(null);
@@ -55,6 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
       clearTimeout(timeoutId);
       setSession(session || null);
       setUser(session?.user ?? null);
@@ -62,6 +66,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     return () => {
+      isMounted = false;
       clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
