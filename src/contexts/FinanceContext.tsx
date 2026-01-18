@@ -108,7 +108,7 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
 
   // Carregar dados do Supabase quando usuário estiver autenticado
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       loadAllData();
     } else {
       // Limpar dados quando usuário sair
@@ -119,7 +119,7 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
       setGoals([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user?.id]);
 
   const loadAllData = async () => {
     if (!user?.id) return;
