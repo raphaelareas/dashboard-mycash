@@ -180,12 +180,19 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
         <div className="flex items-center gap-4">
-          <div className={`
-            w-16 h-16 rounded-full flex items-center justify-center
-            ${type === 'income' ? 'bg-lime-500' : 'bg-gray-900'}
-            text-white
-          `}>
-            {type === 'income' ? <IncomeArrowIcon /> : <ExpenseArrowIcon />}
+          <div 
+            className="w-16 h-16 rounded-full flex items-center justify-center"
+            style={{ 
+              backgroundColor: type === 'income' ? '#A1E5C9' : '#111827'
+            }}
+          >
+            {type === 'income' ? (
+              <div style={{ color: '#0D7248' }}>
+                <IncomeArrowIcon />
+              </div>
+            ) : (
+              <ExpenseArrowIcon />
+            )}
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Nova Transação</h2>
@@ -292,11 +299,11 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 value={category}
                 onChange={(e) => setCategory(e.target.value as TransactionCategory)}
                 className={`
-                  flex-1 h-14 px-4 rounded-lg border
+                  flex-1 h-14 px-4 rounded-lg border min-w-0
                   ${errors.category ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
-                style={{ paddingRight: '1rem' }}
+                style={{ paddingRight: '24px' }}
               >
                 <option value="">Selecione uma categoria</option>
                 {categories.map((cat) => (
@@ -356,8 +363,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <select
                 value={memberId || ''}
                 onChange={(e) => setMemberId(e.target.value || null)}
-                className="flex-1 h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
-                style={{ paddingRight: '1rem' }}
+                className="flex-1 h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary min-w-0"
+                style={{ paddingRight: '24px' }}
               >
                 <option value="">Família (Geral)</option>
                 {familyMembers.map((member) => (
@@ -387,11 +394,11 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
                 className={`
-                  flex-1 h-14 px-4 rounded-lg border
+                  flex-1 h-14 px-4 rounded-lg border min-w-0
                   ${errors.accountId ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
-                style={{ paddingRight: '1rem' }}
+                style={{ paddingRight: '24px' }}
               >
                 <option value="">Selecione</option>
                 <optgroup label="Contas Bancárias">
