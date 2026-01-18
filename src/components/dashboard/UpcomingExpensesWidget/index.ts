@@ -1,0 +1,1 @@
+export { UpcomingExpensesWidget } from './UpcomingExpensesWidget';

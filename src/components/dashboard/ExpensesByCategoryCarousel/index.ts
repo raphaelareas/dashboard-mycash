@@ -1,0 +1,1 @@
+export { ExpensesByCategoryCarousel } from './ExpensesByCategoryCarousel';
