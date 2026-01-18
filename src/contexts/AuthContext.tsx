@@ -24,10 +24,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    // Timeout de segurança: se após 5 segundos ainda estiver carregando, forçar loading = false
+    timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn('Timeout ao verificar autenticação - assumindo não autenticado');
+        setLoading(false);
+      }
+    }, 5000);
+
     // Verificar sessão inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      clearTimeout(timeoutId);
+      if (error) {
+        console.error('Erro ao obter sessão:', error);
+      }
+      setSession(session || null);
       setUser(session?.user ?? null);
+      setLoading(false);
+    }).catch((error) => {
+      clearTimeout(timeoutId);
+      console.error('Erro ao verificar sessão:', error);
+      setSession(null);
+      setUser(null);
       setLoading(false);
     });
 
@@ -35,12 +55,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      clearTimeout(timeoutId);
+      setSession(session || null);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {

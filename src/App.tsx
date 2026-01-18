@@ -15,6 +15,8 @@ import Goals from './pages/Goals';
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
+  // Mostrar loading apenas se ainda está verificando autenticação
+  // Mas ter um timeout para evitar loading infinito
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -26,6 +28,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Se não há usuário após loading, redirecionar para login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
