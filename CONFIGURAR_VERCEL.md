@@ -66,7 +66,16 @@ Isso significa que as variáveis de ambiente **precisam ser configuradas manualm
       - ✅ Production
       - ✅ Preview
       - ✅ Development
-12. Clique em **Save**
+
+   ⚠️ **Nota sobre o aviso de segurança:**
+   
+   A Vercel pode mostrar um aviso amarelo sobre expor a chave. **É SEGURO ignorar este aviso!**
+   
+   - A chave `anon` (ou `public`) do Supabase foi projetada para ser usada no frontend
+   - Ela é protegida pelas RLS policies que configuramos
+   - Veja `SEGURANCA_SUPABASE.md` para mais detalhes
+
+12. Clique em **Save** (pode ignorar o aviso amarelo)
 
 **Resultado esperado:** Você deve ver 2 variáveis na lista:
 - `VITE_SUPABASE_URL`
