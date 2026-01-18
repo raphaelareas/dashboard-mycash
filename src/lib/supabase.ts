@@ -293,9 +293,15 @@ export type Database = {
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
+const hasValidConfig = supabaseUrl && supabaseAnonKey && 
+  !supabaseUrl.includes('placeholder') && 
+  !supabaseAnonKey.includes('placeholder');
+
+if (!hasValidConfig) {
   console.warn(
-    '⚠️ Supabase URL or Anon Key not found. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables.'
+    '⚠️ Supabase URL or Anon Key not found or invalid.\n' +
+    'Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables.\n' +
+    'Current values:', { url: supabaseUrl ? '***configured***' : 'missing', key: supabaseAnonKey ? '***configured***' : 'missing' }
   );
 }
 

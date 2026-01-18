@@ -73,50 +73,92 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (!error && user) {
-      // Criar/atualizar registro na tabela users se necessário
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      if (!existingUser) {
-        // Criar perfil do usuário na primeira vez
-        // @ts-ignore - Database types serão gerados depois das migrations
-        await supabase.from('users').insert({
-          id: user.id,
-          email: user.email || '',
-          name: user.email?.split('@')[0] || 'Usuário',
-        });
+      if (error) {
+        return { error };
       }
-    }
 
-    return { error };
+      if (data.user) {
+        // Criar/atualizar registro na tabela users se necessário
+        try {
+          const { data: existingUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', data.user.id)
+            .single();
+
+          if (!existingUser) {
+            // Criar perfil do usuário na primeira vez
+            // @ts-ignore - Database types serão gerados depois das migrations
+            await supabase.from('users').insert({
+              id: data.user.id,
+              email: data.user.email || '',
+              name: data.user.email?.split('@')[0] || 'Usuário',
+            });
+          }
+        } catch (insertError: any) {
+          // Se falhar ao inserir na tabela users, logar mas não bloquear o login
+          console.error('Erro ao verificar/criar perfil do usuário:', insertError);
+        }
+      }
+
+      return { error: null };
+    } catch (err: any) {
+      // Tratar erros de rede/connection
+      console.error('Erro ao fazer login:', err);
+      const authError: any = {
+        message: err.message || 'Erro ao conectar com o servidor. Verifique sua conexão.',
+      };
+      if (err.message?.includes('fetch') || err.message?.includes('network')) {
+        authError.message = 'Não foi possível conectar ao servidor. Verifique se as variáveis de ambiente do Supabase estão configuradas.';
+      }
+      return { error: authError };
+    }
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (!error && data.user) {
-      // Criar perfil do usuário após signup
-      // @ts-ignore - Database types serão gerados depois das migrations
-      await supabase.from('users').insert({
-        id: data.user.id,
-        email: data.user.email || email,
-        name,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
       });
-    }
 
-    return { error };
+      if (error) {
+        return { error };
+      }
+
+      if (data.user) {
+        // Criar perfil do usuário após signup
+        try {
+          // @ts-ignore - Database types serão gerados depois das migrations
+          await supabase.from('users').insert({
+            id: data.user.id,
+            email: data.user.email || email,
+            name,
+          });
+        } catch (insertError: any) {
+          // Se falhar ao inserir na tabela users, logar mas não bloquear o signup
+          console.error('Erro ao criar perfil do usuário:', insertError);
+        }
+      }
+
+      return { error: null };
+    } catch (err: any) {
+      // Tratar erros de rede/connection
+      console.error('Erro ao criar conta:', err);
+      const authError: any = {
+        message: err.message || 'Erro ao conectar com o servidor. Verifique sua conexão.',
+      };
+      if (err.message?.includes('fetch') || err.message?.includes('network')) {
+        authError.message = 'Não foi possível conectar ao servidor. Verifique se as variáveis de ambiente do Supabase estão configuradas.';
+      }
+      return { error: authError };
+    }
   };
 
   const signOut = async () => {
