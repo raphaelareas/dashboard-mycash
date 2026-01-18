@@ -24,10 +24,9 @@ export function BalanceCard() {
       <div className="mb-3">
         <div className="
           w-10 h-10 rounded-full
-          bg-gray-100 dark:bg-gray-700
           flex items-center justify-center
-          text-gray-900 dark:text-gray-100
-        ">
+          text-white
+        " style={{ backgroundColor: '#2A89EF' }}>
           <DollarIcon />
         </div>
       </div>
