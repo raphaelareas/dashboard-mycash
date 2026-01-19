@@ -78,7 +78,8 @@
     "versionNumber": "v1.0.0",
     "description": "Familien-Finanzverwaltungssystem",
     "termsOfUse": "Nutzungsbedingungen",
-    "privacyPolicy": "Datenschutzrichtlinie"
+    "privacyPolicy": "Datenschutzrichtlinie",
+    "clearDataComingSoon": "Die Funktion zum Löschen von Daten wird bald implementiert."
   },
   "deleteModal": {
     "title": "Löschung von Daten Bestätigen",
