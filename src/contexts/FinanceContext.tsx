@@ -72,7 +72,7 @@ interface FinanceContextType {
 
   // CRUD Categories
   addCategory: (category: { name: string; type: TransactionType; color?: string; icon?: string; accountId?: string | null }) => Promise<void>;
-  updateCategory: (id: string, category: Partial<{ name: string; color: string; icon: string; accountId: string | null }>) => Promise<void>;
+  updateCategory: (id: string, category: Partial<{ name: string; type: TransactionType; color: string; icon: string; accountId: string | null }>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   refreshCategories: () => Promise<void>;
 
@@ -345,7 +345,7 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     }
   };
 
-  const updateCategory = async (id: string, updates: Partial<{ name: string; color: string; icon: string; accountId: string | null }>) => {
+  const updateCategory = async (id: string, updates: Partial<{ name: string; type: TransactionType; color: string; icon: string; accountId: string | null }>) => {
     try {
       await categoryService.update(id, updates);
       await refreshCategories();

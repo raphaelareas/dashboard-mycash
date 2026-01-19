@@ -93,10 +93,11 @@ export const categoryService = {
   },
 
   // Atualizar categoria
-  async update(id: string, updates: { name?: string; icon?: string; color?: string; accountId?: string | null }): Promise<void> {
+  async update(id: string, updates: { name?: string; type?: TransactionType; icon?: string; color?: string; accountId?: string | null }): Promise<void> {
     const updateData: any = {};
 
     if (updates.name) updateData.name = updates.name;
+    if (updates.type) updateData.type = updates.type.toUpperCase() as 'INCOME' | 'EXPENSE';
     if (updates.icon) updateData.icon = updates.icon;
     if (updates.color) updateData.color = updates.color;
     if (updates.accountId !== undefined) updateData.account_id = updates.accountId;

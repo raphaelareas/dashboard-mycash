@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
-import { Category } from '@/types';
+import { Category, TransactionType } from '@/types';
 import { CreateCategoryModal } from '@/components/modals/CreateCategoryModal';
-// import { TransactionType } from '@/types';
 
 const CategoryIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,11 +23,24 @@ const DeleteIcon = () => (
 );
 
 export default function Categories() {
-  const { categories, addCategory, updateCategory, deleteCategory, refreshCategories } = useFinance();
+  const { categories, addCategory, updateCategory, deleteCategory, refreshCategories, transactions } = useFinance();
   const { t } = useI18n();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
+
+  // Obter nomes de categorias padrão via tradução
+  const categoryNames: Record<string, string> = {
+    rent: t('categories.categoryNames.rent'),
+    food: t('categories.categoryNames.food'),
+    shopping: t('categories.categoryNames.shopping'),
+    household: t('categories.categoryNames.household'),
+    transport: t('categories.categoryNames.transport'),
+    entertainment: t('categories.categoryNames.entertainment'),
+    health: t('categories.categoryNames.health'),
+    education: t('categories.categoryNames.education'),
+    other: t('categories.categoryNames.other'),
+  };
 
   useEffect(() => {
     refreshCategories();
@@ -40,11 +52,11 @@ export default function Categories() {
     return cat.type === filterType;
   });
 
-  const handleCreate = async (name: string, color?: string, accountId?: string | null) => {
+  const handleCreate = async (name: string, type: TransactionType, color?: string, accountId?: string | null) => {
     try {
       await addCategory({
         name,
-        type: filterType === 'all' ? 'expense' : filterType,
+        type,
         color: color || '#111827',
         accountId: accountId || null,
       });
@@ -54,10 +66,11 @@ export default function Categories() {
     }
   };
 
-  const handleEdit = async (category: Category, name: string, color?: string, accountId?: string | null) => {
+  const handleEdit = async (category: Category, name: string, type: TransactionType, color?: string, accountId?: string | null) => {
     try {
       await updateCategory(category.id, {
         name,
+        type,
         color: color || category.color,
         accountId: accountId !== undefined ? accountId : category.accountId,
       });
@@ -140,51 +153,96 @@ export default function Categories() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCategories.map((category) => (
-              <div
-                key={category.id}
-                className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all"
-              >
-                <div className="flex items-center gap-3 mb-3">
+          <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+            {/* Header da Lista */}
+            <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-sm font-semibold text-gray-600 border-b border-gray-200">
+              <div className="col-span-1">{t('categories.color') || 'Cor'}</div>
+              <div className="col-span-3">{t('categories.name') || 'Nome'}</div>
+              <div className="col-span-2">{t('categories.type') || 'Tipo'}</div>
+              <div className="col-span-2">{t('categories.quantity') || 'Quantidade'}</div>
+              <div className="col-span-4 flex justify-end gap-2">{t('categories.actions') || 'Ações'}</div>
+            </div>
+
+            {/* Lista de Categorias */}
+            <div className="divide-y divide-gray-100">
+              {filteredCategories.map((category, index) => {
+                const isEven = index % 2 === 0;
+                const categoryTransactions = transactions.filter(t => {
+                  // Para categorias customizadas, verificar pelo nome
+                  if (typeof t.category === 'string') {
+                    return t.category === category.name;
+                  }
+                  // Para categorias padrão, verificar se o enum corresponde
+                  // As categorias padrão não têm id, então verificamos pelo nome traduzido
+                  const defaultCategoryNames = Object.keys(categoryNames);
+                  if (defaultCategoryNames.includes(t.category as string)) {
+                    // Se a categoria padrão tem o mesmo nome traduzido
+                    return categoryNames[t.category as string] === category.name || t.category === category.name;
+                  }
+                  return false;
+                });
+                const transactionCount = categoryTransactions.length;
+
+                return (
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white flex-shrink-0"
-                    style={{ backgroundColor: category.color }}
+                    key={category.id}
+                    className={`grid grid-cols-12 gap-4 px-4 py-3 items-center ${isEven ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-colors`}
                   >
-                    {category.icon || '📌'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900 truncate">{category.name}</h3>
+                    {/* Cor */}
+                    <div className="col-span-1 flex items-center">
                       <div
-                        className="w-4 h-4 rounded-full flex-shrink-0"
+                        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: category.color }}
                         title={category.color}
-                      />
+                      >
+                        {category.icon || '📌'}
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500">
-                      {category.type === 'income' ? t('categories.income') : t('categories.expenses')}
-                    </p>
+
+                    {/* Nome */}
+                    <div className="col-span-3">
+                      <h3 className="font-semibold text-gray-900 truncate">{category.name}</h3>
+                    </div>
+
+                    {/* Tipo (Despesa ou Entrada) */}
+                    <div className="col-span-2">
+                      <span className={`
+                        px-3 py-1 rounded-full text-xs font-medium
+                        ${category.type === 'income' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-red-100 text-red-700'
+                        }
+                      `}>
+                        {category.type === 'income' ? t('categories.income') : t('categories.expenses')}
+                      </span>
+                    </div>
+
+                    {/* Quantidade */}
+                    <div className="col-span-2">
+                      <span className="text-sm font-medium text-gray-900">{transactionCount}</span>
+                    </div>
+
+                    {/* Ações (Editar e Deletar) */}
+                    <div className="col-span-4 flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setEditingCategory(category)}
+                        className="px-3 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2 text-sm text-gray-700 transition-colors"
+                      >
+                        <EditIcon />
+                        <span>{t('categories.edit')}</span>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(category.id)}
+                        className="px-3 py-2 rounded-[40px] border border-red-200 hover:bg-red-50 flex items-center justify-center gap-2 text-sm text-red-600 transition-colors"
+                      >
+                        <DeleteIcon />
+                        <span>{t('categories.delete')}</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-                  <button
-                    onClick={() => setEditingCategory(category)}
-                    className="flex-1 px-3 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2 text-sm text-gray-700"
-                  >
-                    <EditIcon />
-                    <span>{t('categories.edit')}</span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(category.id)}
-                    className="px-3 py-2 rounded-[40px] border border-red-200 hover:bg-red-50 flex items-center justify-center gap-2 text-sm text-red-600"
-                  >
-                    <DeleteIcon />
-                    <span>{t('categories.delete')}</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -201,8 +259,9 @@ export default function Categories() {
         <CreateCategoryModal
           isOpen={!!editingCategory}
           onClose={() => setEditingCategory(null)}
-          onSave={(name, color, accountId) => handleEdit(editingCategory, name, color, accountId)}
+          onSave={(name, type, color, accountId) => handleEdit(editingCategory, name, type, color, accountId)}
           initialName={editingCategory.name}
+          initialType={editingCategory.type}
           initialColor={editingCategory.color}
           initialAccountId={editingCategory.accountId || null}
         />

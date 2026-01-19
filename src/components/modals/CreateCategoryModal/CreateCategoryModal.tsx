@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
+import { TransactionType } from '@/types';
 
 interface CreateCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (categoryName: string, color?: string, accountId?: string | null) => void;
+  onSave: (categoryName: string, type: TransactionType, color?: string, accountId?: string | null) => void;
   initialName?: string;
+  initialType?: TransactionType;
   initialColor?: string;
   initialAccountId?: string | null;
 }
@@ -87,25 +89,27 @@ const categoryColors = [
   { color: '#E5E7EB', name: 'Cinza' }, // gray-200
 ];
 
-export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, initialColor, initialAccountId }: CreateCategoryModalProps) {
+export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, initialType, initialColor, initialAccountId }: CreateCategoryModalProps) {
   const { bankAccounts, creditCards } = useFinance();
   const { t } = useI18n();
   const [categoryName, setCategoryName] = useState(initialName || '');
+  const [categoryType, setCategoryType] = useState<TransactionType>(initialType || 'expense');
   const [selectedColor, setSelectedColor] = useState<string>(initialColor || '#111827'); // gray-900 como padrão
   const [connectToAccount, setConnectToAccount] = useState(!!initialAccountId);
   const [selectedAccountId, setSelectedAccountId] = useState<string>(initialAccountId || '');
   const [error, setError] = useState('');
 
-  // Atualizar quando initialName, initialColor ou initialAccountId mudarem (para edição)
+  // Atualizar quando initialName, initialType, initialColor ou initialAccountId mudarem (para edição)
   useEffect(() => {
     if (isOpen) {
       setCategoryName(initialName || '');
+      setCategoryType(initialType || 'expense');
       setSelectedColor(initialColor || '#111827');
       setConnectToAccount(!!initialAccountId);
       setSelectedAccountId(initialAccountId || '');
       setError('');
     }
-  }, [isOpen, initialName, initialColor, initialAccountId]);
+  }, [isOpen, initialName, initialType, initialColor, initialAccountId]);
 
   const handleSave = () => {
     if (!categoryName.trim()) {
@@ -119,7 +123,8 @@ export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, init
     }
 
     onSave(
-      categoryName.trim(), 
+      categoryName.trim(),
+      categoryType,
       selectedColor, 
       connectToAccount ? selectedAccountId || null : null
     );
@@ -180,6 +185,35 @@ export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, init
               }}
             />
             {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+          </div>
+
+          {/* Tipo de Categoria (Despesa ou Entrada) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('modals.createCategory.type') || 'Tipo'}
+            </label>
+            <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px]">
+              <button
+                type="button"
+                onClick={() => setCategoryType('expense')}
+                className={`
+                  flex-1 py-2 px-4 rounded-[40px] font-medium transition-colors
+                  ${categoryType === 'expense' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'}
+                `}
+              >
+                {t('categories.expenses') || 'Despesa'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCategoryType('income')}
+                className={`
+                  flex-1 py-2 px-4 rounded-[40px] font-medium transition-colors
+                  ${categoryType === 'income' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'}
+                `}
+              >
+                {t('categories.income') || 'Entrada'}
+              </button>
+            </div>
           </div>
 
           {/* Seletor de cores */}
