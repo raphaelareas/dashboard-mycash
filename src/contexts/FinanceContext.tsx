@@ -55,14 +55,15 @@ interface FinanceContextType {
   deleteGoal: (id: string) => void;
 
   // CRUD CreditCards
-  addCreditCard: (card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  addCreditCard: (card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>, holderId?: string) => Promise<void>;
   updateCreditCard: (id: string, card: Partial<CreditCard>) => Promise<void>;
   deleteCreditCard: (id: string) => Promise<void>;
 
   // CRUD BankAccounts
-  addBankAccount: (account: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  addBankAccount: (account: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>, holderId?: string) => Promise<void>;
   updateBankAccount: (id: string, account: Partial<BankAccount>) => Promise<void>;
   deleteBankAccount: (id: string) => Promise<void>;
+  refreshAccounts: () => Promise<void>;
 
   // CRUD FamilyMembers
   addFamilyMember: (member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>, customRole?: string) => Promise<void>;
@@ -218,9 +219,9 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   };
 
   // CRUD CreditCards
-  const addCreditCard = async (card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addCreditCard = async (card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>, holderId?: string) => {
     try {
-      const newCard = await accountService.createCreditCard(card);
+      const newCard = await accountService.createCreditCard(card, holderId);
       setCreditCards((prev) => [...prev, newCard]);
       // Recarregar todos os dados para sincronizar
       await loadAllData();
@@ -253,15 +254,27 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   };
 
   // CRUD BankAccounts
-  const addBankAccount = async (account: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addBankAccount = async (account: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>, holderId?: string) => {
     try {
-      const newAccount = await accountService.createBankAccount(account);
+      const newAccount = await accountService.createBankAccount(account, holderId);
       setBankAccounts((prev) => [...prev, newAccount]);
       // Recarregar todos os dados para sincronizar
       await loadAllData();
     } catch (error) {
       console.error('Erro ao criar conta:', error);
       throw error;
+    }
+  };
+
+  // Função para recarregar contas e cartões
+  const refreshAccounts = async () => {
+    if (!user?.id) return;
+    try {
+      const accountsData = await accountService.getAll(user.id);
+      setCreditCards(accountsData.creditCards);
+      setBankAccounts(accountsData.bankAccounts);
+    } catch (error) {
+      console.error('Erro ao recarregar contas:', error);
     }
   };
 
@@ -484,6 +497,7 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     addBankAccount,
     updateBankAccount,
     deleteBankAccount,
+    refreshAccounts,
     addFamilyMember,
     updateFamilyMember,
     deleteFamilyMember,

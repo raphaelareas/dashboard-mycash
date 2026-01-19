@@ -563,10 +563,12 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
         onClose={() => setIsCreateMethodModalOpen(false)}
         initialTab={createMethodTab}
         onAccountCreated={() => {
-          // Recarregar contas após criar
+          // O CreateMethodModal já recarrega os dados via refreshAccounts
+          // Não precisa fazer nada aqui
         }}
         onCardCreated={() => {
-          // Recarregar cartões após criar
+          // O CreateMethodModal já recarrega os dados via refreshAccounts
+          // Não precisa fazer nada aqui
         }}
       />
     </Modal>

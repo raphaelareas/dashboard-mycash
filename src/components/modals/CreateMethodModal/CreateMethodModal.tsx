@@ -76,7 +76,7 @@ export function CreateMethodModal({
   onAccountCreated,
   onCardCreated 
 }: CreateMethodModalProps) {
-  const { familyMembers } = useFinance();
+  const { familyMembers, refreshAccounts } = useFinance();
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'account' | 'card'>(initialTab);
 
@@ -147,11 +147,11 @@ export function CreateMethodModal({
     const newErrors: Record<string, string> = {};
 
     if (!accountName || accountName.length < 3) {
-      newErrors.name = t('modals.addAccount.nameError');
+      newErrors.name = t('modals.addAccount.nameError') || 'Nome deve ter pelo menos 3 caracteres';
     }
 
     if (!accountHolderId) {
-      newErrors.holderId = t('modals.addCard.selectHolder');
+      newErrors.holderId = t('modals.addCard.selectHolder') || 'Selecione um titular';
     }
 
     if (!accountBalance || parseFloat(accountBalance) <= 0) {
@@ -159,7 +159,7 @@ export function CreateMethodModal({
     }
 
     if (!bankName || bankName.length < 2) {
-      newErrors.bankName = t('modals.addAccount.bankError');
+      newErrors.bankName = t('modals.addAccount.bankError') || 'Nome do banco obrigatório';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -167,32 +167,43 @@ export function CreateMethodModal({
       return;
     }
 
-    // Usar accountService diretamente para passar holderId
-    const { accountService } = await import('@/services/accountService');
-    await accountService.createBankAccount({
-      name: accountName,
-      bankName,
-      accountNumber: accountNumber || Math.random().toString().slice(2, 10),
-      agency: agency || undefined,
-      type: accountType,
-      balance: parseFloat(accountBalance),
-      currency: 'BRL',
-      isActive: true,
-    }, accountHolderId);
+    try {
+      // Usar accountService diretamente para passar holderId
+      const { accountService } = await import('@/services/accountService');
+      await accountService.createBankAccount({
+        name: accountName,
+        bankName,
+        accountNumber: accountNumber || Math.random().toString().slice(2, 10),
+        agency: agency || undefined,
+        type: accountType,
+        balance: parseFloat(accountBalance),
+        currency: 'BRL',
+        isActive: true,
+      }, accountHolderId);
 
-    onAccountCreated?.();
-    onClose();
+      // Recarregar contas e cartões no contexto
+      await refreshAccounts();
+
+      // Chamar callback antes de fechar
+      if (onAccountCreated) {
+        await onAccountCreated();
+      }
+      onClose();
+    } catch (error) {
+      console.error('Erro ao criar conta:', error);
+      setAccountErrors({ submit: 'Erro ao criar conta. Tente novamente.' });
+    }
   };
 
   const handleCardSubmit = async () => {
     const newErrors: Record<string, string> = {};
 
     if (!cardName || cardName.length < 3) {
-      newErrors.name = t('modals.addCard.nameError');
+      newErrors.name = t('modals.addCard.nameError') || 'Nome deve ter pelo menos 3 caracteres';
     }
 
     if (!cardHolderId) {
-      newErrors.holderId = t('modals.addCard.holderError');
+      newErrors.holderId = t('modals.addCard.holderError') || 'Selecione um titular';
     }
 
     const closing = parseInt(closingDay);
@@ -200,15 +211,15 @@ export function CreateMethodModal({
     const limitValue = parseFloat(limit);
 
     if (!closingDay || closing < 1 || closing > 31) {
-      newErrors.closingDay = t('modals.addCard.closingDayError');
+      newErrors.closingDay = t('modals.addCard.closingDayError') || 'Dia de fechamento inválido (1-31)';
     }
 
     if (!dueDay || due < 1 || due > 31) {
-      newErrors.dueDay = t('modals.addCard.dueDayError');
+      newErrors.dueDay = t('modals.addCard.dueDayError') || 'Dia de vencimento inválido (1-31)';
     }
 
     if (!limit || limitValue <= 0) {
-      newErrors.limit = t('modals.addCard.limitError');
+      newErrors.limit = t('modals.addCard.limitError') || 'Limite obrigatório';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -216,23 +227,34 @@ export function CreateMethodModal({
       return;
     }
 
-    // Usar accountService diretamente para passar holderId
-    const { accountService } = await import('@/services/accountService');
-    await accountService.createCreditCard({
-      name: cardName,
-      type: 'credit',
-      brand: 'other',
-      lastFourDigits: lastFourDigits || '0000',
-      expirationMonth: 12,
-      expirationYear: new Date().getFullYear() + 1,
-      dueDay: parseInt(dueDay),
-      limit: parseFloat(limit),
-      currentBalance: 0,
-      isActive: true,
-    }, cardHolderId);
+    try {
+      // Usar accountService diretamente para passar holderId
+      const { accountService } = await import('@/services/accountService');
+      await accountService.createCreditCard({
+        name: cardName,
+        type: 'credit',
+        brand: 'other',
+        lastFourDigits: lastFourDigits || '0000',
+        expirationMonth: 12,
+        expirationYear: new Date().getFullYear() + 1,
+        dueDay: parseInt(dueDay),
+        limit: parseFloat(limit),
+        currentBalance: 0,
+        isActive: true,
+      }, cardHolderId);
 
-    onCardCreated?.();
-    onClose();
+      // Recarregar contas e cartões no contexto
+      await refreshAccounts();
+
+      // Chamar callback antes de fechar
+      if (onCardCreated) {
+        await onCardCreated();
+      }
+      onClose();
+    } catch (error) {
+      console.error('Erro ao criar cartão:', error);
+      setCardErrors({ submit: 'Erro ao criar cartão. Tente novamente.' });
+    }
   };
 
   return (
