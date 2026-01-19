@@ -301,11 +301,15 @@ export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModa
           {avatarUrl ? (
             <div className="flex items-center gap-3">
               {/* Foto */}
-              <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border-2 border-gray-200">
+              <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border-2 border-gray-200 relative">
                 <img 
                   src={avatarUrl} 
                   alt="Avatar" 
-                  className="w-full h-full object-cover" 
+                  className="w-full h-full object-cover object-center"
+                  style={{ 
+                    minWidth: '100%',
+                    minHeight: '100%',
+                  }}
                 />
               </div>
               {/* Botão Alterar Avatar */}

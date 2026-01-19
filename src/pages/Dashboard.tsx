@@ -14,33 +14,14 @@ import { AddCardModal } from '@/components/modals/AddCardModal';
 export default function Dashboard() {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isAddCardOpen, setIsAddCardOpen] = useState(false);
-  const [isDelayed, setIsDelayed] = useState(() => {
-    // Verificar imediatamente se veio da tela de sucesso
-    const cameFromSuccess = sessionStorage.getItem('fromSuccess');
-    return cameFromSuccess !== 'true';
-  });
   
-  // Se veio da tela de sucesso, adicionar delay de 2 segundos antes de mostrar o dashboard
+  // Limpar flag de sucesso se existir (não usamos mais delay artificial)
   useEffect(() => {
     const cameFromSuccess = sessionStorage.getItem('fromSuccess');
     if (cameFromSuccess === 'true') {
       sessionStorage.removeItem('fromSuccess');
-      const delayTimer = setTimeout(() => {
-        setIsDelayed(true);
-      }, 2000);
-      return () => clearTimeout(delayTimer);
     }
   }, []);
-  
-  if (!isDelayed) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>

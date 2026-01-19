@@ -92,6 +92,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { error };
       }
 
+      // Atualizar estado imediatamente após login bem-sucedido
+      // para evitar condições de corrida e garantir sincronização
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+        setLoading(false);
+      }
+
       if (data.user) {
         // Criar/atualizar registro na tabela users se necessário
         try {

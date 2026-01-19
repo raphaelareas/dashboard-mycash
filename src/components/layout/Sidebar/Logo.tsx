@@ -2,6 +2,24 @@ interface LogoProps {
   isExpanded: boolean;
 }
 
+const AlphaLabel = ({ position = 'side' }: { position?: 'side' | 'bottom' }) => {
+  if (position === 'side') {
+    return (
+      <span className="ml-2 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded border" style={{ backgroundColor: '#E5E7EB', color: '#1F2937', borderColor: '#1F2937' }}>
+        ALPHA
+      </span>
+    );
+  }
+  
+  return (
+    <div className="mt-1 w-full flex justify-center">
+      <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded border" style={{ backgroundColor: '#E5E7EB', color: '#1F2937', borderColor: '#1F2937' }}>
+        ALPHA
+      </span>
+    </div>
+  );
+};
+
 export function Logo({ isExpanded }: LogoProps) {
   if (isExpanded) {
     return (
@@ -16,6 +34,7 @@ export function Logo({ isExpanded }: LogoProps) {
           <path d="M88.8938 28.0453C88.328 28.0453 87.797 27.9999 87.301 27.9091C86.812 27.8252 86.4068 27.7169 86.0854 27.5842L87.0914 24.2518C87.6154 24.4125 88.087 24.4998 88.5061 24.5138C88.9323 24.5278 89.299 24.43 89.6064 24.2204C89.9208 24.0108 90.1758 23.6545 90.3714 23.1515L90.6334 22.4704L84.8594 5.91333H89.554L92.8864 17.7338H93.0541L96.4179 5.91333H101.144L94.8879 23.7488C94.5875 24.6151 94.1788 25.3696 93.6619 26.0123C93.1519 26.662 92.5057 27.1616 91.7232 27.5109C90.9408 27.8671 89.9977 28.0453 88.8938 28.0453Z" fill="#080B12" style={{fill:'#080B12',fillOpacity:1}}/>
           <path d="M59.2227 0.547852H64.8185L70.7288 14.9672H70.9803L76.8905 0.547852H82.4864V22.0091H78.0851V8.04044H77.907L72.353 21.9044H69.356L63.802 7.98805H63.6239V22.0091H59.2227V0.547852Z" fill="#080B12" style={{fill:'#080B12',fillOpacity:1}}/>
         </svg>
+        <AlphaLabel position="side" />
       </div>
     );
   }

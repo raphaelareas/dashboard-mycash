@@ -12,13 +12,10 @@ export default function Success() {
   useEffect(() => {
     setMounted(true);
     
-    // Marcar que estamos vindo da tela de sucesso
-    sessionStorage.setItem('fromSuccess', 'true');
-    
-    // Redirecionar para o dashboard após 2 segundos
+    // Redirecionar para o dashboard após 1.5 segundos (reduzido para melhor UX)
     const redirectTimer = setTimeout(() => {
       navigate('/', { replace: true });
-    }, 2000);
+    }, 1500);
 
     return () => {
       clearTimeout(redirectTimer);

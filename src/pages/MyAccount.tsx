@@ -185,9 +185,17 @@ export default function MyAccount() {
                 {t('myAccount.profilePhoto')}
               </label>
               <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 overflow-hidden relative">
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                    <img 
+                      src={avatarUrl} 
+                      alt="" 
+                      className="w-full h-full object-cover object-center"
+                      style={{ 
+                        minWidth: '100%',
+                        minHeight: '100%',
+                      }}
+                    />
                   ) : (
                     <div className="w-full h-full rounded-full bg-gray-300" />
                   )}

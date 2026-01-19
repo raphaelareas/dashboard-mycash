@@ -4,6 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { userService } from '@/services/userService';
 import { availableCurrencies, availableDateFormats, availableLanguages, detectUserLocale } from '@/utils/localeDetection';
 import { Modal } from '@/components/ui/Modal';
+import { Toast } from '@/components/ui/Toast';
 import { LanguageCode } from '@/i18n';
 
 // Ícones SVG
@@ -40,10 +41,22 @@ export default function Settings() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Estados das notificações
-  const [notifications, setNotifications] = useState({
-    billReminder: false,
-    cardLimitAlert: false,
-    monthlyEmail: false,
+  const [notifications, setNotifications] = useState(() => {
+    // Carregar preferências salvas do localStorage
+    const saved = localStorage.getItem('notificationPreferences');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          billReminder: parsed.billReminder || false,
+          cardLimitAlert: parsed.cardLimitAlert || false,
+          monthlyEmail: false, // Não persistir ainda
+        };
+      } catch {
+        return { billReminder: false, cardLimitAlert: false, monthlyEmail: false };
+      }
+    }
+    return { billReminder: false, cardLimitAlert: false, monthlyEmail: false };
   });
 
   // Estados do resumo mensal por email
@@ -51,10 +64,17 @@ export default function Settings() {
     email: '',
     dayOfMonth: 1,
   });
+  
+  // Estado para controlar se os campos de email estão expandidos
+  const [isEmailFieldsExpanded, setIsEmailFieldsExpanded] = useState(false);
 
   // Estados do modal de limpar dados
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  
+  // Estado do toast
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   
   // Texto de confirmação baseado no idioma atual (não o local)
   const getRequiredConfirmationText = (): string => {
@@ -147,29 +167,60 @@ export default function Settings() {
       // Se está ativando, solicitar permissão
       const hasPermission = await requestNotificationPermission();
       if (!hasPermission) {
-        return; // Não atualiza o estado se não tiver permissão
+        // Não atualiza o estado se não tiver permissão
+        return;
       }
+      
+      // Se autorizou, ativar automaticamente o toggle e mostrar toast de sucesso
+      const newNotifications = {
+        ...notifications,
+        [key]: true,
+      };
+      setNotifications(newNotifications);
+      
+      // Salvar preferências no localStorage para o hook de verificação usar
+      localStorage.setItem('notificationPreferences', JSON.stringify({
+        billReminder: newNotifications.billReminder,
+        cardLimitAlert: newNotifications.cardLimitAlert,
+      }));
+      
+      // Mostrar toast de sucesso
+      const successMessage = key === 'billReminder' 
+        ? t('settings.notifications.billReminderEnabled') || 'Lembrete de vencimento de contas ativado com sucesso!'
+        : t('settings.notifications.cardLimitAlertEnabled') || 'Alerta de aproximação do limite do cartão ativado com sucesso!';
+      setToastMessage(successMessage);
+      setToastVisible(true);
+    } else {
+      // Se está desativando, apenas atualizar o estado
+      const newNotifications = {
+        ...notifications,
+        [key]: false,
+      };
+      setNotifications(newNotifications);
+      
+      // Salvar preferências no localStorage
+      localStorage.setItem('notificationPreferences', JSON.stringify({
+        billReminder: newNotifications.billReminder,
+        cardLimitAlert: newNotifications.cardLimitAlert,
+      }));
     }
-
-    setNotifications((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
   };
 
   // Handler para toggle de resumo mensal
   const handleMonthlyEmailToggle = async (value: boolean) => {
     if (value) {
-      // Se está ativando, não precisa de permissão de notificação (é email)
+      // Se está ativando, expandir campos e não precisa de permissão de notificação (é email)
       setNotifications((prev) => ({
         ...prev,
         monthlyEmail: true,
       }));
+      setIsEmailFieldsExpanded(true);
     } else {
       setNotifications((prev) => ({
         ...prev,
         monthlyEmail: false,
       }));
+      setIsEmailFieldsExpanded(false);
     }
   };
 
@@ -211,7 +262,14 @@ export default function Settings() {
     }
 
     // TODO: Salvar no backend quando implementar
-    alert(`Resumo mensal configurado para o email ${emailSummary.email} no dia ${emailSummary.dayOfMonth} de cada mês.`);
+    // Mostrar toast de sucesso
+    const successMessage = t('settings.notifications.monthlyEmailConfigured') 
+      || `Resumo mensal configurado para o email ${emailSummary.email} no dia ${emailSummary.dayOfMonth} de cada mês.`;
+    setToastMessage(successMessage);
+    setToastVisible(true);
+    
+    // Colapsar campos automaticamente após salvar (mas manter toggle ativo)
+    setIsEmailFieldsExpanded(false);
   };
 
   return (
@@ -342,7 +400,7 @@ export default function Settings() {
                 </button>
               </div>
               
-              {notifications.monthlyEmail && (
+              {notifications.monthlyEmail && isEmailFieldsExpanded && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -482,6 +540,14 @@ export default function Settings() {
           </div>
         </div>
       </Modal>
+
+      {/* Toast de feedback */}
+      <Toast
+        message={toastMessage}
+        isVisible={toastVisible}
+        onClose={() => setToastVisible(false)}
+        duration={5000}
+      />
     </div>
   );
 }

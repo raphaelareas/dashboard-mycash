@@ -139,6 +139,20 @@ const ThreeDotsVerticalIcon = () => (
   </svg>
 );
 
+const ResearchIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g clipPath="url(#clip0_0_4176)">
+      <path d="M18.6562 0.930232L6.46421 13.1222C5.99855 13.5854 5.62939 14.1363 5.37809 14.7431C5.1268 15.3499 4.99836 16.0005 5.00021 16.6572V18.0002C5.00021 18.2654 5.10557 18.5198 5.2931 18.7073C5.48064 18.8949 5.73499 19.0002 6.00021 19.0002H7.34321C7.99997 19.0021 8.65058 18.8736 9.25737 18.6224C9.86415 18.3711 10.4151 18.0019 10.8782 17.5362L23.0702 5.34423C23.6546 4.7584 23.9828 3.96471 23.9828 3.13723C23.9828 2.30976 23.6546 1.51606 23.0702 0.930232C22.4759 0.362125 21.6854 0.0450813 20.8632 0.0450813C20.041 0.0450813 19.2505 0.362125 18.6562 0.930232ZM21.6562 3.93023L9.46421 16.1222C8.90034 16.6827 8.13822 16.9981 7.34321 17.0002H7.00021V16.6572C7.00229 15.8622 7.31778 15.1001 7.87821 14.5362L20.0702 2.34423C20.2838 2.14019 20.5678 2.02632 20.8632 2.02632C21.1586 2.02632 21.4426 2.14019 21.6562 2.34423C21.8662 2.55475 21.984 2.83992 21.984 3.13723C21.984 3.43454 21.8662 3.71972 21.6562 3.93023Z" fill="currentColor"/>
+      <path d="M23 8.979C22.7348 8.979 22.4804 9.08436 22.2929 9.27189C22.1054 9.45943 22 9.71378 22 9.979V15H18C17.2043 15 16.4413 15.3161 15.8787 15.8787C15.3161 16.4413 15 17.2043 15 18V22H5C4.20435 22 3.44129 21.6839 2.87868 21.1213C2.31607 20.5587 2 19.7957 2 19V5C2 4.20435 2.31607 3.44129 2.87868 2.87868C3.44129 2.31607 4.20435 2 5 2H14.042C14.3072 2 14.5616 1.89464 14.7491 1.70711C14.9366 1.51957 15.042 1.26522 15.042 1C15.042 0.734784 14.9366 0.48043 14.7491 0.292893C14.5616 0.105357 14.3072 0 14.042 0H5C3.67441 0.00158786 2.40356 0.528882 1.46622 1.46622C0.528882 2.40356 0.00158786 3.67441 0 5V19C0.00158786 20.3256 0.528882 21.5964 1.46622 22.5338C2.40356 23.4711 3.67441 23.9984 5 24H16.343C16.9999 24.0019 17.6507 23.8735 18.2576 23.6222C18.8646 23.3709 19.4157 23.0017 19.879 22.536L22.535 19.878C23.0007 19.4149 23.37 18.864 23.6215 18.2572C23.873 17.6504 24.0016 16.9998 24 16.343V9.979C24 9.71378 23.8946 9.45943 23.7071 9.27189C23.5196 9.08436 23.2652 8.979 23 8.979ZM18.465 21.122C18.063 21.523 17.5547 21.8006 17 21.922V18C17 17.7348 17.1054 17.4804 17.2929 17.2929C17.4804 17.1054 17.7348 17 18 17H21.925C21.8013 17.5535 21.524 18.0609 21.125 18.464L18.465 21.122Z" fill="currentColor"/>
+    </g>
+    <defs>
+      <clipPath id="clip0_0_4176">
+        <rect width="24" height="24" fill="white"/>
+      </clipPath>
+    </defs>
+  </svg>
+);
+
 export function Sidebar() {
   const { isExpanded, isDesktop, toggle } = useSidebar();
   const { signOut, user } = useAuth();
@@ -376,6 +390,29 @@ export function Sidebar() {
           </div>
         </nav>
 
+        {/* Botão Dicas/Bugs ou Melhorias */}
+        <div className={`border-t border-gray-200 dark:border-gray-700 min-w-0 max-w-full ${isExpanded ? 'px-4 py-3' : 'px-2 py-3'}`}>
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLScf8GtK7YveZCzUi5IK8abtcyReWSmKZUPMgdiKtYlzxPIrKA/viewform?usp=dialog"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`
+              w-full flex items-center gap-3
+              px-4 py-2 rounded-lg
+              hover:bg-gray-50 dark:hover:bg-gray-700
+              transition-colors cursor-pointer
+              ${isExpanded ? '' : 'justify-center'}
+            `}
+          >
+            <ResearchIcon />
+            {isExpanded && (
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                Dicas/Bugs ou Melhorias
+              </span>
+            )}
+          </a>
+        </div>
+
         {/* Perfil do usuário */}
         <div className={`relative border-t border-gray-200 dark:border-gray-700 min-w-0 max-w-full ${isExpanded ? 'px-4 py-4' : 'px-2 py-2'}`} ref={menuRef}>
           {isExpanded ? (
@@ -392,7 +429,11 @@ export function Sidebar() {
                     <img 
                       src={userProfile.avatarUrl} 
                       alt="" 
-                      className="w-full h-full rounded-full object-cover" 
+                      className="w-full h-full object-cover object-center"
+                      style={{ 
+                        minWidth: '100%',
+                        minHeight: '100%',
+                      }}
                     />
                   ) : (
                     <AvatarIcon />
@@ -432,7 +473,11 @@ export function Sidebar() {
                   <img 
                     src={userProfile.avatarUrl} 
                     alt="" 
-                    className="w-full h-full rounded-full object-cover" 
+                    className="w-full h-full object-cover object-center"
+                    style={{ 
+                      minWidth: '100%',
+                      minHeight: '100%',
+                    }}
                   />
                 ) : (
                   <AvatarIcon />
