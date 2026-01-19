@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { ImageCropModal } from '@/components/modals/ImageCropModal';
 import { storageService } from '@/services/storageService';
@@ -21,11 +22,15 @@ const UploadIcon = () => (
 
 export default function MyAccount() {
   const { user } = useAuth();
+  const { familyMembers } = useFinance();
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [_profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  // Buscar owner para usar sua foto
+  const owner = familyMembers.find(m => m.role.toLowerCase() === 'owner');
   
   // Form fields
   const [name, setName] = useState('');
@@ -54,11 +59,14 @@ export default function MyAccount() {
           setEmail(userProfile.email || '');
           setPhone(userProfile.phone || '');
           setAddress(userProfile.address || '');
-          setAvatarUrl(userProfile.avatarUrl || null);
+          // Usar foto do owner se disponível, senão usar foto do perfil
+          setAvatarUrl(owner?.avatarUrl || userProfile.avatarUrl || null);
         } else {
           // Se não existe perfil, usar dados do auth
           setName(user.email?.split('@')[0] || 'Usuário');
           setEmail(user.email || '');
+          // Usar foto do owner se disponível
+          setAvatarUrl(owner?.avatarUrl || null);
         }
       } catch (error) {
         console.error('Erro ao carregar perfil:', error);
@@ -68,7 +76,7 @@ export default function MyAccount() {
     };
 
     loadProfile();
-  }, [user?.id, user?.email]);
+  }, [user?.id, user?.email, owner?.avatarUrl]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -101,7 +101,18 @@ export const familyMemberService = {
       .single();
 
     if (error) throw error;
-    return mapFamilyMemberFromDb(data);
+    
+    const newMember = mapFamilyMemberFromDb(data);
+    
+    // Se for owner e tem avatar, sincronizar com users.avatar_url
+    if (roleForDb === 'Owner' && member.avatarUrl) {
+      await supabase
+        .from('users')
+        .update({ avatar_url: member.avatarUrl })
+        .eq('id', userId);
+    }
+    
+    return newMember;
   },
 
   // Atualizar membro
@@ -132,7 +143,29 @@ export const familyMemberService = {
       .single();
 
     if (error) throw error;
-    return mapFamilyMemberFromDb(data as any);
+    
+    const updatedMember = mapFamilyMemberFromDb(data as any);
+    
+    // Se for owner e o avatar foi atualizado, sincronizar com users.avatar_url
+    // Verificar se é owner pelo role original do banco
+    const originalRole = originalRoles.get(id);
+    if (originalRole && originalRole.toLowerCase() === 'owner' && updates.avatarUrl !== undefined) {
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (userId) {
+        // Atualizar avatar do usuário na tabela users
+        await supabase
+          .from('users')
+          .update({ avatar_url: updates.avatarUrl || null })
+          .eq('id', userId);
+      }
+    }
+    
+    // Atualizar cache de role original
+    if (data) {
+      originalRoles.set(id, data.role);
+    }
+    
+    return updatedMember;
   },
 
   // Deletar membro (soft delete - marca como inativo)

@@ -1,11 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { NewTransactionModal } from '@/components/modals/NewTransactionModal';
 import { FiltersMobileModal } from '@/components/modals/FiltersMobileModal';
-import { AddMemberModal } from '@/components/modals/AddMemberModal';
 
 const SearchIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -47,9 +47,9 @@ export function DashboardHeader() {
   const { searchText, setSearchText, dateRange, familyMembers, selectedMember, setSelectedMember } = useFinance();
   const { isDesktop, isExpanded } = useSidebar();
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isNewTransactionOpen, setIsNewTransactionOpen] = useState(false);
-  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
 
   const formatPeriod = () => {
     return `${formatDateShort(dateRange.startDate)} - ${formatDateShort(dateRange.endDate)}`;
@@ -100,22 +100,26 @@ export function DashboardHeader() {
               </button>
             </div>
 
-            {/* Widget Membros da Família - avatares em linha (apenas desktop, apenas quando há membros) */}
+            {/* Widget Membros da Família - avatares sobrepostos (apenas desktop, apenas quando há membros) */}
             {isDesktop && familyMembers.length > 0 && (
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {familyMembers.map((member) => {
+              <div className="flex items-center flex-shrink-0" style={{ marginLeft: '-24px' }}>
+                {familyMembers.map((member, index) => {
                   const isSelected = selectedMember === member.id;
                   return (
                     <button
                       key={member.id}
                       onClick={() => setSelectedMember(isSelected ? null : member.id)}
                       className={`
-                        w-8 h-8 rounded-full border-2 transition-colors overflow-hidden
+                        w-8 h-8 rounded-full border-2 transition-colors overflow-hidden relative
                         ${isSelected 
-                          ? 'border-primary ring-2 ring-primary ring-offset-2' 
+                          ? 'border-primary ring-2 ring-primary ring-offset-2 z-10' 
                           : 'border-gray-200 dark:border-gray-700 hover:border-primary'
                         }
                       `}
+                      style={{ 
+                        marginLeft: index > 0 ? '-24px' : '0',
+                        zIndex: familyMembers.length - index
+                      }}
                       title={member.name}
                       aria-label={`Filtrar por ${member.name}`}
                     >
@@ -129,11 +133,15 @@ export function DashboardHeader() {
                     </button>
                   );
                 })}
-                {/* Botão adicionar membro */}
+                {/* Botão adicionar membro - navega para People */}
                 <button 
-                  onClick={() => setIsAddMemberOpen(true)}
-                  className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors"
-                      title={t('people.addMember')}
+                  onClick={() => navigate('/pessoas')}
+                  className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors relative"
+                  style={{ 
+                    marginLeft: '-24px',
+                    zIndex: familyMembers.length + 1
+                  }}
+                  title={t('people.addMember')}
                 >
                   <span className="text-lg">+</span>
                 </button>
@@ -158,7 +166,6 @@ export function DashboardHeader() {
       {/* Modals */}
       <NewTransactionModal isOpen={isNewTransactionOpen} onClose={() => setIsNewTransactionOpen(false)} />
       <FiltersMobileModal isOpen={isFiltersOpen} onClose={() => setIsFiltersOpen(false)} />
-      <AddMemberModal isOpen={isAddMemberOpen} onClose={() => setIsAddMemberOpen(false)} />
     </>
   );
 }

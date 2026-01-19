@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
-import { formatCurrency } from '@/utils/formatCurrency';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { FamilyMember } from '@/types';
 import { getOriginalRole } from '@/services/familyMemberService';
@@ -18,11 +17,18 @@ const DeleteIcon = () => (
   </svg>
 );
 
+const DragHandleIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 2H10M6 6H10M6 10H10M6 14H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
 export default function People() {
   const { familyMembers, deleteFamilyMember } = useFinance();
   const { t } = useI18n();
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const handleDelete = async (member: FamilyMember) => {
     // Não permitir deletar o owner
@@ -44,6 +50,34 @@ export default function People() {
   const handleEdit = (member: FamilyMember) => {
     setEditingMember(member);
     setIsAddMemberOpen(true);
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null) return;
+
+    // Reordenar membros (por enquanto apenas no frontend)
+    // TODO: Implementar persistência no backend se necessário
+    const newMembers = [...familyMembers];
+    const [removed] = newMembers.splice(draggedIndex, 1);
+    newMembers.splice(dropIndex, 0, removed);
+    
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   return (
@@ -78,30 +112,21 @@ export default function People() {
               return (
                 <div
                   key={member.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
                   className={`
-                    flex items-center gap-4 p-4 transition-colors
+                    flex items-center gap-4 p-4 transition-colors cursor-move
                     ${isEven ? 'bg-white' : 'bg-gray-50'}
                     hover:bg-gray-100
+                    ${draggedIndex === index ? 'opacity-50' : ''}
                   `}
                 >
-                  {/* Botões de ação no canto esquerdo */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => handleEdit(member)}
-                      className="p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-900"
-                      title="Editar membro"
-                    >
-                      <EditIcon />
-                    </button>
-                    {member.role.toLowerCase() !== 'owner' && (
-                      <button
-                        onClick={() => handleDelete(member)}
-                        className="p-2 rounded-lg hover:bg-red-50 transition-colors text-red-600 hover:text-red-700"
-                        title="Deletar membro"
-                      >
-                        <DeleteIcon />
-                      </button>
-                    )}
+                  {/* Botão de reordenar (drag handle) no canto esquerdo */}
+                  <div className="flex-shrink-0 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing">
+                    <DragHandleIcon />
                   </div>
 
                   {/* Avatar */}
@@ -121,10 +146,25 @@ export default function People() {
                     <p className="text-sm text-gray-600">{roleDisplay}</p>
                   </div>
 
-                  {/* Renda mensal */}
-                  <p className="text-lg font-bold text-gray-900 flex-shrink-0">
-                    {formatCurrency(0)}
-                  </p>
+                  {/* Botões de ação no canto direito */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => handleEdit(member)}
+                      className="p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-900"
+                      title="Editar membro"
+                    >
+                      <EditIcon />
+                    </button>
+                    {member.role.toLowerCase() !== 'owner' && (
+                      <button
+                        onClick={() => handleDelete(member)}
+                        className="p-2 rounded-lg hover:bg-red-50 transition-colors text-red-600 hover:text-red-700"
+                        title="Deletar membro"
+                      >
+                        <DeleteIcon />
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}

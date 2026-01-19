@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
+import { useFinance } from '@/contexts/FinanceContext';
 import { SidebarItem } from './SidebarItem';
 import { Logo } from './Logo';
 import { userService } from '@/services/userService';
@@ -141,6 +142,7 @@ const ThreeDotsVerticalIcon = () => (
 export function Sidebar() {
   const { isExpanded, isDesktop, toggle } = useSidebar();
   const { signOut, user } = useAuth();
+  const { familyMembers } = useFinance();
   const { t } = useI18n();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -150,6 +152,9 @@ export function Sidebar() {
   const [_isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Buscar owner para usar sua foto
+  const owner = familyMembers.find(m => m.role.toLowerCase() === 'owner');
 
   // Não renderizar em mobile/tablet
   if (!isDesktop) {
@@ -168,10 +173,12 @@ export function Sidebar() {
     try {
       const profile = await userService.getProfile(user.id);
       if (profile && profile.name) {
+        // Usar foto do owner se disponível, senão usar foto do perfil
+        const avatarUrl = owner?.avatarUrl || profile.avatarUrl;
         setUserProfile({
           name: profile.name,
           email: profile.email,
-          avatarUrl: profile.avatarUrl,
+          avatarUrl,
         });
         return;
       }
@@ -182,17 +189,20 @@ export function Sidebar() {
     // Se não há perfil na tabela users, tentar buscar do metadata do auth
     const authName = user.user_metadata?.name || user.user_metadata?.full_name;
     if (authName) {
+      // Usar foto do owner se disponível
+      const avatarUrl = owner?.avatarUrl || null;
       setUserProfile({
         name: authName,
         email: user.email || '',
-        avatarUrl: null,
+        avatarUrl,
       });
     } else {
       // Último fallback: usar "Usuário" (não usar email como fallback)
+      const avatarUrl = owner?.avatarUrl || null;
       setUserProfile({
         name: 'Usuário',
         email: user.email || '',
-        avatarUrl: null,
+        avatarUrl,
       });
     }
   };
@@ -200,7 +210,7 @@ export function Sidebar() {
   // Carregar perfil do usuário
   useEffect(() => {
     loadUserProfile();
-  }, [user?.id, user?.email]);
+  }, [user?.id, user?.email, owner?.avatarUrl]);
 
   // Recarregar perfil quando a janela recebe foco (para sincronizar após mudanças em outras abas)
   useEffect(() => {
