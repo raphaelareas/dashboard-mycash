@@ -10,7 +10,6 @@ export default function Login() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const { signIn, signUp } = useAuth();
@@ -18,17 +17,12 @@ export default function Login() {
   // Efeito para gerenciar o redirecionamento após sucesso
   useEffect(() => {
     if (success) {
-      // Mostrar feedback de sucesso por 1.5 segundos, depois loading por 1.5 segundos, total 3 segundos
-      const loadingTimer = setTimeout(() => {
-        setRedirecting(true);
-      }, 1500);
-
+      // Mostrar feedback de sucesso por 2 segundos, depois redirecionar
       const redirectTimer = setTimeout(() => {
         window.location.href = '/';
-      }, 3000);
+      }, 2000);
 
       return () => {
-        clearTimeout(loadingTimer);
         clearTimeout(redirectTimer);
       };
     }
@@ -39,7 +33,6 @@ export default function Login() {
         setError(null);
         setLoading(true);
         setSuccess(false);
-        setRedirecting(false);
 
     try {
       if (isSignUp) {
@@ -58,8 +51,7 @@ export default function Login() {
           setError(error.message || 'Erro ao criar conta');
           setLoading(false);
         } else {
-          // Signup bem-sucedido - mostrar feedback
-          setLoading(false);
+          // Signup bem-sucedido - mostrar feedback (sem loading)
           setSuccess(true);
         }
       } else {
@@ -79,8 +71,7 @@ export default function Login() {
           setError(errorMessage);
           setLoading(false);
         } else {
-          // Login bem-sucedido - mostrar feedback
-          setLoading(false);
+          // Login bem-sucedido - mostrar feedback (sem loading)
           setSuccess(true);
         }
       }
@@ -92,37 +83,28 @@ export default function Login() {
 
 
   // Tela de feedback de sucesso
-  if (success && !redirecting) {
+  if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full text-center">
+          {/* Ícone de check com fundo verde claro (estilo IncomeCard) */}
           <div className="mb-6">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="#10B981" />
+            <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-900" style={{ backgroundColor: '#D1FAE4' }}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.5 13.5L3.75 9.75L2.84 10.66L7.5 15.33L17.5 5.33L16.59 4.42L7.5 13.5Z" fill="#10B981" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {isSignUp ? 'Conta criada com sucesso!' : 'Login realizado com sucesso!'}
+            
+            {/* Texto de sucesso */}
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              {isSignUp ? 'Conta criada com sucesso' : 'Logado com sucesso'}
             </h2>
-            <p className="text-gray-600">
-              {isSignUp 
-                ? 'Sua conta foi criada. Redirecionando para o dashboard...' 
-                : 'Redirecionando para o dashboard...'}
-            </p>
+            
+            {/* Loading centralizado */}
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Tela de loading de redirecionamento
-  if (redirecting) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">Redirecionando...</p>
         </div>
       </div>
     );
