@@ -59,6 +59,15 @@
     "emailForSummary": "Email to receive summary",
     "dayOfMonth": "Day of month to receive",
     "confirmConfiguration": "Confirm Configuration",
+    "notifications": {
+      "billReminderEnabled": "Bill due date reminder activated successfully!",
+      "cardLimitAlertEnabled": "Credit card limit alert activated successfully!",
+      "monthlyEmailConfigured": "Monthly summary configured for email {email} on day {day} of each month.",
+      "browserNotSupported": "Your browser does not support notifications.",
+      "notificationsBlocked": "Notifications have been blocked. Please enable notifications in your browser settings.",
+      "invalidEmail": "Please enter a valid email.",
+      "invalidDay": "Please choose a day between 1 and 28."
+    },
     "dataAndPrivacy": "Data and Privacy",
     "exportAllData": "Export All Data",
     "clearAllData": "Clear All Data",
@@ -69,7 +78,8 @@
     "versionNumber": "v1.0.0",
     "description": "Family financial management system",
     "termsOfUse": "Terms of Use",
-    "privacyPolicy": "Privacy Policy"
+    "privacyPolicy": "Privacy Policy",
+    "clearDataComingSoon": "Clear data functionality will be implemented soon."
   },
   "deleteModal": {
     "title": "Confirm Data Deletion",

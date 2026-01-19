@@ -144,7 +144,7 @@ export default function Settings() {
   // Solicitar permissão de notificações
   const requestNotificationPermission = async (): Promise<boolean> => {
     if (!('Notification' in window)) {
-      alert('Seu navegador não suporta notificações.');
+      alert(t('settings.notifications.browserNotSupported'));
       return false;
     }
 
@@ -153,7 +153,7 @@ export default function Settings() {
     }
 
     if (Notification.permission === 'denied') {
-      alert('As notificações foram bloqueadas. Por favor, permita notificações nas configurações do navegador.');
+      alert(t('settings.notifications.notificationsBlocked'));
       return false;
     }
 
@@ -186,8 +186,8 @@ export default function Settings() {
       
       // Mostrar toast de sucesso
       const successMessage = key === 'billReminder' 
-        ? t('settings.notifications.billReminderEnabled') || 'Lembrete de vencimento de contas ativado com sucesso!'
-        : t('settings.notifications.cardLimitAlertEnabled') || 'Alerta de aproximação do limite do cartão ativado com sucesso!';
+        ? t('settings.notifications.billReminderEnabled')
+        : t('settings.notifications.cardLimitAlertEnabled');
       setToastMessage(successMessage);
       setToastVisible(true);
     } else {
@@ -252,19 +252,21 @@ export default function Settings() {
   // Salvar configurações de email do resumo mensal
   const handleSaveEmailSummary = async () => {
     if (!emailSummary.email || !emailSummary.email.includes('@')) {
-      alert('Por favor, insira um email válido.');
+      alert(t('settings.notifications.invalidEmail'));
       return;
     }
 
     if (emailSummary.dayOfMonth < 1 || emailSummary.dayOfMonth > 28) {
-      alert('Por favor, escolha um dia entre 1 e 28.');
+      alert(t('settings.notifications.invalidDay'));
       return;
     }
 
     // TODO: Salvar no backend quando implementar
-    // Mostrar toast de sucesso
-    const successMessage = t('settings.notifications.monthlyEmailConfigured') 
-      || `Resumo mensal configurado para o email ${emailSummary.email} no dia ${emailSummary.dayOfMonth} de cada mês.`;
+    // Mostrar toast de sucesso com parâmetros dinâmicos
+    const successMessage = t('settings.notifications.monthlyEmailConfigured', {
+      email: emailSummary.email,
+      day: emailSummary.dayOfMonth.toString(),
+    });
     setToastMessage(successMessage);
     setToastVisible(true);
     
@@ -527,7 +529,7 @@ export default function Settings() {
               <button
                 onClick={async () => {
                   // TODO: Implementar lógica de deletar dados
-                  alert(t('common.error') + ': Funcionalidade de limpar dados será implementada em breve.');
+                  alert(t('common.error') + ': ' + t('settings.clearDataComingSoon'));
                   setIsDeleteModalOpen(false);
                   setDeleteConfirmation('');
                 }}

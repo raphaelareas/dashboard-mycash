@@ -59,6 +59,15 @@
     "emailForSummary": "Email para receber o resumo",
     "dayOfMonth": "Dia do mês para receber",
     "confirmConfiguration": "Confirmar Configuração",
+    "notifications": {
+      "billReminderEnabled": "Lembrete de vencimento de contas ativado com sucesso!",
+      "cardLimitAlertEnabled": "Alerta de aproximação do limite do cartão ativado com sucesso!",
+      "monthlyEmailConfigured": "Resumo mensal configurado para o email {email} no dia {day} de cada mês.",
+      "browserNotSupported": "Seu navegador não suporta notificações.",
+      "notificationsBlocked": "As notificações foram bloqueadas. Por favor, permita notificações nas configurações do navegador.",
+      "invalidEmail": "Por favor, insira um email válido.",
+      "invalidDay": "Por favor, escolha um dia entre 1 e 28."
+    },
     "dataAndPrivacy": "Dados e Privacidade",
     "exportAllData": "Exportar Todos os Dados",
     "clearAllData": "Limpar Todos os Dados",
@@ -69,7 +78,8 @@
     "versionNumber": "v1.0.0",
     "description": "Sistema de gestão financeira familiar",
     "termsOfUse": "Termos de Uso",
-    "privacyPolicy": "Política de Privacidade"
+    "privacyPolicy": "Política de Privacidade",
+    "clearDataComingSoon": "Funcionalidade de limpar dados será implementada em breve."
   },
   "deleteModal": {
     "title": "Confirmar Exclusão de Dados",

@@ -59,6 +59,15 @@
     "emailForSummary": "E-Mail zum Erhalt der Zusammenfassung",
     "dayOfMonth": "Tag des Monats zum Erhalt",
     "confirmConfiguration": "Konfiguration Bestätigen",
+    "notifications": {
+      "billReminderEnabled": "Erinnerung an Fälligkeitsdatum erfolgreich aktiviert!",
+      "cardLimitAlertEnabled": "Kreditkartenlimit-Warnung erfolgreich aktiviert!",
+      "monthlyEmailConfigured": "Monatliche Zusammenfassung für E-Mail {email} am Tag {day} jedes Monats konfiguriert.",
+      "browserNotSupported": "Ihr Browser unterstützt keine Benachrichtigungen.",
+      "notificationsBlocked": "Benachrichtigungen wurden blockiert. Bitte aktivieren Sie Benachrichtigungen in Ihren Browsereinstellungen.",
+      "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+      "invalidDay": "Bitte wählen Sie einen Tag zwischen 1 und 28."
+    },
     "dataAndPrivacy": "Daten und Datenschutz",
     "exportAllData": "Alle Daten Exportieren",
     "clearAllData": "Alle Daten Löschen",

@@ -59,6 +59,15 @@
     "emailForSummary": "E-post for å motta oppsummering",
     "dayOfMonth": "Dag i måneden for å motta",
     "confirmConfiguration": "Bekreft Konfigurasjon",
+    "notifications": {
+      "billReminderEnabled": "Påminnelse om forfallsdato aktivert med suksess!",
+      "cardLimitAlertEnabled": "Varsel om kredittkortgrense aktivert med suksess!",
+      "monthlyEmailConfigured": "Månedlig oppsummering konfigurert for e-post {email} på dag {day} hver måned.",
+      "browserNotSupported": "Nettleseren din støtter ikke varsler.",
+      "notificationsBlocked": "Varsler har blitt blokkert. Vennligst aktiver varsler i nettleserinnstillingene.",
+      "invalidEmail": "Vennligst skriv inn en gyldig e-post.",
+      "invalidDay": "Vennligst velg en dag mellom 1 og 28."
+    },
     "dataAndPrivacy": "Data og Personvern",
     "exportAllData": "Eksporter Alle Data",
     "clearAllData": "Slett Alle Data",
@@ -69,7 +78,8 @@
     "versionNumber": "v1.0.0",
     "description": "Familie finansforvaltningssystem",
     "termsOfUse": "Bruksvilkår",
-    "privacyPolicy": "Personvernpolicy"
+    "privacyPolicy": "Personvernpolicy",
+    "clearDataComingSoon": "Funksjonen for å slette data vil bli implementert snart."
   },
   "deleteModal": {
     "title": "Bekreft Sletting av Data",
