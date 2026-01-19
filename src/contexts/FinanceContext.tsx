@@ -36,12 +36,21 @@ interface FinanceContextType {
   dateRange: DateRange;
   transactionType: 'all' | 'income' | 'expense';
   searchText: string;
+  selectedCategories: string[];
+  selectedAccounts: string[];
+  selectedCards: string[];
 
   // Setters de Filtros
   setSelectedMember: (memberId: string | null) => void;
   setDateRange: (range: DateRange) => void;
   setTransactionType: (type: 'all' | 'income' | 'expense') => void;
   setSearchText: (text: string) => void;
+  setSelectedCategories: (categories: string[]) => void;
+  setSelectedAccounts: (accounts: string[]) => void;
+  setSelectedCards: (cards: string[]) => void;
+  
+  // Helper para contar filtros ativos
+  getActiveFiltersCount: () => number;
 
   // CRUD Transactions
   addTransaction: (transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
@@ -117,6 +126,9 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   const [dateRange, setDateRange] = useState<DateRange>(getCurrentMonthRange());
   const [transactionType, setTransactionType] = useState<'all' | 'income' | 'expense'>('all');
   const [searchText, setSearchText] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+  const [selectedCards, setSelectedCards] = useState<string[]>([]);
 
   // Carregar dados do Supabase quando usuário estiver autenticado
   useEffect(() => {
@@ -395,17 +407,42 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
       filtered = filtered.filter((t) => t.memberId === selectedMember);
     }
 
+    // Filtro por categorias
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((t) => {
+        const categoryName = typeof t.category === 'string' ? t.category : t.category;
+        return selectedCategories.includes(categoryName);
+      });
+    }
+
+    // Filtro por contas/cartões
+    const selectedMethods = [...selectedAccounts, ...selectedCards];
+    if (selectedMethods.length > 0) {
+      filtered = filtered.filter((t) => selectedMethods.includes(t.accountId));
+    }
+
     // Filtro por busca
     if (searchText) {
       const search = searchText.toLowerCase();
       filtered = filtered.filter(
         (t) =>
           t.description.toLowerCase().includes(search) ||
-          t.category.toLowerCase().includes(search)
+          (typeof t.category === 'string' ? t.category : String(t.category)).toLowerCase().includes(search)
       );
     }
 
     return filtered;
+  };
+
+  // Contar filtros ativos
+  const getActiveFiltersCount = (): number => {
+    let count = 0;
+    if (selectedMember) count++;
+    if (transactionType !== 'all') count++;
+    if (selectedCategories.length > 0) count++;
+    if (selectedAccounts.length > 0) count++;
+    if (selectedCards.length > 0) count++;
+    return count;
   };
 
   const calculateTotalBalance = (): number => {
@@ -480,10 +517,17 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     dateRange,
     transactionType,
     searchText,
+    selectedCategories,
+    selectedAccounts,
+    selectedCards,
     setSelectedMember,
     setDateRange,
     setTransactionType,
     setSearchText,
+    setSelectedCategories,
+    setSelectedAccounts,
+    setSelectedCards,
+    getActiveFiltersCount,
     addTransaction,
     updateTransaction,
     deleteTransaction,

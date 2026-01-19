@@ -5,7 +5,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { NewTransactionModal } from '@/components/modals/NewTransactionModal';
-import { FiltersMobileModal } from '@/components/modals/FiltersMobileModal';
+import { FiltersModal } from '@/components/modals/FiltersModal';
 
 const SearchIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -44,12 +44,14 @@ const getInitials = (name: string): string => {
 };
 
 export function DashboardHeader() {
-  const { searchText, setSearchText, dateRange, familyMembers, selectedMember, setSelectedMember } = useFinance();
+  const { searchText, setSearchText, dateRange, familyMembers, selectedMember, setSelectedMember, getActiveFiltersCount } = useFinance();
   const { isDesktop, isExpanded } = useSidebar();
   const { t } = useI18n();
   const navigate = useNavigate();
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isNewTransactionOpen, setIsNewTransactionOpen] = useState(false);
+  
+  const activeFiltersCount = getActiveFiltersCount();
 
   const formatPeriod = () => {
     return `${formatDateShort(dateRange.startDate)} - ${formatDateShort(dateRange.endDate)}`;
@@ -83,10 +85,15 @@ export function DashboardHeader() {
             {/* Botão Filtros */}
             <button
               onClick={() => setIsFiltersOpen(true)}
-              className="flex-shrink-0 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-[40px] bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300 whitespace-nowrap"
+              className="relative flex-shrink-0 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-[40px] bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300 whitespace-nowrap"
             >
               <FilterIcon />
               <span>{t('dashboard.filters') || 'Filtros'}</span>
+              {activeFiltersCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  {activeFiltersCount}
+                </span>
+              )}
             </button>
 
             {/* Date Picker */}
@@ -165,7 +172,7 @@ export function DashboardHeader() {
 
       {/* Modals */}
       <NewTransactionModal isOpen={isNewTransactionOpen} onClose={() => setIsNewTransactionOpen(false)} />
-      <FiltersMobileModal isOpen={isFiltersOpen} onClose={() => setIsFiltersOpen(false)} />
+      <FiltersModal isOpen={isFiltersOpen} onClose={() => setIsFiltersOpen(false)} />
     </>
   );
 }

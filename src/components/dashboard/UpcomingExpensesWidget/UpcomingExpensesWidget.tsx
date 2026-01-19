@@ -24,7 +24,7 @@ interface UpcomingExpensesWidgetProps {
 }
 
 export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
-  const { transactions, dateRange, updateTransaction } = useFinance();
+  const { getFilteredTransactions, updateTransaction } = useFinance();
   const { t } = useI18n();
   const [toastVisible, setToastVisible] = useState(false);
   const [lastMarkedExpenseId, setLastMarkedExpenseId] = useState<string | null>(null);
@@ -34,14 +34,15 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
   const next30Days = new Date();
   next30Days.setDate(today.getDate() + 30);
   
-  const upcomingExpenses = transactions
+  // Usar getFilteredTransactions para aplicar filtros do dashboard
+  const filteredTransactions = getFilteredTransactions();
+  
+  const upcomingExpenses = filteredTransactions
     .filter(t => {
       const transactionDate = new Date(t.date);
       return t.type === 'expense' && 
              transactionDate >= today && 
-             transactionDate <= next30Days &&
-             transactionDate >= dateRange.startDate &&
-             transactionDate <= dateRange.endDate;
+             transactionDate <= next30Days;
     })
     .filter(t => !t.isPaid) // Filtrar apenas despesas não pagas
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
