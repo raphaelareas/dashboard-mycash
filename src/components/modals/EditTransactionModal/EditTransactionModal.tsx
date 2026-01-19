@@ -8,6 +8,7 @@ import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { CreateMethodModal } from '@/components/modals/CreateMethodModal';
 import { TransactionCategory, Transaction } from '@/types';
 import { formatCurrencyInput } from '@/utils/currency.utils';
+import { defaultCategoryColors } from '@/utils/categoryColors';
 
 interface EditTransactionModalProps {
   isOpen: boolean;
@@ -51,14 +52,14 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
   const [amount, setAmount] = useState('');
   const [amountDisplay, setAmountDisplay] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<TransactionCategory | ''>('');
+  const [category, setCategory] = useState<TransactionCategory | string | ''>('');
   const [customCategory, setCustomCategory] = useState('');
   const [memberId, setMemberId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState('');
-  const [installments, setInstallments] = useState(1);
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [recurrenceFrequency, setRecurrenceFrequency] = useState<'weekly' | 'biweekly' | 'monthly' | 'yearly'>('monthly');
-  const [recurrenceCount, setRecurrenceCount] = useState(1);
+  // Toggle para escolher entre Total ou Parcela
+  const [isInstallment, setIsInstallment] = useState(false);
+  const [totalInstallments, setTotalInstallments] = useState(1);
+  const [installmentNumber, setInstallmentNumber] = useState(1);
   const [transactionDate, setTransactionDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -69,8 +70,6 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
   const [createMethodTab, setCreateMethodTab] = useState<'account' | 'card'>('account');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const isCreditCard = creditCards.some(c => c.id === accountId);
-
   // Carregar dados da transação quando modal abrir
   useEffect(() => {
     if (isOpen && transaction) {
@@ -78,13 +77,14 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       setAmount(transaction.amount.toString());
       setAmountDisplay(formatCurrencyInput(transaction.amount.toString()).display);
       setDescription(transaction.description);
-      setCategory(transaction.category as TransactionCategory);
+      setCategory(transaction.category as TransactionCategory | string);
       setMemberId(transaction.memberId || null);
       setAccountId(transaction.accountId || '');
-      setInstallments(transaction.installments || 1);
-      setIsRecurring(transaction.isRecurring || false);
-      setRecurrenceFrequency('monthly'); // Default, pode ser ajustado se houver campo
-      setRecurrenceCount(1); // Default
+      const installments = transaction.installments || 1;
+      const installmentNum = transaction.installmentNumber || 1;
+      setIsInstallment(installments > 1);
+      setTotalInstallments(installments);
+      setInstallmentNumber(installmentNum);
       setTransactionDate(new Date(transaction.date).toISOString().split('T')[0]);
       setErrors({});
     }
@@ -102,10 +102,9 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       setCustomCategory('');
       setMemberId(null);
       setAccountId('');
-      setInstallments(1);
-      setIsRecurring(false);
-      setRecurrenceFrequency('monthly');
-      setRecurrenceCount(1);
+      setIsInstallment(false);
+      setTotalInstallments(1);
+      setInstallmentNumber(1);
       setTransactionDate(today.toISOString().split('T')[0]);
       setIsCreateCategoryModalOpen(false);
       setIsAddMemberModalOpen(false);
@@ -120,11 +119,6 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
     }
   }, [category]);
 
-  useEffect(() => {
-    if (isRecurring) {
-      setInstallments(1);
-    }
-  }, [isRecurring]);
 
   const handleAmountChange = (value: string) => {
     const { display, numeric } = formatCurrencyInput(value);
@@ -166,14 +160,15 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
     try {
       await updateTransaction(transaction.id, {
         type,
-        category: category as TransactionCategory,
+        category: category as TransactionCategory | string,
         amount: numericAmount,
         description: category === 'other' && customCategory ? `${customCategory}: ${description}` : description,
         date: new Date(transactionDate),
         accountId,
         memberId,
-        installments: isCreditCard && type === 'expense' ? installments : 1,
-        isRecurring: type === 'expense' ? isRecurring : false,
+        installments: isInstallment ? totalInstallments : 1,
+        installmentNumber: isInstallment ? installmentNumber : undefined,
+        isRecurring: false,
       });
       onClose();
     } catch (error) {
@@ -199,7 +194,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
             <ExpenseArrowIcon color={type === 'expense' ? 'currentColor' : 'currentColor'} />
           </button>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">{t('modals.newTransaction.title')}</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('modals.newTransaction.editTitle') || 'Edição de transação'}</h2>
             <p className="text-sm text-gray-600">
               {type === 'expense' ? t('modals.newTransaction.registerExpense') : t('modals.newTransaction.registerIncome')}
             </p>
@@ -262,7 +257,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
             <div className="flex-1" style={{ width: '420px' }}>
               <CustomSelect
                 value={category}
-                onChange={(value) => setCategory(value as TransactionCategory)}
+                onChange={(value) => setCategory(value)}
                 placeholder={t('modals.newTransaction.selectCategory') || 'Selecione uma categoria'}
                 className={errors.category ? 'border-red-500' : ''}
                 error={!!errors.category}
@@ -271,7 +266,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                   ...defaultCategories.map((cat) => ({
                     value: cat,
                     label: categoryNames[cat] || cat,
-                    color: '#3247FF', // Cor padrão para categorias padrão
+                    color: defaultCategoryColors[cat] || '#6B7280',
                   })),
                   // Categorias customizadas
                   ...customCategories
@@ -318,18 +313,87 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t('modals.newTransaction.amount')}
           </label>
-          <input
-            type="text"
-            value={amountDisplay}
-            onChange={(e) => handleAmountChange(e.target.value)}
-            placeholder="0,00"
-            className={`
-              w-full h-14 px-4 rounded-[40px] border
-              ${errors.amount ? 'border-red-500' : 'border-gray-200'}
-              focus:outline-none focus:ring-2 focus:ring-primary
-            `}
-          />
+          <div className="flex items-center gap-3">
+            <input
+              type="text"
+              value={amountDisplay}
+              onChange={(e) => handleAmountChange(e.target.value)}
+              placeholder="0,00"
+              className={`
+                flex-1 h-14 px-4 rounded-[40px] border
+                ${errors.amount ? 'border-red-500' : 'border-gray-200'}
+                focus:outline-none focus:ring-2 focus:ring-primary
+              `}
+            />
+            {/* Toggle Total/Parcela */}
+            <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px]">
+              <button
+                type="button"
+                onClick={() => setIsInstallment(false)}
+                className={`
+                  px-4 py-2 rounded-[40px] font-medium transition-all text-sm
+                  ${!isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
+                `}
+              >
+                Total
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsInstallment(true)}
+                className={`
+                  px-4 py-2 rounded-[40px] font-medium transition-all text-sm
+                  ${isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
+                `}
+              >
+                Parcela
+              </button>
+            </div>
+          </div>
           {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
+          
+          {/* Campos de Parcelas (aparecem quando Parcela está selecionado) */}
+          {isInstallment && (
+            <div className="mt-4 space-y-4 animate-fade-in">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Parcela Atual
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={totalInstallments}
+                    value={installmentNumber}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      setInstallmentNumber(Math.max(1, Math.min(value, totalInstallments)));
+                    }}
+                    className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Total de Parcelas
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="12"
+                    value={totalInstallments}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      const newTotal = Math.max(1, Math.min(value, 12));
+                      setTotalInstallments(newTotal);
+                      if (installmentNumber > newTotal) {
+                        setInstallmentNumber(newTotal);
+                      }
+                    }}
+                    className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Date */}
@@ -423,122 +487,6 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
           {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}
         </div>
 
-        {/* Installments */}
-        {isCreditCard && type === 'expense' && (
-          <div className="animate-fade-in">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('modals.newTransaction.installments') || 'Quantidade de Parcelas'}
-            </label>
-            <input
-              type="text"
-              value={installments}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '');
-                if (value === '') {
-                  setInstallments(1);
-                } else {
-                  const numValue = parseInt(value);
-                  if (!isNaN(numValue) && numValue >= 1 && numValue <= 12) {
-                    setInstallments(numValue);
-                  }
-                }
-              }}
-              onBlur={(e) => {
-                if (e.target.value === '' || parseInt(e.target.value) < 1) {
-                  setInstallments(1);
-                } else {
-                  const numValue = parseInt(e.target.value);
-                  if (numValue > 12) {
-                    setInstallments(12);
-                  }
-                }
-              }}
-              disabled={isRecurring}
-              className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-              placeholder="1"
-              inputMode="numeric"
-            />
-            {isRecurring && (
-              <p className="mt-1 text-sm italic text-gray-500">
-                {t('modals.newTransaction.installmentsDisabledForRecurring') || 'Parcelamento desabilitado para despesas recorrentes'}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Recurring */}
-        {type === 'expense' && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                id="recurring"
-                checked={isRecurring}
-                onChange={(e) => setIsRecurring(e.target.checked)}
-                disabled={installments > 1}
-                className="mt-1"
-              />
-              <div className="flex-1">
-                <label htmlFor="recurring" className="font-semibold text-gray-900 block">
-                  {t('modals.newTransaction.recurringExpense') || 'Despesa Recorrente'}
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  {installments > 1
-                    ? (t('modals.newTransaction.notAvailableForInstallments') || 'Não disponível para compras parceladas')
-                    : (t('modals.newTransaction.willRepeatAutomatically') || 'Esta despesa será repetida automaticamente')
-                  }
-                </p>
-                {isRecurring && (
-                  <div className="mt-3 space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('modals.newTransaction.frequency')}
-                      </label>
-                      <select
-                        value={recurrenceFrequency}
-                        onChange={(e) => setRecurrenceFrequency(e.target.value as any)}
-                        className="w-full h-12 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        <option value="weekly">{t('modals.newTransaction.weekly')}</option>
-                        <option value="biweekly">{t('modals.newTransaction.biweekly')}</option>
-                        <option value="monthly">{t('modals.newTransaction.monthly')}</option>
-                        <option value="yearly">{t('modals.newTransaction.yearly')}</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('modals.newTransaction.timesCount')}
-                      </label>
-                      <input
-                        type="text"
-                        value={recurrenceCount}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          if (value === '') {
-                            setRecurrenceCount(1);
-                          } else {
-                            const numValue = parseInt(value);
-                            if (!isNaN(numValue) && numValue >= 1) {
-                              setRecurrenceCount(numValue);
-                            }
-                          }
-                        }}
-                        onBlur={(e) => {
-                          if (e.target.value === '' || parseInt(e.target.value) < 1) {
-                            setRecurrenceCount(1);
-                          }
-                        }}
-                        className="w-full h-12 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="Ex: 12"
-                        inputMode="numeric"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {errors.submit && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">

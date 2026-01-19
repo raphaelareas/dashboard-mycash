@@ -60,9 +60,10 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   // Membro é opcional, então não pré-selecionar ninguém
   const [memberId, setMemberId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState('');
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [recurrenceFrequency, setRecurrenceFrequency] = useState<'weekly' | 'biweekly' | 'monthly' | 'yearly'>('monthly');
-  const [recurrenceCount, setRecurrenceCount] = useState('');
+  // Toggle para escolher entre Total ou Parcela
+  const [isInstallment, setIsInstallment] = useState(false);
+  const [totalInstallments, setTotalInstallments] = useState(1);
+  const [installmentNumber, setInstallmentNumber] = useState(1);
   const [transactionDate, setTransactionDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -89,9 +90,9 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       // Membro é opcional, não pré-selecionar
       setMemberId(null);
       setAccountId('');
-      setIsRecurring(false);
-      setRecurrenceFrequency('monthly');
-      setRecurrenceCount('');
+      setIsInstallment(false);
+      setTotalInstallments(1);
+      setInstallmentNumber(1);
       setTransactionDate(today.toISOString().split('T')[0]);
       setIsCreateCategoryModalOpen(false);
       setIsAddMemberModalOpen(false);
@@ -133,8 +134,16 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       newErrors.customCategory = 'Informe o nome da categoria';
     }
 
-    if (isRecurring && (!recurrenceCount || recurrenceCount.trim() === '')) {
-      newErrors.recurrenceCount = 'Informe a quantidade de vezes';
+    if (isInstallment && totalInstallments < 1) {
+      newErrors.installments = 'Total de parcelas deve ser pelo menos 1';
+    }
+
+    if (isInstallment && installmentNumber < 1) {
+      newErrors.installmentNumber = 'Parcela atual deve ser pelo menos 1';
+    }
+
+    if (isInstallment && installmentNumber > totalInstallments) {
+      newErrors.installmentNumber = 'Parcela atual não pode ser maior que o total';
     }
 
     if (!accountId) {
@@ -153,8 +162,9 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       date: new Date(transactionDate),
       accountId,
       memberId,
-      installments: 1,
-      isRecurring: type === 'expense' ? isRecurring : false,
+      installments: isInstallment ? totalInstallments : 1,
+      installmentNumber: isInstallment ? installmentNumber : undefined,
+      isRecurring: false,
       isPaid: false,
     });
 
@@ -250,8 +260,75 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 `}
                 placeholder="0,00"
               />
+              {/* Toggle Total/Parcela */}
+              <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px]">
+                <button
+                  type="button"
+                  onClick={() => setIsInstallment(false)}
+                  className={`
+                    px-4 py-2 rounded-[40px] font-medium transition-all text-sm
+                    ${!isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
+                  `}
+                >
+                  Total
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsInstallment(true)}
+                  className={`
+                    px-4 py-2 rounded-[40px] font-medium transition-all text-sm
+                    ${isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
+                  `}
+                >
+                  Parcela
+                </button>
+              </div>
             </div>
             {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
+            
+            {/* Campos de Parcelas (aparecem quando Parcela está selecionado) */}
+            {isInstallment && (
+              <div className="mt-4 space-y-4 animate-fade-in">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Parcela Atual
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max={totalInstallments}
+                      value={installmentNumber}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
+                        setInstallmentNumber(Math.max(1, Math.min(value, totalInstallments)));
+                      }}
+                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Total de Parcelas
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="12"
+                      value={totalInstallments}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
+                        const newTotal = Math.max(1, Math.min(value, 12));
+                        setTotalInstallments(newTotal);
+                        if (installmentNumber > newTotal) {
+                          setInstallmentNumber(newTotal);
+                        }
+                      }}
+                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Description */}
@@ -422,75 +499,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}
           </div>
 
-          {/* Recurring (only for expenses) */}
-          {type === 'expense' && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  id="recurring"
-                  checked={isRecurring}
-                  onChange={(e) => setIsRecurring(e.target.checked)}
-                  className="mt-1"
-                />
-                <div className="flex-1">
-                  <label htmlFor="recurring" className="font-semibold text-gray-900 block">
-                    {t('modals.newTransaction.recurringExpense') || 'Despesa Recorrente'}
-                  </label>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {t('modals.newTransaction.willRepeatAutomatically') || 'Esta despesa será repetida automaticamente'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Campos de recorrência quando marcado */}
-              {isRecurring && (
-                <div className="mt-4 space-y-4 animate-fade-in">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('modals.newTransaction.frequency') || 'Frequência'}
-                      </label>
-                      <select
-                        value={recurrenceFrequency}
-                        onChange={(e) => setRecurrenceFrequency(e.target.value as 'weekly' | 'biweekly' | 'monthly' | 'yearly')}
-                        className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
-                        style={{ paddingRight: '1rem' }}
-                      >
-                        <option value="weekly">{t('modals.newTransaction.weekly') || 'Semanal'}</option>
-                        <option value="biweekly">{t('modals.newTransaction.biweekly') || 'Quinzenal'}</option>
-                        <option value="monthly">{t('modals.newTransaction.monthly') || 'Mensal'}</option>
-                        <option value="yearly">{t('modals.newTransaction.yearly') || 'Anual'}</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('modals.newTransaction.timesCount') || 'Quantidade de Vezes'}
-                      </label>
-                      <input
-                        type="text"
-                        value={recurrenceCount}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          setRecurrenceCount(value);
-                          if (errors.recurrenceCount) {
-                            setErrors({ ...errors, recurrenceCount: '' });
-                          }
-                        }}
-                        className={`
-                          w-full h-14 px-4 rounded-[40px] border focus:outline-none focus:ring-2 focus:ring-primary
-                          ${errors.recurrenceCount ? 'border-red-500' : 'border-gray-200'}
-                        `}
-                        placeholder="Ex: 12"
-                        inputMode="numeric"
-                      />
-                      {errors.recurrenceCount && <p className="mt-1 text-sm text-red-600">{errors.recurrenceCount}</p>}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 

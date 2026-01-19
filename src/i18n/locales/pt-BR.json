@@ -204,6 +204,7 @@
   "modals": {
     "newTransaction": {
       "title": "Nova Transação",
+      "editTitle": "Edição de transação",
       "type": "Tipo",
       "income": "Receita",
       "expense": "Despesa",
