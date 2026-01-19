@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -67,6 +68,7 @@ const ChevronRightIcon = () => (
 export function TransactionsTable() {
   const { getFilteredTransactions, bankAccounts, creditCards, familyMembers, categories: customCategories } = useFinance();
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [localSearch, setLocalSearch] = useState('');
   
   // Obter nomes de categorias via tradução
@@ -211,7 +213,7 @@ export function TransactionsTable() {
       </div>
 
       {/* Table - Desktop */}
-      <div className="hidden md:block border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="hidden md:flex md:flex-col border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         {/* Table Header */}
         <div className="bg-gray-50 dark:bg-gray-700 grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px] gap-x-3 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400">
           <div>{t('transactions.avatar')}</div>
@@ -229,7 +231,7 @@ export function TransactionsTable() {
             {t('dashboard.noTransactionsFound') || 'Nenhum lançamento encontrado.'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+          <div className="divide-y divide-gray-100 dark:divide-gray-700 min-h-[280px]">
             {paginatedTransactions.map((transaction, index) => {
               const isEven = index % 2 === 0;
               const avatarUrl = getMemberAvatar(transaction.memberId);
@@ -424,14 +426,31 @@ export function TransactionsTable() {
         )}
       </div>
 
-      {/* Pagination */}
+      {/* Pagination + CTA (mesma faixa, sem aumentar altura) */}
       {filteredTransactions.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 items-center gap-3">
+          <div className="text-sm text-gray-600 dark:text-gray-400 md:justify-self-start">
             {t('dashboard.showing') || 'Mostrando'} {startIndex + 1} {t('common.to') || 'a'} {Math.min(endIndex, filteredTransactions.length)} {t('common.of')} {filteredTransactions.length}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex justify-center md:justify-self-center">
+            <button
+              type="button"
+              onClick={() => navigate('/transacoes')}
+              className="
+                flex items-center justify-center
+                py-2 rounded-[40px]
+                transition-all duration-200 ease-in-out
+                text-gray-900 dark:text-gray-100
+                hover:bg-gray-100 dark:hover:bg-gray-700
+                px-4
+              "
+            >
+              <span className="font-medium truncate">Ver todas transações</span>
+            </button>
+          </div>
+
+          <div className="flex items-center justify-center md:justify-self-end gap-2">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
