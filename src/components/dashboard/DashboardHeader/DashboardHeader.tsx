@@ -102,7 +102,7 @@ export function DashboardHeader() {
 
             {/* Widget Membros da Família - avatares sobrepostos (apenas desktop, apenas quando há membros) */}
             {isDesktop && familyMembers.length > 0 && (
-              <div className="flex items-center flex-shrink-0" style={{ marginLeft: '-24px' }}>
+              <div className="flex items-center flex-shrink-0" style={{ marginLeft: '-8px' }}>
                 {familyMembers.map((member, index) => {
                   const isSelected = selectedMember === member.id;
                   return (
@@ -117,7 +117,7 @@ export function DashboardHeader() {
                         }
                       `}
                       style={{ 
-                        marginLeft: index > 0 ? '-24px' : '0',
+                        marginLeft: index > 0 ? '-8px' : '0',
                         zIndex: familyMembers.length - index
                       }}
                       title={member.name}
@@ -136,14 +136,14 @@ export function DashboardHeader() {
                 {/* Botão adicionar membro - navega para People */}
                 <button 
                   onClick={() => navigate('/pessoas')}
-                  className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors relative"
+                  className="w-8 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:border-primary hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors relative"
                   style={{ 
-                    marginLeft: '-24px',
+                    marginLeft: '-8px',
                     zIndex: familyMembers.length + 1
                   }}
                   title={t('people.addMember')}
                 >
-                  <span className="text-lg">+</span>
+                  <span className="text-lg font-semibold">+</span>
                 </button>
               </div>
             )}
