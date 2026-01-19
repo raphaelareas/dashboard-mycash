@@ -151,9 +151,10 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                   className={`
                     h-12 rounded-[40px] font-semibold transition-all
                     ${tempType === type
-                      ? 'bg-gray-500 text-white'
+                      ? 'text-gray-900'
                       : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                     }
+                    ${tempType === type ? 'style={{ backgroundColor: "#f9f9f9" }}' : ''}
                   `}
                 >
                   {type === 'all' ? t('transactions.all') : type === 'income' ? t('transactions.income') : t('transactions.expense')}
@@ -174,10 +175,11 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                 className={`
                   h-12 px-4 rounded-[40px] font-semibold transition-all
                   ${!tempMember
-                    ? 'bg-gray-500 text-white'
+                    ? 'text-gray-900'
                     : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                   }
                 `}
+                style={!tempMember ? { backgroundColor: '#f9f9f9' } : undefined}
               >
                 {t('transactions.allMembers') || 'Todos'}
               </button>
@@ -189,10 +191,11 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                   className={`
                     h-12 px-4 rounded-[40px] font-semibold transition-all flex items-center gap-2
                     ${tempMember === member.id
-                      ? 'bg-gray-500 text-white'
+                      ? 'text-gray-900'
                       : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                     }
                   `}
+                  style={tempMember === member.id ? { backgroundColor: '#f9f9f9' } : undefined}
                 >
                   {member.avatarUrl ? (
                     <img src={member.avatarUrl} alt={member.name} className="w-8 h-8 rounded-full object-cover" />
@@ -225,10 +228,11 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                     className={`
                       h-12 px-4 rounded-[40px] font-semibold transition-all flex items-center gap-2
                       ${isSelected
-                        ? 'bg-gray-500 text-white'
+                        ? 'text-gray-900'
                         : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                       }
                     `}
+                    style={isSelected ? { backgroundColor: '#f9f9f9' } : undefined}
                   >
                     <div
                       className="w-6 h-6 rounded-lg flex-shrink-0 border border-gray-200"
@@ -249,10 +253,11 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                     className={`
                       h-12 px-4 rounded-[40px] font-semibold transition-all flex items-center gap-2
                       ${isSelected
-                        ? 'bg-gray-500 text-white'
+                        ? 'text-gray-900'
                         : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                       }
                     `}
+                    style={isSelected ? { backgroundColor: '#f9f9f9' } : undefined}
                   >
                     <div
                       className="w-6 h-6 rounded-lg flex-shrink-0 border border-gray-200"
@@ -284,10 +289,11 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                       className={`
                         h-12 px-4 rounded-[40px] font-semibold transition-all flex items-center gap-2
                         ${isSelected
-                          ? 'bg-gray-900 text-white'
+                          ? 'text-gray-900'
                           : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                         }
                       `}
+                      style={isSelected ? { backgroundColor: '#f9f9f9' } : undefined}
                     >
                       <div
                         className="w-6 h-6 rounded-lg flex-shrink-0 border border-gray-200"
@@ -320,10 +326,11 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                       className={`
                         h-12 px-4 rounded-[40px] font-semibold transition-all flex items-center gap-2
                         ${isSelected
-                          ? 'bg-gray-900 text-white'
+                          ? 'text-gray-900'
                           : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                         }
                       `}
+                      style={isSelected ? { backgroundColor: '#f9f9f9' } : undefined}
                     >
                       <div
                         className="w-6 h-6 rounded-lg flex-shrink-0 border border-gray-200"
