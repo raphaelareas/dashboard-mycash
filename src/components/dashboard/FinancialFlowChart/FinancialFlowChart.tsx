@@ -39,17 +39,13 @@ function getMonthDaysBuckets(dateRange: { startDate: Date; endDate: Date }): num
   const month = startDate.getMonth();
 
   const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-  const baseDays = [1, 5, 10, 15, 20, 25, 30, 31];
+  const baseDays = [1, 5, 10, 15, 20, 25];
 
-  const buckets = baseDays.filter((day, index) => {
-    // Evita duplicar 30/31 quando o mês termina no dia 30
-    if (day === 31 && lastDayOfMonth === 30) return false;
-    return day <= lastDayOfMonth && (index === 0 || day !== baseDays[index - 1]);
-  });
+  const buckets = baseDays.filter((day) => day <= lastDayOfMonth);
 
-  // Garante que o último dia do mês vigente sempre apareça como último tick (28, 29, 30 ou 31)
-  const lastBucket = buckets[buckets.length - 1];
-  if (lastBucket !== lastDayOfMonth) {
+  // Garante que o último dia do mês vigente sempre apareça como último tick (28, 29, 30 ou 31),
+  // sem duplicar 30/31.
+  if (lastDayOfMonth > 25) {
     buckets.push(lastDayOfMonth);
   }
 
