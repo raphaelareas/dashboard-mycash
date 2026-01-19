@@ -132,7 +132,7 @@ export function MenuDropdown({ isOpen, onClose }: MenuDropdownProps) {
         </div>
 
         {/* Itens de navegação */}
-        <nav className="py-2">
+        <nav className="py-2" data-navigation="true">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.to || 
                            (item.to !== '/' && location.pathname.startsWith(item.to));

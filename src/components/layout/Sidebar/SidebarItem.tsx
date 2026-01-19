@@ -62,7 +62,7 @@ export function SidebarItem({ to, icon, label, isCollapsed, disabled = false }: 
   }
 
   return (
-    <div className="relative group min-w-0 max-w-full">
+    <div className="relative group min-w-0 max-w-full" data-navigation="true">
       <Link to={to} className="min-w-0 max-w-full">
         {content}
       </Link>

@@ -19,17 +19,27 @@ interface I18nProviderProps {
 export function I18nProvider({ children }: I18nProviderProps) {
   const { user } = useAuth();
   const [language, setLanguageState] = useState<LanguageCode>(() => {
-    // Tentar carregar do localStorage primeiro
-    const saved = localStorage.getItem('language') as LanguageCode;
-    if (saved && translations[saved]) {
-      return saved;
-    }
-    // Detectar do navegador
+    // Sempre detectar do navegador primeiro
     try {
       const detected = detectUserLocale();
       const detectedLang = (detected.language as LanguageCode) || defaultLanguage;
-      // Salvar no localStorage para manter consistência
-      localStorage.setItem('language', detectedLang);
+      
+      // Verificar se há mudança manual
+      const hasManualChange = localStorage.getItem('language_manually_set') === 'true';
+      const saved = localStorage.getItem('language') as LanguageCode;
+      
+      // Se foi mudança manual E o idioma salvo é válido, usar o salvo
+      if (hasManualChange && saved && translations[saved]) {
+        return saved;
+      }
+      
+      // Caso contrário, sempre usar o detectado do navegador
+      // Limpar localStorage se tiver valor diferente (pode ser de teste anterior)
+      if (saved && saved !== detectedLang) {
+        localStorage.removeItem('language');
+        localStorage.removeItem('language_manually_set');
+      }
+      
       return detectedLang;
     } catch (error) {
       console.error('Erro ao detectar locale:', error);
@@ -40,7 +50,14 @@ export function I18nProvider({ children }: I18nProviderProps) {
   // Carregar idioma do perfil do usuário quando disponível
   useEffect(() => {
     const loadUserLanguage = async () => {
-      if (!user?.id) return;
+      if (!user?.id) {
+        // Se não há usuário, sempre usar o detectado do navegador
+        const detected = detectUserLocale();
+        const detectedLang = (detected.language as LanguageCode) || defaultLanguage;
+        setLanguageState(detectedLang);
+        localStorage.setItem('language', detectedLang);
+        return;
+      }
 
       try {
         // Sempre detectar o idioma do navegador primeiro
@@ -49,9 +66,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
         
         const profile = await userService.getProfile(user.id);
         
-        // Se o perfil tem idioma salvo E é diferente do detectado, verificar se foi mudança manual
-        // Se o navegador está em português e o perfil tem outro idioma, pode ser que o usuário mudou manualmente
-        // Mas na primeira vez (quando não há preferência salva), sempre usar o detectado
+        // Verificar se foi mudança manual
         const hasManualLanguageChange = localStorage.getItem('language_manually_set') === 'true';
         
         if (profile?.language && translations[profile.language as LanguageCode] && hasManualLanguageChange) {
@@ -59,9 +74,13 @@ export function I18nProvider({ children }: I18nProviderProps) {
           setLanguageState(profile.language as LanguageCode);
           localStorage.setItem('language', profile.language);
         } else {
-          // Caso contrário, usar o idioma detectado do navegador
+          // Sempre priorizar o idioma detectado do navegador
           setLanguageState(detectedLang);
           localStorage.setItem('language', detectedLang);
+          // Limpar flag de mudança manual se estiver usando o detectado
+          if (hasManualLanguageChange && profile?.language !== detectedLang) {
+            localStorage.removeItem('language_manually_set');
+          }
           // Atualizar no perfil do usuário para manter sincronizado
           if (!profile?.language || profile.language !== detectedLang) {
             try {

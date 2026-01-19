@@ -156,19 +156,34 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(215, 255, 0, 0.1);
 }
 
-/* Estilos globais para links */
-a {
+/* Estilos globais para links de texto simples (não aplica a links de navegação/botões) */
+/* Aplica apenas a links que têm underline ou são links de texto simples */
+a[class*="underline"],
+a:not([data-navigation]):not(nav a):not([class*="Sidebar"] a):not([class*="sidebar"] a):not([class*="MenuDropdown"] a):not([class*="bg-"]):not([class*="button"]):not([class*="btn"]) {
   color: #080B12;
   text-decoration: underline;
   transition: color 0.2s ease;
 }
 
-a:hover {
+a[class*="underline"]:hover,
+a:not([data-navigation]):not(nav a):not([class*="Sidebar"] a):not([class*="sidebar"] a):not([class*="MenuDropdown"] a):not([class*="bg-"]):not([class*="button"]):not([class*="btn"]):hover {
   color: #99B402;
 }
 
-/* Links sem underline (para navegação) */
-a.no-underline,
-a[class*="no-underline"] {
-  text-decoration: none;
+/* Excluir links da sidebar, navegação e menus dropdown */
+nav a,
+[data-navigation] a,
+[class*="Sidebar"] a,
+[class*="sidebar"] a,
+[class*="MenuDropdown"] a {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+nav a:hover,
+[data-navigation] a:hover,
+[class*="Sidebar"] a:hover,
+[class*="sidebar"] a:hover,
+[class*="MenuDropdown"] a:hover {
+  color: inherit !important;
 }
