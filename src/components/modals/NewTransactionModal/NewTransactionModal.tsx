@@ -144,9 +144,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       newErrors.installmentNumber = 'Parcela atual deve ser pelo menos 1';
     }
 
-    if (isInstallment && installmentNumber > totalInstallments) {
-      newErrors.installmentNumber = 'Parcela atual não pode ser maior que o total';
-    }
+    // Permitir que parcela atual seja maior que total (para casos de registro retroativo)
+    // Apenas validar que ambos sejam números válidos
 
     if (!accountId) {
       newErrors.accountId = 'Selecione uma conta ou cartão';
@@ -297,15 +296,27 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                       Parcela Atual
                     </label>
                     <input
-                      type="number"
-                      min="1"
-                      max={totalInstallments}
+                      type="text"
+                      inputMode="numeric"
                       value={installmentNumber}
                       onChange={(e) => {
-                        const value = parseInt(e.target.value) || 1;
-                        setInstallmentNumber(Math.max(1, Math.min(value, totalInstallments)));
+                        const value = e.target.value.replace(/\D/g, '');
+                        if (value === '') {
+                          setInstallmentNumber(1);
+                        } else {
+                          const numValue = parseInt(value);
+                          if (!isNaN(numValue) && numValue >= 1) {
+                            setInstallmentNumber(numValue);
+                          }
+                        }
                       }}
-                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                      onBlur={(e) => {
+                        if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                          setInstallmentNumber(1);
+                        }
+                      }}
+                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder="Ex: 7"
                     />
                   </div>
                   <div>
@@ -313,19 +324,39 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                       Total de Parcelas
                     </label>
                     <input
-                      type="number"
-                      min="1"
-                      max="12"
+                      type="text"
+                      inputMode="numeric"
                       value={totalInstallments}
                       onChange={(e) => {
-                        const value = parseInt(e.target.value) || 1;
-                        const newTotal = Math.max(1, Math.min(value, 12));
-                        setTotalInstallments(newTotal);
-                        if (installmentNumber > newTotal) {
-                          setInstallmentNumber(newTotal);
+                        const value = e.target.value.replace(/\D/g, '');
+                        if (value === '') {
+                          setTotalInstallments(1);
+                        } else {
+                          const numValue = parseInt(value);
+                          if (!isNaN(numValue) && numValue >= 1) {
+                            const newTotal = Math.min(numValue, 12);
+                            setTotalInstallments(newTotal);
+                            if (installmentNumber > newTotal) {
+                              setInstallmentNumber(newTotal);
+                            }
+                          }
                         }
                       }}
-                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                      onBlur={(e) => {
+                        if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                          setTotalInstallments(1);
+                        } else {
+                          const numValue = parseInt(e.target.value);
+                          if (numValue > 12) {
+                            setTotalInstallments(12);
+                            if (installmentNumber > 12) {
+                              setInstallmentNumber(12);
+                            }
+                          }
+                        }
+                      }}
+                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder="Ex: 12"
                     />
                   </div>
                 </div>
