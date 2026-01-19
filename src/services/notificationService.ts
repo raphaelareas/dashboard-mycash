@@ -1,4 +1,4 @@
-import { CreditCard, BankAccount, Transaction } from '@/types';
+import { CreditCard, Transaction } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
 
 interface NotificationPreferences {
@@ -44,7 +44,7 @@ export function shouldNotifyCardLimit(card: CreditCard): boolean {
  * Retorna o número de dias até o vencimento se deve notificar, ou null
  */
 export function shouldNotifyBillDue(transaction: Transaction, currentDate: Date = new Date()): number | null {
-  if (!transaction.isRecurring || !transaction.installmentData || transaction.isPaid) {
+  if (!transaction.isRecurring || !transaction.installments || transaction.isPaid) {
     return null;
   }
 
@@ -122,7 +122,7 @@ export function checkAndNotifyCardLimits(
       const usagePercentage = Math.round((card.currentBalance! / card.limit!) * 100);
       sendBrowserNotification(
         'Limite do Cartão Aproximando',
-        `O cartão ${card.name || card.bankName} atingiu ${usagePercentage}% do limite (${formatCurrency(card.currentBalance!)} de ${formatCurrency(card.limit!)})`,
+        `O cartão ${card.name} atingiu ${usagePercentage}% do limite (${formatCurrency(card.currentBalance!)} de ${formatCurrency(card.limit!)})`,
         {
           tag: `card-limit-${card.id}`,
         }

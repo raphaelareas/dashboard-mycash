@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNotificationChecker } from '@/hooks/useNotificationChecker';
 
 /**
