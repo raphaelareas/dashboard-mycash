@@ -23,6 +23,12 @@ const UploadIcon = () => (
   </svg>
 );
 
+const DeleteIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 4H14M6 4V2C6 1.73478 6.10536 1.48043 6.29289 1.29289C6.48043 1.10536 6.73478 1 7 1H9C9.26522 1 9.51957 1.10536 9.70711 1.29289C9.89464 1.48043 10 1.73478 10 2V4M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2762C12.026 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31305 14.6667 3.97391 14.5262 3.72386 14.2762C3.47381 14.0261 3.33334 13.687 3.33334 13.3333V4H12.6667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 interface AddMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -127,11 +133,17 @@ export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModa
       setAvatarUrl(url);
       setIsUploading(false);
       setSelectedImageFile(null);
+      setErrors({}); // Limpar erros ao ter sucesso
     } catch (error) {
       console.error('Erro ao fazer upload da imagem:', error);
       setErrors({ avatar: 'Erro ao fazer upload da imagem. Tente novamente.' });
       setIsUploading(false);
     }
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarUrl('');
+    setErrors({});
   };
 
   const handleSubmit = async () => {
@@ -273,7 +285,7 @@ export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModa
           </div>
         </div>
 
-        {/* Botão de Upload de Avatar */}
+        {/* Avatar Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t('modals.addMember.avatar')}
@@ -285,19 +297,49 @@ export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModa
             onChange={handleFileSelect}
             className="hidden"
           />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="w-full h-12 px-4 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <UploadIcon />
-            <span>{isUploading ? 'Enviando...' : avatarUrl ? 'Alterar Avatar' : 'Enviar Avatar'}</span>
-          </button>
-          {errors.avatar && <p className="mt-1 text-sm text-red-600">{errors.avatar}</p>}
-          {avatarUrl && !errors.avatar && (
-            <p className="mt-1 text-sm text-green-600">{t('myAccount.photoUploadSuccess')}</p>
+          {avatarUrl ? (
+            <div className="flex items-center gap-3">
+              {/* Foto */}
+              <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border-2 border-gray-200">
+                <img 
+                  src={avatarUrl} 
+                  alt="Avatar" 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+              {/* Botão Alterar Avatar */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="px-4 py-2 rounded-[40px] border border-gray-300 hover:bg-gray-50 transition-colors font-medium text-gray-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <UploadIcon />
+                <span>{isUploading ? 'Enviando...' : 'Alterar Avatar'}</span>
+              </button>
+              {/* Botão Deletar Avatar */}
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                disabled={isUploading}
+                className="px-4 py-2 rounded-[40px] border border-red-300 hover:bg-red-50 transition-colors font-medium text-red-600 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <DeleteIcon />
+                <span>Deletar Avatar</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="w-full h-12 px-4 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <UploadIcon />
+              <span>{isUploading ? 'Enviando...' : 'Enviar Avatar'}</span>
+            </button>
           )}
+          {errors.avatar && <p className="mt-1 text-sm text-red-600">{errors.avatar}</p>}
         </div>
       </div>
 

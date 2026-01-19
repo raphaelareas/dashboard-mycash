@@ -103,7 +103,14 @@ export default function People() {
           <h3 className="text-xl font-bold text-gray-900 mb-4">{t('people.familyMembers')}</h3>
 
           <div className="space-y-0">
-            {familyMembers.map((member, index) => {
+            {/* Ordenar: owner primeiro, depois os demais */}
+            {[...familyMembers].sort((a, b) => {
+              const aIsOwner = a.role.toLowerCase() === 'owner';
+              const bIsOwner = b.role.toLowerCase() === 'owner';
+              if (aIsOwner && !bIsOwner) return -1;
+              if (!aIsOwner && bIsOwner) return 1;
+              return 0;
+            }).map((member, index) => {
               const isEven = index % 2 === 0;
               // Obter role original do banco (Filho, Pai, etc.) ou usar o mapeado
               const originalRole = getOriginalRole(member.id);
