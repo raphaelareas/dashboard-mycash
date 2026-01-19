@@ -270,6 +270,8 @@
       "accountNumberPlaceholder": "Ex: 12345-6",
       "agency": "Agência (opcional)",
       "agencyPlaceholder": "Ex: 0001",
+      "holder": "Titular",
+      "selectHolder": "Selecione um titular",
       "balance": "Saldo Inicial",
       "balancePlaceholder": "0,00",
       "color": "Cor",

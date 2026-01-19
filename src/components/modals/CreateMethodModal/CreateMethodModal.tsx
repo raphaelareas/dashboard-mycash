@@ -151,11 +151,11 @@ export function CreateMethodModal({
     }
 
     if (!accountHolderId) {
-      newErrors.holderId = t('modals.addCard.selectHolder') || 'Selecione um titular';
+      newErrors.holderId = t('modals.addAccount.selectHolder') || 'Selecione um titular';
     }
 
-    if (!accountBalance || parseFloat(accountBalance) <= 0) {
-      newErrors.balance = t('modals.addAccount.balanceError') || 'Saldo inicial obrigatório';
+    if (accountBalance === '' || isNaN(parseFloat(accountBalance)) || parseFloat(accountBalance) < 0) {
+      newErrors.balance = t('modals.addAccount.balanceError') || 'Saldo inicial inválido';
     }
 
     if (!bankName || bankName.length < 2) {
@@ -383,7 +383,7 @@ export function CreateMethodModal({
             {/* Holder */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('modals.addCard.holder')}
+                {t('modals.addAccount.holder')}
               </label>
               <select
                 value={accountHolderId}
@@ -394,7 +394,7 @@ export function CreateMethodModal({
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
               >
-                <option value="">{t('modals.addCard.selectHolder')}</option>
+                <option value="">{t('modals.addAccount.selectHolder')}</option>
                 {familyMembers.map((member) => (
                   <option key={member.id} value={member.id}>
                     {member.name}
