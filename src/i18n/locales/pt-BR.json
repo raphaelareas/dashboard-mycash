@@ -317,7 +317,8 @@
       "selectAccount": "Selecione uma conta ou cartão",
       "save": "Salvar",
       "cancel": "Cancelar",
-      "nameError": "Nome da categoria é obrigatório"
+      "nameError": "Nome da categoria é obrigatório",
+      "nameMinLengthError": "Nome da categoria deve ter pelo menos 2 caracteres"
     },
     "cardDetails": {
       "title": "Detalhes do Cartão",

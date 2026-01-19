@@ -113,12 +113,12 @@ export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, init
 
   const handleSave = () => {
     if (!categoryName.trim()) {
-      setError('Nome da categoria é obrigatório');
+      setError(t('modals.createCategory.nameError'));
       return;
     }
 
     if (categoryName.trim().length < 2) {
-      setError('Nome da categoria deve ter pelo menos 2 caracteres');
+      setError(t('modals.createCategory.nameMinLengthError') || 'Nome da categoria deve ter pelo menos 2 caracteres');
       return;
     }
 
@@ -272,15 +272,15 @@ export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, init
                   className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
                   style={{ paddingRight: '24px' }}
                 >
-                  <option value="">Selecione uma conta ou cartão</option>
-                  <optgroup label="Contas Bancárias">
+                  <option value="">{t('modals.createCategory.selectAccount')}</option>
+                  <optgroup label={t('transactions.bankAccounts')}>
                     {bankAccounts.filter(a => a.isActive).map((account) => (
                       <option key={account.id} value={account.id}>
                         {account.name}
                       </option>
                     ))}
                   </optgroup>
-                  <optgroup label="Cartões de Crédito">
+                  <optgroup label={t('transactions.creditCards')}>
                     {creditCards.filter(c => c.isActive).map((card) => (
                       <option key={card.id} value={card.id}>
                         {card.name}
