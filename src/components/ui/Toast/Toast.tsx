@@ -33,7 +33,7 @@ export function Toast({
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
       <div className="
         px-6 py-4 rounded-lg
-        bg-gray-900 text-white
+        bg-white border border-gray-200
         shadow-lg
         flex items-center gap-3
         min-w-[300px] max-w-[500px]
@@ -48,20 +48,20 @@ export function Toast({
         >
           <path
             d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z"
-            stroke="currentColor"
+            stroke="#10B981"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
             d="M7 10L9 12L13 8"
-            stroke="currentColor"
+            stroke="#10B981"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
         </svg>
-        <p className="text-sm font-medium flex-1">{message}</p>
+        <p className="text-sm font-medium flex-1 text-gray-900">{message}</p>
         {onUndo && (
           <button
             onClick={() => {
@@ -70,8 +70,8 @@ export function Toast({
             }}
             className="
               px-3 py-1.5 rounded-md
-              bg-white/10 hover:bg-white/20
-              text-white text-sm font-medium
+              bg-gray-100 hover:bg-gray-200
+              text-gray-700 text-sm font-medium
               transition-colors
               whitespace-nowrap
             "

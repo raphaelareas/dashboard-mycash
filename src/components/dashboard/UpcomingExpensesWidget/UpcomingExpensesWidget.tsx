@@ -122,18 +122,24 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
               </div>
               <button
                 onClick={() => handleMarkAsPaid(expense.id)}
-                className="
+                className={`
                   w-6 h-6 rounded-full border-2 border-black
-                  bg-white
                   flex items-center justify-center
-                  hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20
-                  transition-colors flex-shrink-0
-                "
+                  transition-all flex-shrink-0
+                  ${expense.isPaid 
+                    ? 'bg-green-600 border-green-600' 
+                    : 'bg-white hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20'
+                  }
+                `}
                 title="Marcar como paga"
               >
-                {expense.isPaid && (
+                {expense.isPaid ? (
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2 6L5 9L10 2" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 6L5 9L10 2" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ) : (
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-40">
+                    <path d="M2 6L5 9L10 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 )}
               </button>
@@ -142,7 +148,7 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
         </div>
       )}
       <Toast
-        message={t('dashboard.expenseMarkedAsPaid') || 'Despesa marcada como paga'}
+        message={t('dashboard.expensePaidSuccessfully') || 'Despesa paga com sucesso'}
         isVisible={toastVisible}
         onClose={() => {
           setToastVisible(false);
