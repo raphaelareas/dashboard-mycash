@@ -39,7 +39,6 @@ export function CreditCardsWidget({ onAddCard }: CreditCardsWidgetProps) {
   const activeCards = creditCards.filter(c => c.isActive);
   const cardsPerPage = 1; // Mostrar 1 cartão por vez
   const totalPages = Math.ceil(activeCards.length / cardsPerPage);
-  const currentCards = activeCards.slice(currentPage * cardsPerPage, (currentPage + 1) * cardsPerPage);
 
   const calculateUsagePercentage = (current: number, limit?: number): number => {
     if (!limit || limit === 0) return 0;

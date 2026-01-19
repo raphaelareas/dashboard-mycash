@@ -76,7 +76,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const [createMethodTab, setCreateMethodTab] = useState<'account' | 'card'>('account');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const isCreditCard = creditCards.some(c => c.id === accountId);
 
   useEffect(() => {
     // Sempre atualizar memberId quando familyMembers mudar ou modal abrir
