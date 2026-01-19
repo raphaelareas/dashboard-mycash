@@ -7,6 +7,7 @@ import { formatCurrencyInput } from '@/utils/currency.utils';
 interface AddCardModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onCardCreated?: () => void;
 }
 
 const CloseIcon = () => (
@@ -15,7 +16,7 @@ const CloseIcon = () => (
   </svg>
 );
 
-export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
+export function AddCardModal({ isOpen, onClose, onCardCreated }: AddCardModalProps) {
   const { addCreditCard, familyMembers } = useFinance();
   const { t } = useI18n();
   const [name, setName] = useState('');
@@ -162,6 +163,7 @@ export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
       isActive: true,
     });
 
+    onCardCreated?.();
     onClose();
   };
 

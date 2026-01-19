@@ -8,6 +8,7 @@ import { formatCurrencyInput } from '@/utils/currency.utils';
 interface AddAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAccountCreated?: () => void;
 }
 
 const CloseIcon = () => (
@@ -85,7 +86,7 @@ const accountColors = [
   { color: '#E5E7EB', name: 'Cinza' }, // gray-200
 ];
 
-export function AddAccountModal({ isOpen, onClose }: AddAccountModalProps) {
+export function AddAccountModal({ isOpen, onClose, onAccountCreated }: AddAccountModalProps) {
   const { addBankAccount, familyMembers } = useFinance();
   const { t } = useI18n();
   const [name, setName] = useState('');
@@ -155,6 +156,7 @@ export function AddAccountModal({ isOpen, onClose }: AddAccountModalProps) {
       isActive: true,
     });
 
+    onAccountCreated?.();
     onClose();
   };
 

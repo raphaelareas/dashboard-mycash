@@ -40,8 +40,32 @@ export const storageService = {
   async uploadAvatar(file: File, userId: string): Promise<string> {
     const fileExt = file.name.split('.').pop();
     const fileName = `avatar.${fileExt}`;
-    const { url } = await this.upload('avatars', file, userId, fileName);
-    return url;
+    const fullPath = `${userId}/${fileName}`;
+
+    // Fazer upload
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fullPath, file, {
+        cacheControl: '3600',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('Erro no upload:', uploadError);
+      throw uploadError;
+    }
+
+    // Obter URL assinada (avatars é privado)
+    const { data: signedData, error: urlError } = await supabase.storage
+      .from('avatars')
+      .createSignedUrl(fullPath, 31536000); // 1 ano de validade
+
+    if (urlError || !signedData) {
+      console.error('Erro ao obter URL:', urlError);
+      throw urlError || new Error('Não foi possível obter URL do arquivo');
+    }
+
+    return signedData.signedUrl;
   },
 
   // Deletar arquivo

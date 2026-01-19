@@ -154,7 +154,14 @@ export default function Categories() {
                     {category.icon || '📌'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{category.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-gray-900 truncate">{category.name}</h3>
+                      <div
+                        className="w-4 h-4 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: category.color }}
+                        title={category.color}
+                      />
+                    </div>
                     <p className="text-xs text-gray-500">
                       {category.type === 'income' ? t('categories.income') : t('categories.expenses')}
                     </p>

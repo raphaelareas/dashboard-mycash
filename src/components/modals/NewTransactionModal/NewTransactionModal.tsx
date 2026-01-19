@@ -4,7 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/ui/Modal';
 import { CreateCategoryModal } from '@/components/modals/CreateCategoryModal';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
-import { AddCardModal } from '@/components/modals/AddCardModal';
+import { CreateMethodModal } from '@/components/modals/CreateMethodModal';
 import { TransactionCategory } from '@/types';
 import { formatCurrencyInput } from '@/utils/currency.utils';
 
@@ -55,7 +55,12 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<TransactionCategory | ''>('');
   const [customCategory, setCustomCategory] = useState('');
-  const [memberId, setMemberId] = useState<string | null>(null);
+  // Inicializar com owner se existir
+  const getInitialMemberId = () => {
+    const owner = familyMembers.find(m => m.role.toLowerCase() === 'owner');
+    return owner?.id || null;
+  };
+  const [memberId, setMemberId] = useState<string | null>(getInitialMemberId());
   const [accountId, setAccountId] = useState('');
   const [installments, setInstallments] = useState(1);
   const [isRecurring, setIsRecurring] = useState(false);
@@ -67,10 +72,19 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   });
   const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
-  const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
+  const [isCreateMethodModalOpen, setIsCreateMethodModalOpen] = useState(false);
+  const [createMethodTab, setCreateMethodTab] = useState<'account' | 'card'>('account');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const isCreditCard = creditCards.some(c => c.id === accountId);
+
+  useEffect(() => {
+    // Sempre atualizar memberId quando familyMembers mudar ou modal abrir
+    const owner = familyMembers.find(m => m.role.toLowerCase() === 'owner');
+    if (owner) {
+      setMemberId(owner.id);
+    }
+  }, [familyMembers, isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -82,7 +96,9 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       setDescription('');
       setCategory('');
       setCustomCategory('');
-      setMemberId(null);
+      // Resetar para owner por padrão
+      const owner = familyMembers.find(m => m.role.toLowerCase() === 'owner');
+      setMemberId(owner?.id || null);
       setAccountId('');
       setInstallments(1);
       setIsRecurring(false);
@@ -91,10 +107,10 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       setTransactionDate(today.toISOString().split('T')[0]);
       setIsCreateCategoryModalOpen(false);
       setIsAddMemberModalOpen(false);
-      setIsAddCardModalOpen(false);
+      setIsCreateMethodModalOpen(false);
       setErrors({});
     }
-  }, [isOpen]);
+  }, [isOpen, familyMembers]);
 
   useEffect(() => {
     if (category !== 'other') {
@@ -342,11 +358,14 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 style={{ paddingRight: '24px' }}
               >
                 <option value="">{t('modals.newTransaction.familyGeneral') || 'Família (Geral)'}</option>
-                {familyMembers.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.name}
-                  </option>
-                ))}
+                {familyMembers.map((member) => {
+                  const roleDisplay = member.role.toLowerCase() === 'owner' ? 'Owner' : member.role;
+                  return (
+                    <option key={member.id} value={member.id}>
+                      {member.name} - {roleDisplay}
+                    </option>
+                  );
+                })}
               </select>
               <button
                 type="button"
@@ -364,42 +383,87 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('modals.newTransaction.account')}
             </label>
-            <div className="flex gap-3">
-              <select
-                value={accountId}
-                onChange={(e) => setAccountId(e.target.value)}
-                className={`
-                  flex-1 h-14 px-4 rounded-[40px] border min-w-0
-                  ${errors.accountId ? 'border-red-500' : 'border-gray-200'}
-                  focus:outline-none focus:ring-2 focus:ring-primary
-                `}
-                style={{ paddingRight: '24px' }}
-              >
-                <option value="">{t('common.select') || 'Selecione'}</option>
-                <optgroup label={t('transactions.bankAccounts')}>
-                  {bankAccounts.filter(a => a.isActive).map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={t('transactions.creditCards')}>
-                  {creditCards.filter(c => c.isActive).map((card) => (
-                    <option key={card.id} value={card.id}>
-                      {card.name}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-              <button
-                type="button"
-                onClick={() => setIsAddCardModalOpen(true)}
-                className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
-                style={{ borderColor: '#1F2937', minWidth: '180px' }}
-              >
-                Criar novo método
-              </button>
-            </div>
+            {(bankAccounts.filter(a => a.isActive).length === 0 && creditCards.filter(c => c.isActive).length === 0) ? (
+              // Quando não há métodos, mostrar tabs e botão
+              <div className="space-y-3">
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-[40px]">
+                  <button
+                    type="button"
+                    onClick={() => setCreateMethodTab('account')}
+                    className={`flex-1 py-2 px-4 rounded-[40px] font-medium transition-colors ${
+                      createMethodTab === 'account'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Conta
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreateMethodTab('card')}
+                    className={`flex-1 py-2 px-4 rounded-[40px] font-medium transition-colors ${
+                      createMethodTab === 'card'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Cartão
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCreateMethodModalOpen(true);
+                    setCreateMethodTab(createMethodTab);
+                  }}
+                  className="w-full h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700"
+                  style={{ borderColor: '#1F2937' }}
+                >
+                  Criar {createMethodTab === 'account' ? 'conta' : 'cartão'}
+                </button>
+              </div>
+            ) : (
+              // Quando há métodos, mostrar select normal
+              <div className="flex gap-3">
+                <select
+                  value={accountId}
+                  onChange={(e) => setAccountId(e.target.value)}
+                  className={`
+                    flex-1 h-14 px-4 rounded-[40px] border min-w-0
+                    ${errors.accountId ? 'border-red-500' : 'border-gray-200'}
+                    focus:outline-none focus:ring-2 focus:ring-primary
+                  `}
+                  style={{ paddingRight: '24px' }}
+                >
+                  <option value="">{t('common.select') || 'Selecione'}</option>
+                  <optgroup label={t('transactions.bankAccounts')}>
+                    {bankAccounts.filter(a => a.isActive).map((account) => (
+                      <option key={account.id} value={account.id}>
+                        {account.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label={t('transactions.creditCards')}>
+                    {creditCards.filter(c => c.isActive).map((card) => (
+                      <option key={card.id} value={card.id}>
+                        {card.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCreateMethodModalOpen(true);
+                    setCreateMethodTab('account');
+                  }}
+                  className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
+                  style={{ borderColor: '#1F2937', minWidth: '180px' }}
+                >
+                  Criar novo método
+                </button>
+              </div>
+            )}
             {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}
           </div>
 
@@ -530,10 +594,17 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
         onClose={() => setIsAddMemberModalOpen(false)}
       />
 
-      {/* Modal de Adicionar Cartão/Conta */}
-      <AddCardModal
-        isOpen={isAddCardModalOpen}
-        onClose={() => setIsAddCardModalOpen(false)}
+      {/* Modal de Criar Método (Conta/Cartão) */}
+      <CreateMethodModal
+        isOpen={isCreateMethodModalOpen}
+        onClose={() => setIsCreateMethodModalOpen(false)}
+        initialTab={createMethodTab}
+        onAccountCreated={() => {
+          // Recarregar contas após criar
+        }}
+        onCardCreated={() => {
+          // Recarregar cartões após criar
+        }}
       />
     </Modal>
   );

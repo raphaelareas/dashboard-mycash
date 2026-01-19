@@ -184,7 +184,12 @@ export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, init
 
           {/* Seletor de cores */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded-full flex-shrink-0"
+                style={{ backgroundColor: selectedColor }}
+                title={selectedColor}
+              />
               {t('modals.createCategory.color')}
             </label>
             <div className="flex flex-wrap gap-2">

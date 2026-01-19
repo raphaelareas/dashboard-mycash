@@ -39,6 +39,7 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
   const { user } = useAuth();
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { familyMembers } = useFinance();
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -48,6 +49,16 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Buscar owner por padrão
+  useEffect(() => {
+    if (isOpen && familyMembers.length > 0) {
+      const owner = familyMembers.find(m => m.role.toLowerCase() === 'owner');
+      if (owner) {
+        // Não preencher automaticamente, mas mostrar que owner já existe
+      }
+    }
+  }, [isOpen, familyMembers]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -73,9 +84,9 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tamanho (máximo 1MB)
-    if (file.size > 1024 * 1024) {
-      setErrors({ avatar: 'A imagem deve ter no máximo 1MB' });
+    // Validar tamanho (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors({ avatar: 'A imagem deve ter no máximo 5MB' });
       return;
     }
 
@@ -117,7 +128,7 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
     }
 
     if (!role) {
-      newErrors.role = 'Por favor, informe a função na família';
+      newErrors.role = 'Por favor, informe quem é na família';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -168,13 +179,13 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('modals.addMember.role')}
+            Quem é na família <span className="text-gray-400 text-xs">(ex.: Pai, mãe, esposa, filho...)</span>
           </label>
           <input
             type="text"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            placeholder={t('modals.addMember.rolePlaceholder')}
+            placeholder="Ex.: Pai, mãe, esposa, filho..."
             list="role-suggestions"
             className={`
               w-full h-12 px-4 rounded-[40px] border
