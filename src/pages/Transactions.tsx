@@ -77,7 +77,7 @@ export default function Transactions() {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   // Filtros avançados
   const filteredTransactions = useMemo(() => {
@@ -415,7 +415,10 @@ export default function Transactions() {
                         {getAccountName(transaction.accountId)}
                       </div>
                       <div className="col-span-1 flex items-center text-sm text-gray-600">
-                        {transaction.installments && transaction.installments > 1 ? `${transaction.installments}x` : '-'}
+                        {transaction.installments && transaction.installments > 1 
+                          ? `${transaction.installmentNumber || 1}/${transaction.installments}` 
+                          : '-'
+                        }
                       </div>
                       <div className="col-span-1 flex items-center justify-end">
                         <span className={`font-bold ${transaction.type === 'income' ? 'text-green-700' : 'text-gray-900'}`}>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
@@ -33,6 +34,12 @@ export function CreditCardsWidget({ onAddCard }: CreditCardsWidgetProps) {
   const { creditCards } = useFinance();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(0);
+  
+  const activeCards = creditCards.filter(c => c.isActive);
+  const cardsPerPage = 1; // Mostrar 1 cartão por vez
+  const totalPages = Math.ceil(activeCards.length / cardsPerPage);
+  const currentCards = activeCards.slice(currentPage * cardsPerPage, (currentPage + 1) * cardsPerPage);
 
   const calculateUsagePercentage = (current: number, limit?: number): number => {
     if (!limit || limit === 0) return 0;
@@ -81,8 +88,8 @@ export function CreditCardsWidget({ onAddCard }: CreditCardsWidgetProps) {
       </div>
 
       {/* Cards List */}
-      <div className="space-y-3 flex-1">
-        {creditCards.filter(c => c.isActive).length === 0 ? (
+      <div className="flex-1 flex flex-col">
+        {activeCards.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-12 text-center">
             <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
               <CreditCardIcon />
@@ -92,65 +99,97 @@ export function CreditCardsWidget({ onAddCard }: CreditCardsWidgetProps) {
           </div>
         ) : (
           <>
-            {creditCards.filter(c => c.isActive).map((card, index) => {
-          const usage = calculateUsagePercentage(card.currentBalance, card.limit);
-          const bgColor = getCardColor(index);
-          const textColor = getTextColor(bgColor);
+            {/* Scroll Container */}
+            <div className="flex-1 overflow-hidden relative">
+              <div 
+                className="flex h-full transition-transform duration-300 ease-in-out"
+                style={{ transform: `translateX(-${currentPage * 100}%)` }}
+              >
+                {activeCards.map((card, index) => {
+                  const usage = calculateUsagePercentage(card.currentBalance, card.limit);
+                  const bgColor = getCardColor(index);
+                  const textColor = getTextColor(bgColor);
+                  const availableLimit = (card.limit || 0) - card.currentBalance;
 
-          const availableLimit = (card.limit || 0) - card.currentBalance;
+                  return (
+                    <div
+                      key={card.id}
+                      className="w-full flex-shrink-0 px-1"
+                    >
+                      <div
+                        onClick={() => navigate(`/cartoes/${card.id}`)}
+                        className="
+                          p-4 rounded-lg bg-white dark:bg-gray-700 shadow-sm
+                          hover:-translate-y-1 hover:shadow-md
+                          transition-all duration-200
+                          cursor-pointer
+                          flex items-center gap-4
+                          h-full
+                        "
+                      >
+                        {/* Icon */}
+                        <div className={`
+                          w-12 h-12 rounded-lg ${bgColor} ${textColor}
+                          flex items-center justify-center flex-shrink-0
+                        `}>
+                          <CreditCardIcon />
+                        </div>
 
-          return (
-            <div
-              key={card.id}
-              onClick={() => navigate(`/cartoes/${card.id}`)}
-              className="
-                p-4 rounded-lg bg-white dark:bg-gray-700 shadow-sm
-                hover:-translate-y-1 hover:shadow-md
-                transition-all duration-200
-                cursor-pointer
-                flex items-center gap-4
-              "
-            >
-              {/* Icon */}
-              <div className={`
-                w-12 h-12 rounded-lg ${bgColor} ${textColor}
-                flex items-center justify-center flex-shrink-0
-              `}>
-                <CreditCardIcon />
-              </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{card.name}</p>
+                          <div className="space-y-1">
+                            <div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Saldo disponível</p>
+                              <p className="text-lg font-bold text-green-700 dark:text-green-400">
+                                {formatCurrency(availableLimit)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Saldo gasto</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                {formatCurrency(card.currentBalance)}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                            •••• {card.lastFourDigits}
+                          </p>
+                        </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{card.name}</p>
-                <div className="space-y-1">
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Saldo disponível</p>
-                    <p className="text-lg font-bold text-green-700 dark:text-green-400">
-                      {formatCurrency(availableLimit)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Saldo gasto</p>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                      {formatCurrency(card.currentBalance)}
-                    </p>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  •••• {card.lastFourDigits}
-                </p>
-              </div>
-
-              {/* Usage Badge */}
-              <div className={`
-                px-3 py-1 rounded-full text-sm font-semibold
-                ${usage > 80 ? 'bg-error-light dark:bg-error/20 text-error-dark dark:text-error' : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300'}
-              `}>
-                {usage}%
+                        {/* Usage Badge */}
+                        <div className={`
+                          px-3 py-1 rounded-full text-sm font-semibold
+                          ${usage > 80 ? 'bg-error-light dark:bg-error/20 text-error-dark dark:text-error' : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300'}
+                        `}>
+                          {usage}%
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          );
-          })}
+
+            {/* Paginadores */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-4">
+                {Array.from({ length: totalPages }).map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentPage(index)}
+                    className={`
+                      w-2 h-2 rounded-full transition-all
+                      ${currentPage === index 
+                        ? 'bg-gray-900 dark:bg-gray-100 w-6' 
+                        : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                      }
+                    `}
+                    aria-label={`Página ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>

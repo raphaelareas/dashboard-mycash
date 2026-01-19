@@ -45,6 +45,7 @@ const mapTransactionFromDb = (row: any): Transaction => {
     accountId: row.account_id || '',
     memberId: row.member_id || null,
     installments: row.total_installments || 1,
+    installmentNumber: row.installment_number || 1,
     isRecurring: row.is_recurring || false,
     isPaid: row.status === 'COMPLETED',
     createdAt: new Date(row.created_at),

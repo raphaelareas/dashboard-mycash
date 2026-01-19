@@ -63,7 +63,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   };
   const [memberId, setMemberId] = useState<string | null>(getInitialMemberId());
   const [accountId, setAccountId] = useState('');
-  const [installments, setInstallments] = useState(1);
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceFrequency, setRecurrenceFrequency] = useState<'weekly' | 'biweekly' | 'monthly' | 'yearly'>('monthly');
   const [recurrenceCount, setRecurrenceCount] = useState(1);
@@ -101,7 +100,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       const owner = familyMembers.find(m => m.role.toLowerCase() === 'owner');
       setMemberId(owner?.id || null);
       setAccountId('');
-      setInstallments(1);
       setIsRecurring(false);
       setRecurrenceFrequency('monthly');
       setRecurrenceCount(1);
@@ -118,12 +116,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       setCustomCategory('');
     }
   }, [category]);
-
-  useEffect(() => {
-    if (isRecurring) {
-      setInstallments(1);
-    }
-  }, [isRecurring]);
 
   // Função para formatar valor automaticamente conforme o usuário digita
   const handleAmountChange = (value: string) => {
@@ -168,7 +160,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       date: new Date(transactionDate),
       accountId,
       memberId,
-      installments: isCreditCard && type === 'expense' ? installments : 1,
+      installments: 1,
       isRecurring: type === 'expense' ? isRecurring : false,
       isPaid: false,
     });
@@ -441,49 +433,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}
           </div>
 
-          {/* Installments (only for credit card expenses) */}
-          {isCreditCard && type === 'expense' && (
-            <div className="animate-fade-in">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('modals.newTransaction.installments') || 'Quantidade de Parcelas'}
-              </label>
-              <input
-                type="text"
-                value={installments}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '');
-                  if (value === '') {
-                    setInstallments(1);
-                  } else {
-                    const numValue = parseInt(value);
-                    if (!isNaN(numValue) && numValue >= 1 && numValue <= 12) {
-                      setInstallments(numValue);
-                    }
-                  }
-                }}
-                onBlur={(e) => {
-                  if (e.target.value === '' || parseInt(e.target.value) < 1) {
-                    setInstallments(1);
-                  } else {
-                    const numValue = parseInt(e.target.value);
-                    if (numValue > 12) {
-                      setInstallments(12);
-                    }
-                  }
-                }}
-                disabled={isRecurring}
-                className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-                placeholder="1"
-                inputMode="numeric"
-              />
-              {isRecurring && (
-                <p className="mt-1 text-sm italic text-gray-500">
-                  {t('modals.newTransaction.installmentsDisabledForRecurring') || 'Parcelamento desabilitado para despesas recorrentes'}
-                </p>
-              )}
-            </div>
-          )}
-
           {/* Recurring (only for expenses) */}
           {type === 'expense' && (
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -493,7 +442,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                   id="recurring"
                   checked={isRecurring}
                   onChange={(e) => setIsRecurring(e.target.checked)}
-                  disabled={installments > 1}
                   className="mt-1"
                 />
                 <div className="flex-1">
@@ -501,16 +449,13 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                     {t('modals.newTransaction.recurringExpense') || 'Despesa Recorrente'}
                   </label>
                   <p className="text-sm text-gray-600 mt-1">
-                    {installments > 1
-                      ? (t('modals.newTransaction.notAvailableForInstallments') || 'Não disponível para compras parceladas')
-                      : (t('modals.newTransaction.willRepeatAutomatically') || 'Esta despesa será repetida automaticamente')
-                    }
+                    {t('modals.newTransaction.willRepeatAutomatically') || 'Esta despesa será repetida automaticamente'}
                   </p>
                 </div>
               </div>
 
               {/* Campos de recorrência quando marcado */}
-              {isRecurring && installments === 1 && (
+              {isRecurring && (
                 <div className="mt-4 space-y-4 animate-fade-in">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

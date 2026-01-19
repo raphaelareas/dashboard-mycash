@@ -20,7 +20,8 @@ export interface Transaction {
   date: Date;
   accountId: string;
   memberId?: string | null;
-  installments?: number; // número de parcelas (1 = à vista)
+  installments?: number; // número total de parcelas (1 = à vista)
+  installmentNumber?: number; // número da parcela atual (1, 2, 3...)
   isRecurring?: boolean;
   isPaid?: boolean;
   createdAt: Date;
