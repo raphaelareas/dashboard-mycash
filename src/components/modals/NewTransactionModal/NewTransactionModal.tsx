@@ -102,7 +102,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       setAccountId('');
       setIsRecurring(false);
       setRecurrenceFrequency('monthly');
-      setRecurrenceCount(1);
+      setRecurrenceCount('');
       setTransactionDate(today.toISOString().split('T')[0]);
       setIsCreateCategoryModalOpen(false);
       setIsAddMemberModalOpen(false);
