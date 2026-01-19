@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
@@ -35,10 +35,78 @@ export function CreditCardsWidget({ onAddCard }: CreditCardsWidgetProps) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
   
   const activeCards = creditCards.filter(c => c.isActive);
   const cardsPerPage = 1; // Mostrar 1 cartão por vez
   const totalPages = Math.ceil(activeCards.length / cardsPerPage);
+
+  // Handlers para drag/swipe
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (!scrollRef.current) return;
+    
+    // Calcular qual página está visível após o drag
+    const cardWidth = scrollRef.current.offsetWidth;
+    const newPage = Math.round(scrollRef.current.scrollLeft / cardWidth);
+    const clampedPage = Math.max(0, Math.min(newPage, totalPages - 1));
+    setCurrentPage(clampedPage);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  // Touch handlers para mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (!scrollRef.current) return;
+    
+    const cardWidth = scrollRef.current.offsetWidth;
+    const newPage = Math.round(scrollRef.current.scrollLeft / cardWidth);
+    const clampedPage = Math.max(0, Math.min(newPage, totalPages - 1));
+    setCurrentPage(clampedPage);
+  };
+
+  // Sincronizar scroll com página atual
+  useEffect(() => {
+    if (scrollRef.current && !isDragging) {
+      const cardWidth = scrollRef.current.offsetWidth;
+      scrollRef.current.scrollLeft = currentPage * cardWidth;
+    }
+  }, [currentPage, isDragging]);
 
   const calculateUsagePercentage = (current: number, limit?: number): number => {
     if (!limit || limit === 0) return 0;
@@ -99,10 +167,28 @@ export function CreditCardsWidget({ onAddCard }: CreditCardsWidgetProps) {
         ) : (
           <>
             {/* Scroll Container */}
-            <div className="flex-1 overflow-hidden relative">
+            <div 
+              ref={scrollRef}
+              className="flex-1 overflow-x-auto overflow-y-hidden relative cursor-grab active:cursor-grabbing"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
               <div 
-                className="flex h-full transition-transform duration-300 ease-in-out"
-                style={{ transform: `translateX(-${currentPage * 100}%)` }}
+                className="flex h-full"
+                style={{ 
+                  width: `${totalPages * 100}%`,
+                  transition: isDragging ? 'none' : 'transform 0.3s ease-in-out'
+                }}
               >
                 {activeCards.map((card, index) => {
                   const usage = calculateUsagePercentage(card.currentBalance, card.limit);
@@ -113,7 +199,8 @@ export function CreditCardsWidget({ onAddCard }: CreditCardsWidgetProps) {
                   return (
                     <div
                       key={card.id}
-                      className="w-full flex-shrink-0 px-1"
+                      className="flex-shrink-0 px-1"
+                      style={{ width: `${100 / totalPages}%` }}
                     >
                       <div
                         onClick={() => navigate(`/cartoes/${card.id}`)}
@@ -168,6 +255,11 @@ export function CreditCardsWidget({ onAddCard }: CreditCardsWidgetProps) {
                   );
                 })}
               </div>
+              <style>{`
+                div::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
             </div>
 
             {/* Paginadores */}

@@ -5,9 +5,18 @@ interface ToastProps {
   isVisible: boolean;
   onClose: () => void;
   duration?: number;
+  onUndo?: () => void;
+  undoLabel?: string;
 }
 
-export function Toast({ message, isVisible, onClose, duration = 3000 }: ToastProps) {
+export function Toast({ 
+  message, 
+  isVisible, 
+  onClose, 
+  duration = 5000,
+  onUndo,
+  undoLabel = 'Desfazer'
+}: ToastProps) {
   useEffect(() => {
     if (isVisible) {
       const timer = setTimeout(() => {
@@ -53,6 +62,23 @@ export function Toast({ message, isVisible, onClose, duration = 3000 }: ToastPro
           />
         </svg>
         <p className="text-sm font-medium flex-1">{message}</p>
+        {onUndo && (
+          <button
+            onClick={() => {
+              onUndo();
+              onClose();
+            }}
+            className="
+              px-3 py-1.5 rounded-md
+              bg-white/10 hover:bg-white/20
+              text-white text-sm font-medium
+              transition-colors
+              whitespace-nowrap
+            "
+          >
+            {undoLabel}
+          </button>
+        )}
       </div>
     </div>
   );

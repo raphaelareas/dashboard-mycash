@@ -27,6 +27,7 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
   const { transactions, dateRange, updateTransaction } = useFinance();
   const { t } = useI18n();
   const [toastVisible, setToastVisible] = useState(false);
+  const [lastMarkedExpenseId, setLastMarkedExpenseId] = useState<string | null>(null);
   
   // Buscar despesas próximas (próximos 30 dias a partir de hoje)
   const today = new Date();
@@ -49,9 +50,21 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
   const handleMarkAsPaid = async (expenseId: string) => {
     try {
       await updateTransaction(expenseId, { isPaid: true });
+      setLastMarkedExpenseId(expenseId);
       setToastVisible(true);
     } catch (error) {
       console.error('Erro ao marcar despesa como paga:', error);
+    }
+  };
+
+  const handleUndo = async () => {
+    if (lastMarkedExpenseId) {
+      try {
+        await updateTransaction(lastMarkedExpenseId, { isPaid: false });
+        setLastMarkedExpenseId(null);
+      } catch (error) {
+        console.error('Erro ao desfazer marcação:', error);
+      }
     }
   };
 
@@ -110,7 +123,8 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
               <button
                 onClick={() => handleMarkAsPaid(expense.id)}
                 className="
-                  w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600
+                  w-6 h-6 rounded-full border-2 border-black
+                  bg-white
                   flex items-center justify-center
                   hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20
                   transition-colors flex-shrink-0
@@ -128,9 +142,15 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
         </div>
       )}
       <Toast
-        message={t('dashboard.expenseMarkedAsPaid') || 'Despesa quitada com sucesso!'}
+        message={t('dashboard.expenseMarkedAsPaid') || 'Despesa marcada como paga'}
         isVisible={toastVisible}
-        onClose={() => setToastVisible(false)}
+        onClose={() => {
+          setToastVisible(false);
+          setLastMarkedExpenseId(null);
+        }}
+        duration={5000}
+        onUndo={handleUndo}
+        undoLabel={t('common.undo') || 'Desfazer'}
       />
     </div>
   );
