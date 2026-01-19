@@ -200,7 +200,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, init
                   type="button"
                   className={`
                     w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 flex-shrink-0
-                    ${selectedColor === colorOption.color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}
+                    ${selectedColor === colorOption.color ? 'border-black' : 'border-gray-200'}
                   `}
                   style={{ backgroundColor: colorOption.color }}
                   title={colorOption.name}

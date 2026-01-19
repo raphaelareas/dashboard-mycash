@@ -313,10 +313,10 @@ export function AddAccountModal({ isOpen, onClose, onAccountCreated }: AddAccoun
                 key={colorOption.color}
                 onClick={() => setColor(colorOption.color)}
                 type="button"
-                className={`
-                  w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 flex-shrink-0
-                  ${color === colorOption.color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}
-                `}
+                  className={`
+                    w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 flex-shrink-0
+                    ${color === colorOption.color ? 'border-black' : 'border-gray-200'}
+                  `}
                 style={{ backgroundColor: colorOption.color }}
                 title={colorOption.name}
                 aria-label={colorOption.name}

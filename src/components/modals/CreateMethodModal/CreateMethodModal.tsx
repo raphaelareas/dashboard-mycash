@@ -9,8 +9,8 @@ interface CreateMethodModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialTab?: 'account' | 'card';
-  onAccountCreated?: () => void;
-  onCardCreated?: () => void;
+  onAccountCreated?: (accountId: string) => void;
+  onCardCreated?: (cardId: string) => void;
 }
 
 const CloseIcon = () => (
@@ -170,7 +170,7 @@ export function CreateMethodModal({
     try {
       // Usar accountService diretamente para passar holderId
       const { accountService } = await import('@/services/accountService');
-      await accountService.createBankAccount({
+      const newAccount = await accountService.createBankAccount({
         name: accountName,
         bankName,
         accountNumber: accountNumber || Math.random().toString().slice(2, 10),
@@ -184,9 +184,9 @@ export function CreateMethodModal({
       // Recarregar contas e cartões no contexto
       await refreshAccounts();
 
-      // Chamar callback antes de fechar
+      // Chamar callback com o ID da conta criada
       if (onAccountCreated) {
-        await onAccountCreated();
+        await onAccountCreated(newAccount.id);
       }
       onClose();
     } catch (error) {
@@ -230,7 +230,7 @@ export function CreateMethodModal({
     try {
       // Usar accountService diretamente para passar holderId
       const { accountService } = await import('@/services/accountService');
-      await accountService.createCreditCard({
+      const newCard = await accountService.createCreditCard({
         name: cardName,
         type: 'credit',
         brand: 'other',
@@ -246,9 +246,9 @@ export function CreateMethodModal({
       // Recarregar contas e cartões no contexto
       await refreshAccounts();
 
-      // Chamar callback antes de fechar
+      // Chamar callback com o ID do cartão criado
       if (onCardCreated) {
-        await onCardCreated();
+        await onCardCreated(newCard.id);
       }
       onClose();
     } catch (error) {
@@ -436,7 +436,7 @@ export function CreateMethodModal({
                     type="button"
                     className={`
                       w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 flex-shrink-0
-                      ${accountColor === colorOption.color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}
+                      ${accountColor === colorOption.color ? 'border-black' : 'border-gray-200'}
                     `}
                     style={{ backgroundColor: colorOption.color }}
                     title={colorOption.name}
@@ -515,7 +515,7 @@ export function CreateMethodModal({
                     type="button"
                     className={`
                       w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 flex-shrink-0
-                      ${cardTheme === colorOption.color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}
+                      ${cardTheme === colorOption.color ? 'border-black' : 'border-gray-200'}
                     `}
                     style={{ backgroundColor: colorOption.color }}
                     title={colorOption.name}

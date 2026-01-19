@@ -31,10 +31,10 @@ const ExpenseArrowIcon = ({ color = "currentColor" }: { color?: string }) => (
   </svg>
 );
 
-const categories: TransactionCategory[] = ['rent', 'food', 'shopping', 'household', 'transport', 'entertainment', 'health', 'education', 'other'];
+const defaultCategories: TransactionCategory[] = ['rent', 'food', 'shopping', 'household', 'transport', 'entertainment', 'health', 'education', 'other'];
 
 export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProps) {
-  const { addTransaction, bankAccounts, creditCards, familyMembers } = useFinance();
+  const { addTransaction, bankAccounts, creditCards, familyMembers, categories: customCategories } = useFinance();
   const { t } = useI18n();
   const [type, setType] = useState<'income' | 'expense'>('expense');
   
@@ -292,24 +292,61 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('modals.newTransaction.category')}
             </label>
-            <div className="flex gap-3">
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as TransactionCategory)}
-                className={`
-                  flex-1 h-14 px-4 rounded-[40px] border min-w-0
-                  ${errors.category ? 'border-red-500' : 'border-gray-200'}
-                  focus:outline-none focus:ring-2 focus:ring-primary
-                `}
-                style={{ paddingRight: '24px', width: '420px' }}
-              >
-                <option value="">{t('modals.newTransaction.selectCategory') || 'Selecione uma categoria'}</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {categoryNames[cat] || cat}
-                  </option>
-                ))}
-              </select>
+            <div className="flex gap-3 items-center">
+              <div className="flex-1 relative" style={{ width: '420px' }}>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as TransactionCategory)}
+                  className={`
+                    w-full h-14 px-4 rounded-[40px] border min-w-0
+                    ${errors.category ? 'border-red-500' : 'border-gray-200'}
+                    focus:outline-none focus:ring-2 focus:ring-primary
+                  `}
+                  style={{ paddingRight: category ? '48px' : '24px' }}
+                >
+                  <option value="">{t('modals.newTransaction.selectCategory') || 'Selecione uma categoria'}</option>
+                  {/* Categorias padrão */}
+                  {defaultCategories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {categoryNames[cat] || cat}
+                    </option>
+                  ))}
+                  {/* Categorias customizadas */}
+                  {customCategories
+                    .filter(c => c.type === type)
+                    .map((customCat) => (
+                      <option key={customCat.id} value={customCat.name}>
+                        {customCat.name}
+                      </option>
+                    ))}
+                </select>
+                {/* Mostrar cor ao lado quando categoria está selecionada */}
+                {category && (() => {
+                  // Buscar cor da categoria padrão ou customizada
+                  let categoryColor = '#3247FF'; // Cor padrão
+                  
+                  // Verificar se é categoria padrão (não tem cor específica, usar padrão)
+                  if (defaultCategories.includes(category as TransactionCategory)) {
+                    categoryColor = '#3247FF';
+                  } else {
+                    // Buscar categoria customizada pelo nome
+                    const selectedCategoryData = customCategories.find(c => 
+                      c.name.toLowerCase() === category.toLowerCase() && c.type === type
+                    );
+                    if (selectedCategoryData) {
+                      categoryColor = selectedCategoryData.color;
+                    }
+                  }
+                  
+                  return (
+                    <div
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full flex-shrink-0 pointer-events-none border border-gray-200"
+                      style={{ backgroundColor: categoryColor }}
+                      title={categoryColor}
+                    />
+                  );
+                })()}
+              </div>
               <button
                 type="button"
                 onClick={() => setIsCreateCategoryModalOpen(true)}
@@ -434,21 +471,54 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           {isCreditCard && type === 'expense' && (
             <div className="animate-fade-in">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('modals.newTransaction.installments')}
+                {t('modals.newTransaction.installments') || 'Quantidade de Parcelas'}
               </label>
-              <select
-                value={installments}
-                onChange={(e) => setInstallments(parseInt(e.target.value))}
-                disabled={isRecurring}
-                className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-                style={{ paddingRight: '1rem' }}
-              >
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
-                  <option key={num} value={num}>
-                    {num === 1 ? (t('modals.newTransaction.cash') || 'À vista (1x)') : `${num}x`}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="1"
+                  max="12"
+                  value={installments}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 1;
+                    const clampedValue = Math.max(1, Math.min(12, value));
+                    setInstallments(clampedValue);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setInstallments(prev => Math.min(12, prev + 1));
+                    } else if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setInstallments(prev => Math.max(1, prev - 1));
+                    }
+                  }}
+                  disabled={isRecurring}
+                  className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setInstallments(prev => Math.min(12, prev + 1))}
+                    disabled={isRecurring || installments >= 12}
+                    className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 3V9M3 6H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInstallments(prev => Math.max(1, prev - 1))}
+                    disabled={isRecurring || installments <= 1}
+                    className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 6H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
               {isRecurring && (
                 <p className="mt-1 text-sm italic text-gray-500">
                   {t('modals.newTransaction.installmentsDisabledForRecurring') || 'Parcelamento desabilitado para despesas recorrentes'}
@@ -562,13 +632,13 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
         isOpen={isCreateMethodModalOpen}
         onClose={() => setIsCreateMethodModalOpen(false)}
         initialTab={createMethodTab}
-        onAccountCreated={() => {
-          // O CreateMethodModal já recarrega os dados via refreshAccounts
-          // Não precisa fazer nada aqui
+        onAccountCreated={(accountId) => {
+          // Selecionar automaticamente a conta criada
+          setAccountId(accountId);
         }}
-        onCardCreated={() => {
-          // O CreateMethodModal já recarrega os dados via refreshAccounts
-          // Não precisa fazer nada aqui
+        onCardCreated={(cardId) => {
+          // Selecionar automaticamente o cartão criado
+          setAccountId(cardId);
         }}
       />
     </Modal>

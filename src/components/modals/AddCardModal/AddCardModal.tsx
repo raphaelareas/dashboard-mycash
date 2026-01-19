@@ -233,10 +233,10 @@ export function AddCardModal({ isOpen, onClose, onCardCreated }: AddCardModalPro
                 key={colorOption.color}
                 onClick={() => setTheme(colorOption.color)}
                 type="button"
-                className={`
-                  w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 flex-shrink-0
-                  ${theme === colorOption.color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}
-                `}
+                  className={`
+                    w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 flex-shrink-0
+                    ${theme === colorOption.color ? 'border-black' : 'border-gray-200'}
+                  `}
                 style={{ backgroundColor: colorOption.color }}
                 title={colorOption.name}
                 aria-label={colorOption.name}

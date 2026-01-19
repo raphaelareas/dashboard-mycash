@@ -78,8 +78,8 @@ export function formatCurrencyInput(value: string): { display: string; numeric: 
     maximumFractionDigits: 0,
   });
   
-  // Monta o valor formatado
-  const display = `${reaisFormatted},${centavos}`;
+  // Monta o valor formatado com prefixo R$
+  const display = `R$ ${reaisFormatted},${centavos}`;
   
   // Calcula o valor numérico
   const numeric = parseFloat(reais || '0') + (parseInt(centavos) / 100);
