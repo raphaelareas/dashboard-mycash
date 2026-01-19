@@ -6,6 +6,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { I18nProvider, useI18n } from './contexts/I18nContext';
 import { Layout } from './components/layout/Layout';
 import Login from './pages/Login';
+import Success from './pages/Success';
 import Dashboard from './pages/Dashboard';
 import Cards from './pages/Cards';
 import Accounts from './pages/Accounts';
@@ -47,6 +48,7 @@ function AppRoutesInner() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/success" element={<Success />} />
       <Route
         path="/"
         element={

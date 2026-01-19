@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
@@ -9,30 +10,15 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const { signIn, signUp } = useAuth();
-
-  // Efeito para gerenciar o redirecionamento após sucesso
-  useEffect(() => {
-    if (success) {
-      // Mostrar feedback de sucesso por 2 segundos, depois redirecionar
-      const redirectTimer = setTimeout(() => {
-        window.location.href = '/';
-      }, 2000);
-
-      return () => {
-        clearTimeout(redirectTimer);
-      };
-    }
-  }, [success]);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
         setError(null);
         setLoading(true);
-        setSuccess(false);
 
     try {
       if (isSignUp) {
@@ -51,8 +37,9 @@ export default function Login() {
           setError(error.message || 'Erro ao criar conta');
           setLoading(false);
         } else {
-          // Signup bem-sucedido - mostrar feedback (sem loading)
-          setSuccess(true);
+          // Signup bem-sucedido - navegar para tela de sucesso
+          setLoading(false);
+          navigate('/success', { state: { isSignUp: true } });
         }
       } else {
         const { error } = await signIn(email, password);
@@ -71,8 +58,9 @@ export default function Login() {
           setError(errorMessage);
           setLoading(false);
         } else {
-          // Login bem-sucedido - mostrar feedback (sem loading)
-          setSuccess(true);
+          // Login bem-sucedido - navegar para tela de sucesso
+          setLoading(false);
+          navigate('/success', { state: { isSignUp: false } });
         }
       }
     } catch (err: any) {
@@ -81,34 +69,6 @@ export default function Login() {
     }
   };
 
-
-  // Tela de feedback de sucesso
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="max-w-md w-full text-center">
-          {/* Ícone de check com fundo verde claro (estilo IncomeCard) */}
-          <div className="mb-6">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-900" style={{ backgroundColor: '#D1FAE4' }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7.5 13.5L3.75 9.75L2.84 10.66L7.5 15.33L17.5 5.33L16.59 4.42L7.5 13.5Z" fill="#10B981" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            
-            {/* Texto de sucesso */}
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              {isSignUp ? 'Conta criada com sucesso' : 'Logado com sucesso'}
-            </h2>
-            
-            {/* Loading centralizado */}
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -239,20 +199,14 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={loading || success}
-              className={`w-full h-14 font-medium rounded-[40px] transition-all disabled:cursor-not-allowed ${
-                success
-                  ? 'bg-green-600 text-white'
-                  : 'bg-black text-white hover:bg-gray-800 disabled:opacity-50'
-              }`}
+              disabled={loading}
+              className="w-full h-14 font-medium rounded-[40px] transition-all disabled:cursor-not-allowed bg-black text-white hover:bg-gray-800 disabled:opacity-50"
             >
-              {success 
-                ? (isSignUp ? '✓ Conta criada com sucesso!' : '✓ Login realizado com sucesso!')
-                : loading 
-                  ? 'Processando...' 
-                  : isSignUp 
-                    ? 'Criar conta' 
-                    : 'Entrar'
+              {loading 
+                ? 'Processando...' 
+                : isSignUp 
+                  ? 'Criar conta' 
+                  : 'Entrar'
               }
             </button>
           </form>
