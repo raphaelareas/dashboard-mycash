@@ -11,6 +11,7 @@ export interface BankAccount {
   currency: string;
   holderId?: string;
   holderName?: string;
+  color?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

@@ -57,12 +57,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<TransactionCategory | string | ''>('');
   const [customCategory, setCustomCategory] = useState('');
-  // Inicializar com owner se existir
-  const getInitialMemberId = () => {
-    const owner = familyMembers.find(m => m.role.toLowerCase() === 'owner');
-    return owner?.id || null;
-  };
-  const [memberId, setMemberId] = useState<string | null>(getInitialMemberId());
+  // Membro é opcional, então não pré-selecionar ninguém
+  const [memberId, setMemberId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceFrequency, setRecurrenceFrequency] = useState<'weekly' | 'biweekly' | 'monthly' | 'yearly'>('monthly');
@@ -78,13 +74,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const [errors, setErrors] = useState<Record<string, string>>({});
 
 
-  useEffect(() => {
-    // Sempre atualizar memberId quando familyMembers mudar ou modal abrir
-    const owner = familyMembers.find(m => m.role.toLowerCase() === 'owner');
-    if (owner) {
-      setMemberId(owner.id);
-    }
-  }, [familyMembers, isOpen]);
+  // Removido: Membro é opcional, não pré-selecionar owner
 
   useEffect(() => {
     if (!isOpen) {
@@ -96,9 +86,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       setDescription('');
       setCategory('');
       setCustomCategory('');
-      // Resetar para owner por padrão
-      const owner = familyMembers.find(m => m.role.toLowerCase() === 'owner');
-      setMemberId(owner?.id || null);
+      // Membro é opcional, não pré-selecionar
+      setMemberId(null);
       setAccountId('');
       setIsRecurring(false);
       setRecurrenceFrequency('monthly');
@@ -360,9 +349,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 <CustomSelect
                   value={memberId || ''}
                   onChange={(value) => setMemberId(value || null)}
-                  placeholder={t('modals.newTransaction.familyGeneral') || 'Família (Geral)'}
+                  placeholder={t('common.select') || 'Selecionar'}
                   options={[
-                    { value: '', label: t('modals.newTransaction.familyGeneral') || 'Família (Geral)' },
                     ...familyMembers.map((member) => {
                       const roleDisplay = member.role.toLowerCase() === 'owner' ? 'Owner' : member.role;
                       return {
@@ -392,36 +380,33 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             </label>
             {/* Sempre mostrar dropdown + botão adicionar método */}
             <div className="flex gap-3">
-              <select
-                value={accountId}
-                onChange={(e) => setAccountId(e.target.value)}
-                className={`
-                  flex-1 h-14 px-4 rounded-[40px] border min-w-0
-                  ${errors.accountId ? 'border-red-500' : 'border-gray-200'}
-                  focus:outline-none focus:ring-2 focus:ring-primary
-                `}
-                style={{ paddingRight: '24px' }}
-              >
-                <option value="">{t('common.select') || 'Selecione'}</option>
-                {bankAccounts.filter(a => a.isActive).length > 0 && (
-                  <optgroup label={t('transactions.bankAccounts')}>
-                    {bankAccounts.filter(a => a.isActive).map((account) => (
-                      <option key={account.id} value={account.id}>
-                        {account.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                {creditCards.filter(c => c.isActive).length > 0 && (
-                  <optgroup label={t('transactions.creditCards')}>
-                    {creditCards.filter(c => c.isActive).map((card) => (
-                      <option key={card.id} value={card.id}>
-                        {card.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
+              <div className="flex-1" style={{ width: '420px' }}>
+                <CustomSelect
+                  value={accountId}
+                  onChange={(value) => setAccountId(value)}
+                  placeholder={t('common.select') || 'Selecione'}
+                  className={errors.accountId ? 'border-red-500' : ''}
+                  error={!!errors.accountId}
+                  options={[
+                    // Contas bancárias
+                    ...bankAccounts
+                      .filter(a => a.isActive)
+                      .map((account) => ({
+                        value: account.id,
+                        label: account.name,
+                        color: account.color || '#3247FF',
+                      })),
+                    // Cartões de crédito
+                    ...creditCards
+                      .filter(c => c.isActive)
+                      .map((card) => ({
+                        value: card.id,
+                        label: card.name,
+                        color: card.color || '#3247FF',
+                      })),
+                  ]}
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => {
@@ -431,7 +416,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                   className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
                   style={{ borderColor: '#1F2937', minWidth: '180px' }}
                 >
-                  Criar novo método
+                  {t('modals.newTransaction.createNewMethod')}
                 </button>
             </div>
             {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}

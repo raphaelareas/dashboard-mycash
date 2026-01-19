@@ -178,6 +178,7 @@ export function CreateMethodModal({
         type: accountType,
         balance: parseFloat(accountBalance),
         currency: 'BRL',
+        color: accountColor,
         isActive: true,
       }, accountHolderId);
 
@@ -240,6 +241,7 @@ export function CreateMethodModal({
         dueDay: parseInt(dueDay),
         limit: parseFloat(limit),
         currentBalance: 0,
+        color: cardTheme,
         isActive: true,
       }, cardHolderId);
 

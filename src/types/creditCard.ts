@@ -16,6 +16,7 @@ export interface CreditCard {
   bankAccountId?: string;
   holderId?: string;
   holderName?: string;
+  color?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

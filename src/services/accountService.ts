@@ -16,6 +16,7 @@ const mapAccountToCreditCard = (account: any, holder?: any): CreditCard => {
     currentBalance: parseFloat(account.current_bill.toString()),
     holderId: account.holder_id,
     holderName: holder?.name || undefined,
+    color: account.color || '#3247FF',
     isActive: account.is_active,
     createdAt: new Date(account.created_at),
     updatedAt: new Date(account.updated_at),
@@ -33,6 +34,7 @@ const mapAccountToBankAccount = (account: any, holder?: any): BankAccount => {
     currency: 'BRL',
     holderId: account.holder_id,
     holderName: holder?.name || undefined,
+    color: account.color || '#3247FF',
     isActive: account.is_active,
     createdAt: new Date(account.created_at),
     updatedAt: new Date(account.updated_at),
@@ -113,6 +115,7 @@ export const accountService = {
         credit_limit: card.limit || null,
         current_bill: card.currentBalance || 0,
         due_day: card.dueDay,
+        color: (card as any).color || '#3247FF',
         is_active: card.isActive ?? true,
       })
       .select()
@@ -153,6 +156,7 @@ export const accountService = {
         last_digits: account.accountNumber.slice(-4),
         holder_id: finalHolderId,
         balance: account.balance || 0,
+        color: (account as any).color || '#3247FF',
         is_active: account.isActive ?? true,
       })
       .select()
