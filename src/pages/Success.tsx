@@ -1,14 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Success() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [mounted, setMounted] = useState(false);
   
   // Obter o tipo de sucesso (login ou signup) do state da navegação
   const isSignUp = (location.state as { isSignUp?: boolean })?.isSignUp ?? false;
 
   useEffect(() => {
+    setMounted(true);
+    
     // Marcar que estamos vindo da tela de sucesso
     sessionStorage.setItem('fromSuccess', 'true');
     
@@ -21,6 +24,16 @@ export default function Success() {
       clearTimeout(redirectTimer);
     };
   }, [navigate]);
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">

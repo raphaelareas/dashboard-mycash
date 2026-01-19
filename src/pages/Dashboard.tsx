@@ -14,7 +14,15 @@ import { CardDetailsModal } from '@/components/modals/CardDetailsModal';
 import { CreditCard } from '@/types';
 
 export default function Dashboard() {
-  const [isDelayed, setIsDelayed] = useState(false);
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  const [isAddCardOpen, setIsAddCardOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null);
+  const [isCardDetailsOpen, setIsCardDetailsOpen] = useState(false);
+  const [isDelayed, setIsDelayed] = useState(() => {
+    // Verificar imediatamente se veio da tela de sucesso
+    const cameFromSuccess = sessionStorage.getItem('fromSuccess');
+    return cameFromSuccess !== 'true';
+  });
   
   // Se veio da tela de sucesso, adicionar delay de 2 segundos antes de mostrar o dashboard
   useEffect(() => {
@@ -25,8 +33,6 @@ export default function Dashboard() {
         setIsDelayed(true);
       }, 2000);
       return () => clearTimeout(delayTimer);
-    } else {
-      setIsDelayed(true);
     }
   }, []);
   
@@ -39,10 +45,6 @@ export default function Dashboard() {
       </div>
     );
   }
-  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
-  const [isAddCardOpen, setIsAddCardOpen] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null);
-  const [isCardDetailsOpen, setIsCardDetailsOpen] = useState(false);
 
   return (
     <>
