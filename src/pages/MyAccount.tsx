@@ -23,7 +23,7 @@ export default function MyAccount() {
   const { user } = useAuth();
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [_profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   

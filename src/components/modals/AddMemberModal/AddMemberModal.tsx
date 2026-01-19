@@ -42,7 +42,7 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [monthlyIncome, setMonthlyIncome] = useState('');
+  const [_monthlyIncome, setMonthlyIncome] = useState('');
   const [monthlyIncomeDisplay, setMonthlyIncomeDisplay] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);

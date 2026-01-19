@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
@@ -56,11 +56,11 @@ const ProfileIcon = () => (
   </svg>
 );
 
-const GoalsIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M10 2L12.5 7.5L18.5 8.5L14.5 12.5L15.5 18.5L10 15.5L4.5 18.5L5.5 12.5L1.5 8.5L7.5 7.5L10 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
-  </svg>
-);
+// const GoalsIcon = () => (
+//   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+//     <path d="M10 2L12.5 7.5L18.5 8.5L14.5 12.5L15.5 18.5L10 15.5L4.5 18.5L5.5 12.5L1.5 8.5L7.5 7.5L10 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+//   </svg>
+// );
 
 const CategoryIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -147,7 +147,7 @@ export function Sidebar() {
   const [userProfile, setUserProfile] = useState<{ name: string; email: string; avatarUrl?: string | null } | null>(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [_isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 

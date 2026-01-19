@@ -3,7 +3,7 @@ import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { Category } from '@/types';
 import { CreateCategoryModal } from '@/components/modals/CreateCategoryModal';
-import { TransactionType } from '@/types';
+// import { TransactionType } from '@/types';
 
 const CategoryIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">

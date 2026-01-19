@@ -516,7 +516,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       <CreateCategoryModal
         isOpen={isCreateCategoryModalOpen}
         onClose={() => setIsCreateCategoryModalOpen(false)}
-        onSave={(categoryName, color) => {
+        onSave={(categoryName, _color) => {
           setCategory('other');
           setCustomCategory(categoryName);
           setIsCreateCategoryModalOpen(false);

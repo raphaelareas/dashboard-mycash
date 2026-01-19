@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { BankAccount } from '@/types';
+// import { BankAccount } from '@/types';
 import { AddAccountModal } from '@/components/modals/AddAccountModal';
 
 const BankAccountIcon = () => (
