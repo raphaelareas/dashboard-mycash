@@ -152,6 +152,19 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       newErrors.customCategory = 'Informe o nome da categoria';
     }
 
+    if (isInstallment) {
+      const totalNum = parseInt(totalInstallments);
+      const currentNum = parseInt(installmentNumber);
+      
+      if (!totalInstallments || isNaN(totalNum) || totalNum < 1 || totalNum > 360) {
+        newErrors.installments = 'Total de parcelas deve ser entre 1 e 360';
+      }
+      
+      if (!installmentNumber || isNaN(currentNum) || currentNum < 1 || currentNum > 360) {
+        newErrors.installmentNumber = 'Parcela atual deve ser entre 1 e 360';
+      }
+    }
+
     if (!accountId) {
       newErrors.accountId = 'Selecione uma conta ou cartão';
     }
@@ -375,8 +388,11 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                       }
                     }}
                     onBlur={(e) => {
-                      if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                      const numValue = parseInt(e.target.value);
+                      if (e.target.value === '' || isNaN(numValue) || numValue < 1) {
                         setInstallmentNumber('1');
+                      } else if (numValue > 360) {
+                        setInstallmentNumber('360');
                       }
                     }}
                     className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -400,21 +416,19 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                       }
                     }}
                     onBlur={(e) => {
-                      if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                      const numValue = parseInt(e.target.value);
+                      if (e.target.value === '' || isNaN(numValue) || numValue < 1) {
                         setTotalInstallments('1');
-                      } else {
-                        const numValue = parseInt(e.target.value);
-                        if (numValue > 12) {
-                          setTotalInstallments('12');
-                          const currentNum = parseInt(installmentNumber);
-                          if (!isNaN(currentNum) && currentNum > 12) {
-                            setInstallmentNumber('12');
-                          }
+                      } else if (numValue > 360) {
+                        setTotalInstallments('360');
+                        const currentNum = parseInt(installmentNumber);
+                        if (!isNaN(currentNum) && currentNum > 360) {
+                          setInstallmentNumber('360');
                         }
                       }
                     }}
                     className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    placeholder="Ex: 12"
+                    placeholder="Ex: 48"
                   />
                   {errors.installments && <p className="mt-1 text-sm text-red-600">{errors.installments}</p>}
                 </div>
