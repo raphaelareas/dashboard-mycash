@@ -8,6 +8,7 @@ import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { CreateMethodModal } from '@/components/modals/CreateMethodModal';
 import { TransactionCategory } from '@/types';
 import { formatCurrencyInput } from '@/utils/currency.utils';
+import { defaultCategoryColors } from '@/utils/categoryColors';
 
 interface NewTransactionModalProps {
   isOpen: boolean;
@@ -65,7 +66,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const [accountId, setAccountId] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceFrequency, setRecurrenceFrequency] = useState<'weekly' | 'biweekly' | 'monthly' | 'yearly'>('monthly');
-  const [recurrenceCount, setRecurrenceCount] = useState(1);
+  const [recurrenceCount, setRecurrenceCount] = useState('');
   const [transactionDate, setTransactionDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -141,6 +142,10 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
 
     if (category === 'other' && !customCategory.trim()) {
       newErrors.customCategory = 'Informe o nome da categoria';
+    }
+
+    if (isRecurring && (!recurrenceCount || recurrenceCount.trim() === '')) {
+      newErrors.recurrenceCount = 'Informe a quantidade de vezes';
     }
 
     if (!accountId) {
@@ -297,7 +302,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                     ...defaultCategories.map((cat) => ({
                       value: cat,
                       label: categoryNames[cat] || cat,
-                      color: '#3247FF', // Cor padrão para categorias padrão
+                      color: defaultCategoryColors[cat] || '#6B7280',
                     })),
                     // Categorias customizadas
                     ...customCategories
@@ -482,24 +487,19 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                         value={recurrenceCount}
                         onChange={(e) => {
                           const value = e.target.value.replace(/\D/g, '');
-                          if (value === '') {
-                            setRecurrenceCount(1);
-                          } else {
-                            const numValue = parseInt(value);
-                            if (!isNaN(numValue) && numValue >= 1) {
-                              setRecurrenceCount(numValue);
-                            }
+                          setRecurrenceCount(value);
+                          if (errors.recurrenceCount) {
+                            setErrors({ ...errors, recurrenceCount: '' });
                           }
                         }}
-                        onBlur={(e) => {
-                          if (e.target.value === '' || parseInt(e.target.value) < 1) {
-                            setRecurrenceCount(1);
-                          }
-                        }}
-                        className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className={`
+                          w-full h-14 px-4 rounded-[40px] border focus:outline-none focus:ring-2 focus:ring-primary
+                          ${errors.recurrenceCount ? 'border-red-500' : 'border-gray-200'}
+                        `}
                         placeholder="Ex: 12"
                         inputMode="numeric"
                       />
+                      {errors.recurrenceCount && <p className="mt-1 text-sm text-red-600">{errors.recurrenceCount}</p>}
                     </div>
                   </div>
                 </div>
@@ -530,10 +530,9 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
         isOpen={isCreateCategoryModalOpen}
         onClose={() => setIsCreateCategoryModalOpen(false)}
         onSave={(categoryName, _color) => {
-          setCategory('other');
-          setCustomCategory(categoryName);
+          // Selecionar a categoria customizada recém-criada
+          setCategory(categoryName as TransactionCategory);
           setIsCreateCategoryModalOpen(false);
-          // A cor será salva quando a transação for criada (através do categoryService)
         }}
       />
 

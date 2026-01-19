@@ -11,7 +11,8 @@ const mapTransactionTypeToDb = (type: TransactionType): 'INCOME' | 'EXPENSE' => 
 };
 
 // Mapear nome de categoria do banco para TransactionCategory
-const mapCategoryName = (categoryName: string | null | undefined): TransactionCategory => {
+// Se for categoria padrão, retorna o enum. Se for customizada, retorna o nome diretamente.
+const mapCategoryName = (categoryName: string | null | undefined): TransactionCategory | string => {
   if (!categoryName) return 'other';
   
   const categoryMap: Record<string, TransactionCategory> = {
@@ -26,7 +27,13 @@ const mapCategoryName = (categoryName: string | null | undefined): TransactionCa
     'Outros': 'other',
   };
 
-  return categoryMap[categoryName] || 'other';
+  // Se está no mapeamento, retorna o enum
+  if (categoryMap[categoryName]) {
+    return categoryMap[categoryName];
+  }
+  
+  // Caso contrário, é uma categoria customizada - retorna o nome diretamente
+  return categoryName;
 };
 
 // Converter dados do banco para formato da aplicação

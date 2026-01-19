@@ -14,7 +14,7 @@ export type TransactionCategory =
 export interface Transaction {
   id: string;
   type: TransactionType;
-  category: TransactionCategory;
+  category: TransactionCategory | string; // Pode ser enum ou nome de categoria customizada
   amount: number;
   description: string;
   date: Date;
