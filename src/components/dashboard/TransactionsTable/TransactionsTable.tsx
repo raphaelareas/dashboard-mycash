@@ -347,7 +347,9 @@ export function TransactionsTable() {
                   {transaction.installments && transaction.installments > 1 && (
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('transactions.installments')}</p>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{transaction.installments}x</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {transaction.installmentNumber || 1}/{transaction.installments}
+                      </p>
                     </div>
                   )}
                   <div className="text-right">

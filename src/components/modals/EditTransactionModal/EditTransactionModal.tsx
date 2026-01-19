@@ -58,8 +58,8 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
   const [accountId, setAccountId] = useState('');
   // Toggle para escolher entre Total ou Parcela
   const [isInstallment, setIsInstallment] = useState(false);
-  const [totalInstallments, setTotalInstallments] = useState(1);
-  const [installmentNumber, setInstallmentNumber] = useState(1);
+  const [totalInstallments, setTotalInstallments] = useState<string>('1');
+  const [installmentNumber, setInstallmentNumber] = useState<string>('1');
   const [installmentRecurrence, setInstallmentRecurrence] = useState<'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed'>('monthly');
   const [transactionDate, setTransactionDate] = useState(() => {
     const today = new Date();
@@ -84,8 +84,8 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       const installments = transaction.installments || 1;
       const installmentNum = transaction.installmentNumber || 1;
       setIsInstallment(installments > 1);
-      setTotalInstallments(installments);
-      setInstallmentNumber(installmentNum);
+      setTotalInstallments(installments.toString());
+      setInstallmentNumber(installmentNum.toString());
       // Recorrência padrão mensal, pode ser ajustado se houver campo no banco
       setInstallmentRecurrence('monthly');
       setTransactionDate(new Date(transaction.date).toISOString().split('T')[0]);
@@ -106,8 +106,8 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       setMemberId(null);
       setAccountId('');
       setIsInstallment(false);
-      setTotalInstallments(1);
-      setInstallmentNumber(1);
+      setTotalInstallments('1');
+      setInstallmentNumber('1');
       setInstallmentRecurrence('monthly');
       setTransactionDate(today.toISOString().split('T')[0]);
       setIsCreateCategoryModalOpen(false);
@@ -170,8 +170,8 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
         date: new Date(transactionDate),
         accountId,
         memberId,
-        installments: isInstallment ? totalInstallments : 1,
-        installmentNumber: isInstallment ? installmentNumber : undefined,
+        installments: isInstallment ? parseInt(totalInstallments) : 1,
+        installmentNumber: isInstallment ? parseInt(installmentNumber) : undefined,
         isRecurring: false,
       });
       onClose();
@@ -369,23 +369,20 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                     value={installmentNumber}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
-                      if (value === '') {
-                        setInstallmentNumber(1);
-                      } else {
-                        const numValue = parseInt(value);
-                        if (!isNaN(numValue) && numValue >= 1) {
-                          setInstallmentNumber(numValue);
-                        }
+                      setInstallmentNumber(value);
+                      if (errors.installmentNumber) {
+                        setErrors({ ...errors, installmentNumber: '' });
                       }
                     }}
                     onBlur={(e) => {
                       if (e.target.value === '' || parseInt(e.target.value) < 1) {
-                        setInstallmentNumber(1);
+                        setInstallmentNumber('1');
                       }
                     }}
                     className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="Ex: 7"
                   />
+                  {errors.installmentNumber && <p className="mt-1 text-sm text-red-600">{errors.installmentNumber}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -397,28 +394,21 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                     value={totalInstallments}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
-                      if (value === '') {
-                        setTotalInstallments(1);
-                      } else {
-                        const numValue = parseInt(value);
-                        if (!isNaN(numValue) && numValue >= 1) {
-                          const newTotal = Math.min(numValue, 12);
-                          setTotalInstallments(newTotal);
-                          if (installmentNumber > newTotal) {
-                            setInstallmentNumber(newTotal);
-                          }
-                        }
+                      setTotalInstallments(value);
+                      if (errors.installments) {
+                        setErrors({ ...errors, installments: '' });
                       }
                     }}
                     onBlur={(e) => {
                       if (e.target.value === '' || parseInt(e.target.value) < 1) {
-                        setTotalInstallments(1);
+                        setTotalInstallments('1');
                       } else {
                         const numValue = parseInt(e.target.value);
                         if (numValue > 12) {
-                          setTotalInstallments(12);
-                          if (installmentNumber > 12) {
-                            setInstallmentNumber(12);
+                          setTotalInstallments('12');
+                          const currentNum = parseInt(installmentNumber);
+                          if (!isNaN(currentNum) && currentNum > 12) {
+                            setInstallmentNumber('12');
                           }
                         }
                       }
@@ -426,6 +416,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                     className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="Ex: 12"
                   />
+                  {errors.installments && <p className="mt-1 text-sm text-red-600">{errors.installments}</p>}
                 </div>
               </div>
               <div>

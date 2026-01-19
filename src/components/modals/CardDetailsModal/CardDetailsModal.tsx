@@ -170,7 +170,10 @@ export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEd
                         </span>
                       </div>
                       <div className="col-span-1 text-sm text-gray-600">
-                        {expense.installments && expense.installments > 1 ? `${expense.installments}x` : '-'}
+                        {expense.installments && expense.installments > 1 
+                          ? `${expense.installmentNumber || 1}/${expense.installments}` 
+                          : '-'
+                        }
                       </div>
                       <div className="col-span-2 text-right font-bold text-gray-900">
                         {formatCurrency(expense.amount)}
