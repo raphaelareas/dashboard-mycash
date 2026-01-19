@@ -64,6 +64,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const [isInstallment, setIsInstallment] = useState(false);
   const [totalInstallments, setTotalInstallments] = useState(1);
   const [installmentNumber, setInstallmentNumber] = useState(1);
+  const [installmentRecurrence, setInstallmentRecurrence] = useState<'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed'>('monthly');
   const [transactionDate, setTransactionDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -93,6 +94,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       setIsInstallment(false);
       setTotalInstallments(1);
       setInstallmentNumber(1);
+      setInstallmentRecurrence('monthly');
       setTransactionDate(today.toISOString().split('T')[0]);
       setIsCreateCategoryModalOpen(false);
       setIsAddMemberModalOpen(false);
@@ -326,6 +328,23 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                       className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('modals.newTransaction.recurrence') || 'Recorrência'}
+                  </label>
+                  <select
+                    value={installmentRecurrence}
+                    onChange={(e) => setInstallmentRecurrence(e.target.value as 'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed')}
+                    className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="weekly">{t('modals.newTransaction.weekly') || 'Semanal'}</option>
+                    <option value="biweekly">{t('modals.newTransaction.biweekly') || 'Quinzenal'}</option>
+                    <option value="monthly">{t('modals.newTransaction.monthly') || 'Mensal'}</option>
+                    <option value="semiannual">{t('modals.newTransaction.semiannual') || 'Semestral'}</option>
+                    <option value="yearly">{t('modals.newTransaction.yearly') || 'Anual'}</option>
+                    <option value="fixed">{t('modals.newTransaction.fixed') || 'Fixa'}</option>
+                  </select>
                 </div>
               </div>
             )}
