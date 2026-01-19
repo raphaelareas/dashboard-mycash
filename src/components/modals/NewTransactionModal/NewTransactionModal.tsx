@@ -56,7 +56,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const [amountDisplay, setAmountDisplay] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<TransactionCategory | string | ''>('');
-  const [customCategory, setCustomCategory] = useState('');
   // Membro é opcional, então não pré-selecionar ninguém
   const [memberId, setMemberId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState('');
@@ -87,7 +86,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       setAmountDisplay('');
       setDescription('');
       setCategory('');
-      setCustomCategory('');
       // Membro é opcional, não pré-selecionar
       setMemberId(null);
       setAccountId('');
@@ -102,12 +100,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       setErrors({});
     }
   }, [isOpen, familyMembers]);
-
-  useEffect(() => {
-    if (category !== 'other') {
-      setCustomCategory('');
-    }
-  }, [category]);
 
   // Função para formatar valor automaticamente conforme o usuário digita
   const handleAmountChange = (value: string) => {
@@ -130,10 +122,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
 
     if (!category) {
       newErrors.category = t('modals.newTransaction.categoryError') || 'Selecione uma categoria';
-    }
-
-    if (category === 'other' && !customCategory.trim()) {
-      newErrors.customCategory = t('modals.newTransaction.customCategoryError') || 'Informe o nome da categoria';
     }
 
     if (isInstallment) {
@@ -161,7 +149,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       type,
       category: category as TransactionCategory | string,
       amount: numericAmount,
-      description: category === 'other' && customCategory ? `${customCategory}: ${description}` : description,
+      description,
       date: new Date(transactionDate),
       accountId,
       memberId,
@@ -436,29 +424,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               </button>
             </div>
             {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
-            
-            {/* Campo para categoria customizada quando "Outros" é selecionado */}
-            {category === 'other' && (
-              <div className="mt-3 animate-fade-in">
-                <input
-                  type="text"
-                  value={customCategory}
-                  onChange={(e) => {
-                    setCustomCategory(e.target.value);
-                    if (errors.customCategory) {
-                      setErrors({ ...errors, customCategory: '' });
-                    }
-                  }}
-                  placeholder={t('modals.newTransaction.newCategoryName') || 'Nome da nova categoria'}
-                  className={`
-                    w-full h-14 px-4 rounded-[40px] border
-                    ${errors.customCategory ? 'border-red-500' : 'border-gray-200'}
-                    focus:outline-none focus:ring-2 focus:ring-primary
-                  `}
-                />
-                {errors.customCategory && <p className="mt-1 text-sm text-red-600">{errors.customCategory}</p>}
-              </div>
-            )}
           </div>
 
           {/* Account */}
