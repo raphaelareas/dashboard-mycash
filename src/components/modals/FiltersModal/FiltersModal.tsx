@@ -78,11 +78,22 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
   };
 
   const handleClear = () => {
+    // Limpar filtros temporários
     setTempType('all');
     setTempMember(null);
     setTempCategories([]);
     setTempAccounts([]);
     setTempCards([]);
+    
+    // Aplicar filtros limpos imediatamente
+    setTransactionType('all');
+    setSelectedMember(null);
+    setSelectedCategories([]);
+    setSelectedAccounts([]);
+    setSelectedCards([]);
+    
+    // Fechar o modal
+    onClose();
   };
 
   const toggleCategory = (category: string) => {
@@ -140,7 +151,7 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                   className={`
                     h-12 rounded-[40px] font-semibold transition-all
                     ${tempType === type
-                      ? 'bg-gray-900 text-white'
+                      ? 'bg-gray-500 text-white'
                       : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                     }
                   `}
@@ -163,7 +174,7 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                 className={`
                   h-12 px-4 rounded-[40px] font-semibold transition-all
                   ${!tempMember
-                    ? 'bg-gray-900 text-white'
+                    ? 'bg-gray-500 text-white'
                     : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                   }
                 `}
@@ -178,7 +189,7 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                   className={`
                     h-12 px-4 rounded-[40px] font-semibold transition-all flex items-center gap-2
                     ${tempMember === member.id
-                      ? 'bg-gray-900 text-white'
+                      ? 'bg-gray-500 text-white'
                       : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                     }
                   `}
@@ -214,7 +225,7 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                     className={`
                       h-12 px-4 rounded-[40px] font-semibold transition-all flex items-center gap-2
                       ${isSelected
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-gray-500 text-white'
                         : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                       }
                     `}
@@ -238,7 +249,7 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                     className={`
                       h-12 px-4 rounded-[40px] font-semibold transition-all flex items-center gap-2
                       ${isSelected
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-gray-500 text-white'
                         : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                       }
                     `}
