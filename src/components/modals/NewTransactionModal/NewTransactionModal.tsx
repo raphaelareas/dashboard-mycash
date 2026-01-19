@@ -36,7 +36,7 @@ const ExpenseArrowIcon = ({ color = "currentColor" }: { color?: string }) => (
 const defaultCategories: TransactionCategory[] = ['rent', 'food', 'shopping', 'household', 'transport', 'entertainment', 'health', 'education', 'other'];
 
 export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProps) {
-  const { addTransaction, bankAccounts, creditCards, familyMembers, categories: customCategories } = useFinance();
+  const { addTransaction, bankAccounts, creditCards, familyMembers, categories: customCategories, addCategory } = useFinance();
   const { t } = useI18n();
   const [type, setType] = useState<'income' | 'expense'>('expense');
   
@@ -55,7 +55,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const [amount, setAmount] = useState('');
   const [amountDisplay, setAmountDisplay] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<TransactionCategory | ''>('');
+  const [category, setCategory] = useState<TransactionCategory | string | ''>('');
   const [customCategory, setCustomCategory] = useState('');
   // Inicializar com owner se existir
   const getInitialMemberId = () => {
@@ -158,7 +158,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
     }
     addTransaction({
       type,
-      category: category as TransactionCategory,
+      category: category as TransactionCategory | string,
       amount: numericAmount,
       description: category === 'other' && customCategory ? `${customCategory}: ${description}` : description,
       date: new Date(transactionDate),
@@ -293,7 +293,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <div className="flex-1" style={{ width: '420px' }}>
                 <CustomSelect
                   value={category}
-                  onChange={(value) => setCategory(value as TransactionCategory)}
+                  onChange={(value) => setCategory(value)}
                   placeholder={t('modals.newTransaction.selectCategory') || 'Selecione uma categoria'}
                   className={errors.category ? 'border-red-500' : ''}
                   error={!!errors.category}
@@ -529,10 +529,24 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       <CreateCategoryModal
         isOpen={isCreateCategoryModalOpen}
         onClose={() => setIsCreateCategoryModalOpen(false)}
-        onSave={(categoryName, _color) => {
-          // Selecionar a categoria customizada recém-criada
-          setCategory(categoryName as TransactionCategory);
-          setIsCreateCategoryModalOpen(false);
+        initialType={type}
+        onSave={async (categoryName, categoryType, color, accountId) => {
+          try {
+            // Salvar a categoria permanentemente no banco de dados
+            await addCategory({
+              name: categoryName,
+              type: categoryType,
+              color: color || '#111827',
+              accountId: accountId || null,
+            });
+            
+            // Selecionar automaticamente a categoria recém-criada
+            setCategory(categoryName);
+            setIsCreateCategoryModalOpen(false);
+          } catch (error) {
+            console.error('Erro ao criar categoria:', error);
+            // Manter o modal aberto em caso de erro para o usuário tentar novamente
+          }
         }}
       />
 
