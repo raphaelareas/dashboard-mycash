@@ -98,7 +98,7 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
           ">
             <CheckIcon />
           </div>
-          <p className="text-sm text-gray-400 dark:text-gray-500">{t('dashboard.noPendingExpenses') || 'Nenhuma despesa pendente'}</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">{t('dashboard.noPendingExpenses')}</p>
         </div>
       ) : (
         <div className="space-y-2 flex-1 overflow-y-auto">
@@ -148,7 +148,7 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
         </div>
       )}
       <Toast
-        message={t('dashboard.expensePaidSuccessfully') || 'Despesa paga com sucesso'}
+        message={t('dashboard.expensePaidSuccessfully')}
         isVisible={toastVisible}
         onClose={() => {
           setToastVisible(false);
@@ -156,7 +156,7 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
         }}
         duration={5000}
         onUndo={handleUndo}
-        undoLabel={t('common.undo') || 'Desfazer'}
+        undoLabel={t('common.undo')}
       />
     </div>
   );

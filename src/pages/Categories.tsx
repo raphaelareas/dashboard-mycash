@@ -81,7 +81,7 @@ export default function Categories() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm(t('categories.confirmDelete') || 'Tem certeza que deseja excluir esta categoria?')) {
+    if (window.confirm(t('categories.confirmDelete'))) {
       try {
         await deleteCategory(id);
       } catch (error) {
