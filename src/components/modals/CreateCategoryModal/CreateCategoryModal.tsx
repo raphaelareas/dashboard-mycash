@@ -118,7 +118,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, init
     }
 
     if (categoryName.trim().length < 2) {
-      setError(t('modals.createCategory.nameMinLengthError') || 'Nome da categoria deve ter pelo menos 2 caracteres');
+      setError(t('modals.createCategory.nameMinLengthError'));
       return;
     }
 
