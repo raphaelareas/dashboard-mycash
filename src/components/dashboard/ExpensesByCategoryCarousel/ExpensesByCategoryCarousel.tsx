@@ -27,16 +27,46 @@ export function ExpensesByCategoryCarousel() {
   const { calculateExpensesByCategory, calculateCategoryPercentage } = useFinance();
   const expensesByCategory = calculateExpensesByCategory();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [showArrows, setShowArrows] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const cardWidth = 280; // Largura aproximada de cada card + gap
+  const cardsPerView = 4; // Quantos cards visíveis por vez
+
+  const totalPages = Math.ceil(expensesByCategory.length / cardsPerView);
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;
-    const scrollAmount = 200;
-    scrollRef.current.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth',
-    });
+    
+    if (direction === 'left' && currentPage > 0) {
+      const newPage = currentPage - 1;
+      setCurrentPage(newPage);
+      scrollRef.current.scrollTo({
+        left: newPage * cardWidth * cardsPerView,
+        behavior: 'smooth',
+      });
+    } else if (direction === 'right' && currentPage < totalPages - 1) {
+      const newPage = currentPage + 1;
+      setCurrentPage(newPage);
+      scrollRef.current.scrollTo({
+        left: newPage * cardWidth * cardsPerView,
+        behavior: 'smooth',
+      });
+    }
   };
+
+  // Atualizar página atual baseado no scroll
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollLeft = container.scrollLeft;
+      const newPage = Math.round(scrollLeft / (cardWidth * cardsPerView));
+      setCurrentPage(Math.max(0, Math.min(newPage, totalPages - 1)));
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [totalPages]);
 
   // Horizontal scroll com mouse wheel
   useEffect(() => {
@@ -59,48 +89,44 @@ export function ExpensesByCategoryCarousel() {
   }
 
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setShowArrows(true)}
-      onMouseLeave={() => setShowArrows(false)}
-    >
+    <div className="relative">
       {/* Fade gradients */}
-      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-bg to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-bg to-transparent z-10 pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-gray-800 to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-gray-800 to-transparent z-10 pointer-events-none" />
 
-      {/* Navigation arrows (hidden on mobile) */}
-      {showArrows && (
-        <>
-          <button
-            onClick={() => scroll('left')}
-            className="
-              absolute left-2 top-1/2 -translate-y-1/2
-              w-10 h-10 rounded-full
-              bg-white shadow-lg
-              flex items-center justify-center
-              text-gray-600 hover:text-gray-900
-              z-20 hidden lg:flex
-            "
-            aria-label="Rolar para esquerda"
-          >
-            <ArrowLeftIcon />
-          </button>
-          <button
-            onClick={() => scroll('right')}
-            className="
-              absolute right-2 top-1/2 -translate-y-1/2
-              w-10 h-10 rounded-full
-              bg-white shadow-lg
-              flex items-center justify-center
-              text-gray-600 hover:text-gray-900
-              z-20 hidden lg:flex
-            "
-            aria-label="Rolar para direita"
-          >
-            <ArrowRightIcon />
-          </button>
-        </>
-      )}
+      {/* Navigation arrows - sempre visíveis */}
+      <button
+        onClick={() => scroll('left')}
+        disabled={currentPage === 0}
+        className="
+          absolute left-2 top-1/2 -translate-y-1/2
+          w-10 h-10 rounded-full
+          bg-white dark:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-600
+          flex items-center justify-center
+          text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100
+          disabled:opacity-50 disabled:cursor-not-allowed
+          z-20 transition-all
+        "
+        aria-label="Rolar para esquerda"
+      >
+        <ArrowLeftIcon />
+      </button>
+      <button
+        onClick={() => scroll('right')}
+        disabled={currentPage >= totalPages - 1}
+        className="
+          absolute right-2 top-1/2 -translate-y-1/2
+          w-10 h-10 rounded-full
+          bg-white dark:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-600
+          flex items-center justify-center
+          text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100
+          disabled:opacity-50 disabled:cursor-not-allowed
+          z-20 transition-all
+        "
+        aria-label="Rolar para direita"
+      >
+        <ArrowRightIcon />
+      </button>
 
       {/* Scrollable container */}
       <div
@@ -126,6 +152,34 @@ export function ExpensesByCategoryCarousel() {
           />
         ))}
       </div>
+
+      {/* Paginador à direita */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-end gap-2 mt-4 pr-2">
+          {Array.from({ length: totalPages }).map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                setCurrentPage(index);
+                if (scrollRef.current) {
+                  scrollRef.current.scrollTo({
+                    left: index * cardWidth * cardsPerView,
+                    behavior: 'smooth',
+                  });
+                }
+              }}
+              className={`
+                w-2 h-2 rounded-full transition-all
+                ${currentPage === index 
+                  ? 'bg-gray-900 dark:bg-gray-100 w-6' 
+                  : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                }
+              `}
+              aria-label={`Página ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
 
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {

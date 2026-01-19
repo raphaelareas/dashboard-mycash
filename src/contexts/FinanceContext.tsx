@@ -34,6 +34,8 @@ interface FinanceContextType {
   // Filtros
   selectedMember: string | null;
   dateRange: DateRange;
+  currentMonth: Date; // Mês atual selecionado no header
+  customDateRange: DateRange | null; // Range customizado dos filtros (sobrescreve currentMonth)
   transactionType: 'all' | 'income' | 'expense';
   searchText: string;
   selectedCategories: string[];
@@ -43,6 +45,8 @@ interface FinanceContextType {
   // Setters de Filtros
   setSelectedMember: (memberId: string | null) => void;
   setDateRange: (range: DateRange) => void;
+  setCurrentMonth: (month: Date) => void;
+  setCustomDateRange: (range: DateRange | null) => void;
   setTransactionType: (type: 'all' | 'income' | 'expense') => void;
   setSearchText: (text: string) => void;
   setSelectedCategories: (categories: string[]) => void;
@@ -97,11 +101,10 @@ interface FinanceContextType {
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
-// Helper para obter início/fim do mês atual
-const getCurrentMonthRange = (): DateRange => {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+// Helper para obter início/fim de um mês específico
+const getMonthRange = (date: Date): DateRange => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
   return { startDate: start, endDate: end };
 };
 
@@ -123,12 +126,16 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
 
   // Filtros
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange>(getCurrentMonthRange());
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [customDateRange, setCustomDateRange] = useState<DateRange | null>(null);
   const [transactionType, setTransactionType] = useState<'all' | 'income' | 'expense'>('all');
   const [searchText, setSearchText] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
+  
+  // dateRange é calculado: se customDateRange existe, usa ele; senão, usa o mês atual
+  const dateRange: DateRange = customDateRange || getMonthRange(currentMonth);
 
   // Carregar dados do Supabase quando usuário estiver autenticado
   useEffect(() => {
@@ -442,6 +449,7 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     if (selectedCategories.length > 0) count++;
     if (selectedAccounts.length > 0) count++;
     if (selectedCards.length > 0) count++;
+    if (customDateRange) count++; // Contar range de data personalizado
     return count;
   };
 
@@ -515,13 +523,17 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     loading,
     selectedMember,
     dateRange,
+    currentMonth,
+    customDateRange,
     transactionType,
     searchText,
     selectedCategories,
     selectedAccounts,
     selectedCards,
     setSelectedMember,
-    setDateRange,
+    setDateRange: () => {}, // Mantido para compatibilidade, mas não usado diretamente
+    setCurrentMonth,
+    setCustomDateRange,
     setTransactionType,
     setSearchText,
     setSelectedCategories,

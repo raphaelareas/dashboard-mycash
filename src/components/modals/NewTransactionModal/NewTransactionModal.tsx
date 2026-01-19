@@ -167,9 +167,10 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       memberId,
       installments: isInstallment ? parseInt(totalInstallments) : 1,
       installmentNumber: isInstallment ? parseInt(installmentNumber) : undefined,
+      installmentRecurrence: isInstallment ? installmentRecurrence : undefined,
       isRecurring: false,
       isPaid: false,
-    });
+    } as any);
 
     onClose();
   };
@@ -231,20 +232,39 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             </button>
           </div>
 
-          {/* Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('modals.newTransaction.date')}
-            </label>
-            <input
-              type="date"
-              value={transactionDate}
-              onChange={(e) => setTransactionDate(e.target.value)}
-              className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+          {/* Description and Date (same line) */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('modals.newTransaction.description')}
+              </label>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Ex: Supermercado Semanal"
+                className={`
+                  w-full h-14 px-4 rounded-[40px] border
+                  ${errors.description ? 'border-red-500' : 'border-gray-200'}
+                  focus:outline-none focus:ring-2 focus:ring-primary
+                `}
+              />
+              {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('modals.newTransaction.date')}
+              </label>
+              <input
+                type="date"
+                value={transactionDate}
+                onChange={(e) => setTransactionDate(e.target.value)}
+                className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
           </div>
 
-          {/* Amount */}
+          {/* Amount and Installment Toggle (same line) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('modals.newTransaction.amount')}
@@ -375,25 +395,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             )}
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('modals.newTransaction.description')}
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ex: Supermercado Semanal"
-              className={`
-                w-full h-14 px-4 rounded-[40px] border
-                ${errors.description ? 'border-red-500' : 'border-gray-200'}
-                focus:outline-none focus:ring-2 focus:ring-primary
-              `}
-            />
-            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
-          </div>
-
           {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -460,40 +461,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             )}
           </div>
 
-          {/* Member */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('modals.newTransaction.member')} ({t('common.optional')})
-            </label>
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <CustomSelect
-                  value={memberId || ''}
-                  onChange={(value) => setMemberId(value || null)}
-                  placeholder={t('common.select') || 'Selecionar'}
-                  options={[
-                    ...familyMembers.map((member) => {
-                      const roleDisplay = member.role.toLowerCase() === 'owner' ? 'Owner' : member.role;
-                      return {
-                        value: member.id,
-                        label: `${member.name} - ${roleDisplay}`,
-                        avatar: member.avatarUrl || undefined,
-                      };
-                    }),
-                  ]}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsAddMemberModalOpen(true)}
-                className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
-                style={{ borderColor: '#1F2937', minWidth: '180px' }}
-              >
-                {t('modals.newTransaction.addMember') || 'Adicionar membro'}
-              </button>
-            </div>
-          </div>
-
           {/* Account */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -541,6 +508,40 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 </button>
             </div>
             {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}
+          </div>
+
+          {/* Member */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('modals.newTransaction.member')} ({t('common.optional')})
+            </label>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <CustomSelect
+                  value={memberId || ''}
+                  onChange={(value) => setMemberId(value || null)}
+                  placeholder={t('common.select') || 'Selecionar'}
+                  options={[
+                    ...familyMembers.map((member) => {
+                      const roleDisplay = member.role.toLowerCase() === 'owner' ? 'Owner' : member.role;
+                      return {
+                        value: member.id,
+                        label: `${member.name} - ${roleDisplay}`,
+                        avatar: member.avatarUrl || undefined,
+                      };
+                    }),
+                  ]}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddMemberModalOpen(true)}
+                className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
+                style={{ borderColor: '#1F2937', minWidth: '180px' }}
+              >
+                {t('modals.newTransaction.addMember') || 'Adicionar membro'}
+              </button>
+            </div>
           </div>
 
         </div>

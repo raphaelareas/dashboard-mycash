@@ -18,6 +18,18 @@ const CloseIcon = () => (
 
 const defaultCategories: TransactionCategory[] = ['rent', 'food', 'shopping', 'household', 'transport', 'entertainment', 'health', 'education', 'other'];
 
+const ChevronLeftIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const ChevronRightIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 4L14 10L8 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
   const { 
     transactionType,
@@ -25,6 +37,7 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
     selectedCategories,
     selectedAccounts,
     selectedCards,
+    customDateRange,
     familyMembers,
     categories: customCategories,
     bankAccounts,
@@ -34,6 +47,7 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
     setSelectedCategories,
     setSelectedAccounts,
     setSelectedCards,
+    setCustomDateRange,
   } = useFinance();
   const { t } = useI18n();
 
@@ -43,6 +57,10 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
   const [tempCategories, setTempCategories] = useState<string[]>(selectedCategories);
   const [tempAccounts, setTempAccounts] = useState<string[]>(selectedAccounts);
   const [tempCards, setTempCards] = useState<string[]>(selectedCards);
+  const [useCustomDateRange, setUseCustomDateRange] = useState(false);
+  const [tempStartDate, setTempStartDate] = useState<Date | null>(customDateRange?.startDate || null);
+  const [tempEndDate, setTempEndDate] = useState<Date | null>(customDateRange?.endDate || null);
+  const [currentMonth, setCurrentMonth] = useState(new Date(customDateRange?.startDate || new Date()));
 
   // Obter nomes de categorias via tradução
   const categoryNames: Record<string, string> = {
@@ -65,8 +83,12 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
       setTempCategories(selectedCategories);
       setTempAccounts(selectedAccounts);
       setTempCards(selectedCards);
+      setUseCustomDateRange(!!customDateRange);
+      setTempStartDate(customDateRange?.startDate || null);
+      setTempEndDate(customDateRange?.endDate || null);
+      setCurrentMonth(new Date(customDateRange?.startDate || new Date()));
     }
-  }, [isOpen, transactionType, selectedMember, selectedCategories, selectedAccounts, selectedCards]);
+  }, [isOpen, transactionType, selectedMember, selectedCategories, selectedAccounts, selectedCards, customDateRange]);
 
   const handleApply = () => {
     setTransactionType(tempType);
@@ -74,6 +96,17 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
     setSelectedCategories(tempCategories);
     setSelectedAccounts(tempAccounts);
     setSelectedCards(tempCards);
+    
+    // Aplicar date range customizado se selecionado
+    if (useCustomDateRange && tempStartDate && tempEndDate) {
+      setCustomDateRange({
+        startDate: tempStartDate,
+        endDate: tempEndDate,
+      });
+    } else {
+      setCustomDateRange(null);
+    }
+    
     onClose();
   };
 
@@ -84,6 +117,9 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
     setTempCategories([]);
     setTempAccounts([]);
     setTempCards([]);
+    setUseCustomDateRange(false);
+    setTempStartDate(null);
+    setTempEndDate(null);
     
     // Aplicar filtros limpos imediatamente
     setTransactionType('all');
@@ -91,6 +127,7 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
     setSelectedCategories([]);
     setSelectedAccounts([]);
     setSelectedCards([]);
+    setCustomDateRange(null);
     
     // Fechar o modal
     onClose();
@@ -342,6 +379,128 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                 })}
               </div>
             )}
+          </div>
+
+          {/* Date Range Picker */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              {t('dashboard.dateRange')}
+            </label>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="useCustomDateRange"
+                  checked={useCustomDateRange}
+                  onChange={(e) => {
+                    setUseCustomDateRange(e.target.checked);
+                    if (!e.target.checked) {
+                      setTempStartDate(null);
+                      setTempEndDate(null);
+                    }
+                  }}
+                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label htmlFor="useCustomDateRange" className="text-sm text-gray-700">
+                  {t('dashboard.useCustomDateRange')}
+                </label>
+              </div>
+              
+              {useCustomDateRange && (
+                <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+                  {/* Navegação do Mês */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newMonth = new Date(currentMonth);
+                        newMonth.setMonth(newMonth.getMonth() - 1);
+                        setCurrentMonth(newMonth);
+                      }}
+                      className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center"
+                    >
+                      <ChevronLeftIcon />
+                    </button>
+                    <h3 className="font-semibold text-gray-900">
+                      {t(`common.months.${['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'][currentMonth.getMonth()]}`)} {currentMonth.getFullYear()}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newMonth = new Date(currentMonth);
+                        newMonth.setMonth(newMonth.getMonth() + 1);
+                        setCurrentMonth(newMonth);
+                      }}
+                      className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center"
+                    >
+                      <ChevronRightIcon />
+                    </button>
+                  </div>
+
+                  {/* Grid do Calendário */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
+                      <div key={day} className="text-center text-xs font-semibold text-gray-600 py-2">
+                        {day}
+                      </div>
+                    ))}
+                    
+                    {Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay() }).map((_, i) => (
+                      <div key={`empty-${i}`} />
+                    ))}
+                    
+                    {Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map((day) => {
+                      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                      const isInRange = tempStartDate && tempEndDate && date >= tempStartDate && date <= tempEndDate;
+                      const isStart = tempStartDate && date.getTime() === tempStartDate.getTime();
+                      const isEnd = tempEndDate && date.getTime() === tempEndDate.getTime();
+                      const isSelected = isStart || isEnd;
+                      
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => {
+                            if (!tempStartDate || (tempStartDate && tempEndDate)) {
+                              setTempStartDate(date);
+                              setTempEndDate(null);
+                            } else if (tempStartDate && !tempEndDate) {
+                              if (date < tempStartDate) {
+                                setTempEndDate(tempStartDate);
+                                setTempStartDate(date);
+                              } else {
+                                setTempEndDate(date);
+                              }
+                            }
+                          }}
+                          className={`
+                            aspect-square rounded-[40px] text-sm font-medium transition-all
+                            ${isSelected
+                              ? 'bg-gray-900 text-white'
+                              : isInRange
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'hover:bg-gray-100 text-gray-900'
+                            }
+                          `}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Exibir range selecionado */}
+                  {tempStartDate && tempEndDate && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-700">
+                        <strong>{t('dashboard.selectedRange') || 'Período selecionado:'}</strong>{' '}
+                        {tempStartDate.toLocaleDateString('pt-BR')} - {tempEndDate.toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

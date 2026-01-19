@@ -3,6 +3,7 @@ import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDateShort } from '@/utils/formatDateShort';
+import { formatInstallmentDisplay } from '@/utils/installmentUtils';
 
 const SearchIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -272,10 +273,13 @@ export function TransactionsTable() {
 
                   {/* Installments */}
                   <div className="col-span-1 flex items-center text-sm text-gray-600 dark:text-gray-400">
-                    {transaction.installments && transaction.installments > 1
-                      ? `${transaction.installments}x`
-                      : '-'
-                    }
+                    {(() => {
+                      const installmentDisplay = formatInstallmentDisplay(
+                        transaction.installmentNumber,
+                        transaction.installments
+                      );
+                      return installmentDisplay || '-';
+                    })()}
                   </div>
 
                   {/* Value */}
@@ -344,14 +348,20 @@ export function TransactionsTable() {
                     <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('transactions.account')}</p>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{getAccountName(transaction.accountId)}</p>
                   </div>
-                  {transaction.installments && transaction.installments > 1 && (
-                    <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('transactions.installments')}</p>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {transaction.installmentNumber || 1}/{transaction.installments}
-                      </p>
-                    </div>
-                  )}
+                  {(() => {
+                    const installmentDisplay = formatInstallmentDisplay(
+                      transaction.installmentNumber,
+                      transaction.installments
+                    );
+                    return installmentDisplay ? (
+                      <div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('transactions.installments')}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {installmentDisplay}
+                        </p>
+                      </div>
+                    ) : null;
+                  })()}
                   <div className="text-right">
                     <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('transactions.value')}</p>
                     <p className={`text-lg font-bold ${transaction.type === 'income' ? 'text-green-700 dark:text-green-400' : 'text-gray-900 dark:text-gray-100'}`}>

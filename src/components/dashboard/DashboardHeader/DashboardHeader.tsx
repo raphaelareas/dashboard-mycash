@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { useSidebar } from '@/contexts/SidebarContext';
-import { formatDateShort } from '@/utils/formatDateShort';
 import { NewTransactionModal } from '@/components/modals/NewTransactionModal';
 import { FiltersModal } from '@/components/modals/FiltersModal';
+import { MonthSelector } from '@/components/ui/MonthSelector';
 
 const SearchIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -20,18 +20,6 @@ const FilterIcon = () => (
   </svg>
 );
 
-const CalendarIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="2"/>
-    <path d="M3 9H17M6 3V7M14 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-  </svg>
-);
-
-const ChevronDownIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
 
 // Função helper para extrair iniciais de nomes completos
 // Ex: "Raphael Areas" → "RA", "Bruna Machado" → "BM"
@@ -44,7 +32,7 @@ const getInitials = (name: string): string => {
 };
 
 export function DashboardHeader() {
-  const { searchText, setSearchText, dateRange, familyMembers, selectedMember, setSelectedMember, getActiveFiltersCount } = useFinance();
+  const { searchText, setSearchText, currentMonth, setCurrentMonth, familyMembers, selectedMember, setSelectedMember, getActiveFiltersCount } = useFinance();
   const { isDesktop, isExpanded } = useSidebar();
   const { t } = useI18n();
   const navigate = useNavigate();
@@ -53,18 +41,14 @@ export function DashboardHeader() {
   
   const activeFiltersCount = getActiveFiltersCount();
 
-  const formatPeriod = () => {
-    return `${formatDateShort(dateRange.startDate)} - ${formatDateShort(dateRange.endDate)}`;
-  };
-
   return (
     <>
       <div className="fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" style={{ marginLeft: isDesktop ? (isExpanded ? '280px' : '80px') : '0' }}>
         <div className="w-full px-4 md:px-6 lg:px-8 h-20 flex items-center">
           {/* Barra dividida em 2 blocos: Esquerda (Pesquisa + Filtros + Data + Membros) | Direita (Nova Transação) */}
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center w-full">
-          {/* BLOCO ESQUERDO: Pesquisa + Filtros + Date Picker + Membros */}
-          <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full items-start sm:items-center">
+          {/* BLOCO ESQUERDO: Pesquisa + Seletor de Mês + Filtros + Membros */}
+          <div className="flex flex-col sm:flex-row flex-1 w-full items-start sm:items-center" style={{ gap: '16px' }}>
             {/* Campo de Busca - Máximo 600px - Ícone dentro do input */}
             <div className="relative flex-1 w-full min-w-0 max-w-[600px]">
               <div className="flex items-center gap-2 pl-3 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-[40px] bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary">
@@ -82,6 +66,13 @@ export function DashboardHeader() {
               </div>
             </div>
 
+            {/* Month Selector */}
+            <div className="flex-shrink-0">
+              <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-[40px] bg-white dark:bg-gray-800">
+                <MonthSelector currentMonth={currentMonth} onMonthChange={setCurrentMonth} />
+              </div>
+            </div>
+
             {/* Botão Filtros */}
             <button
               onClick={() => setIsFiltersOpen(true)}
@@ -95,17 +86,6 @@ export function DashboardHeader() {
                 </span>
               )}
             </button>
-
-            {/* Date Picker */}
-            <div className="relative flex-shrink-0">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10">
-                <CalendarIcon />
-              </div>
-              <button className="pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-[40px] bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-left min-w-[200px]">
-                <span className="text-sm text-gray-700 dark:text-gray-300">{formatPeriod()}</span>
-                <ChevronDownIcon />
-              </button>
-            </div>
 
             {/* Widget Membros da Família - avatares sobrepostos (apenas desktop, apenas quando há membros) */}
             {isDesktop && familyMembers.length > 0 && (
@@ -131,9 +111,17 @@ export function DashboardHeader() {
                       aria-label={`Filtrar por ${member.name}`}
                     >
                       {member.avatarUrl ? (
-                        <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                        <div
+                          className="w-full h-full rounded-full border bg-gray-200 dark:bg-gray-600 overflow-hidden"
+                          style={{ borderColor: '#FFFFFF', borderWidth: '1.2px' }}
+                        >
+                          <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                        </div>
                       ) : (
-                        <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        <div
+                          className="w-full h-full rounded-full border bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400 font-medium"
+                          style={{ borderColor: '#FFFFFF', borderWidth: '1.2px' }}
+                        >
                           {getInitials(member.name)}
                         </div>
                       )}

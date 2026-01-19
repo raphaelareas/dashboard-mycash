@@ -246,91 +246,45 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
           </button>
         </div>
 
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('modals.newTransaction.description')}
-          </label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Ex: Supermercado Semanal"
-            className={`
-              w-full h-14 px-4 rounded-[40px] border
-              ${errors.description ? 'border-red-500' : 'border-gray-200'}
-              focus:outline-none focus:ring-2 focus:ring-primary
-            `}
-          />
-          {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
-        </div>
-
-        {/* Category */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('modals.newTransaction.category')}
-          </label>
-          <div className="flex gap-3 items-center">
-            <div className="flex-1" style={{ width: '420px' }}>
-              <CustomSelect
-                value={category}
-                onChange={(value) => setCategory(value)}
-                placeholder={t('modals.newTransaction.selectCategory') || 'Selecione uma categoria'}
-                className={errors.category ? 'border-red-500' : ''}
-                error={!!errors.category}
-                options={[
-                  // Categorias padrão
-                  ...defaultCategories.map((cat) => ({
-                    value: cat,
-                    label: categoryNames[cat] || cat,
-                    color: defaultCategoryColors[cat] || '#6B7280',
-                  })),
-                  // Categorias customizadas
-                  ...customCategories
-                    .filter(c => c.type === type)
-                    .map((customCat) => ({
-                      value: customCat.name,
-                      label: customCat.name,
-                      color: customCat.color,
-                    })),
-                ]}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsCreateCategoryModalOpen(true)}
-              className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
-              style={{ borderColor: '#1F2937', minWidth: '180px' }}
-            >
-              {t('modals.newTransaction.addCategory') || 'Adicionar categoria'}
-            </button>
+        {/* Description and Date (same line) */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('modals.newTransaction.description')}
+            </label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Ex: Supermercado Semanal"
+              className={`
+                w-full h-14 px-4 rounded-[40px] border
+                ${errors.description ? 'border-red-500' : 'border-gray-200'}
+                focus:outline-none focus:ring-2 focus:ring-primary
+              `}
+            />
+            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
           </div>
-          {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
-          
-          {category === 'other' && (
-            <div className="mt-3 animate-fade-in">
-              <input
-                type="text"
-                value={customCategory}
-                onChange={(e) => setCustomCategory(e.target.value)}
-                placeholder={t('modals.newTransaction.newCategoryName') || 'Nome da nova categoria'}
-                className={`
-                  w-full h-14 px-4 rounded-[40px] border
-                  ${errors.customCategory ? 'border-red-500' : 'border-gray-200'}
-                  focus:outline-none focus:ring-2 focus:ring-primary
-                `}
-              />
-              {errors.customCategory && <p className="mt-1 text-sm text-red-600">{errors.customCategory}</p>}
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('modals.newTransaction.transactionDate')}
+            </label>
+            <input
+              type="date"
+              value={transactionDate}
+              onChange={(e) => setTransactionDate(e.target.value)}
+              className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
         </div>
 
-        {/* Amount */}
+        {/* Amount and Installment Toggle (same line) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t('modals.newTransaction.amount')}
           </label>
           <div className="flex items-center gap-3">
+            <span className="text-gray-600 font-medium">R$</span>
             <input
               type="text"
               value={amountDisplay}
@@ -454,52 +408,64 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
           )}
         </div>
 
-        {/* Date */}
+        {/* Category */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('modals.newTransaction.transactionDate')}
+            {t('modals.newTransaction.category')}
           </label>
-          <input
-            type="date"
-            value={transactionDate}
-            onChange={(e) => setTransactionDate(e.target.value)}
-            className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-
-        {/* Member */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('modals.newTransaction.member')} ({t('common.optional') || 'opcional'})
-          </label>
-          <div className="flex gap-3">
-            <div className="flex-1">
+          <div className="flex gap-3 items-center">
+            <div className="flex-1" style={{ width: '420px' }}>
               <CustomSelect
-                value={memberId || ''}
-                onChange={(value) => setMemberId(value || null)}
-                placeholder={t('modals.newTransaction.familyGeneral') || 'Família (Geral)'}
+                value={category}
+                onChange={(value) => setCategory(value)}
+                placeholder={t('modals.newTransaction.selectCategory') || 'Selecione uma categoria'}
+                className={errors.category ? 'border-red-500' : ''}
+                error={!!errors.category}
                 options={[
-                  { value: '', label: t('modals.newTransaction.familyGeneral') || 'Família (Geral)' },
-                  ...familyMembers.map((member) => {
-                    const roleDisplay = member.role === 'owner' ? 'Owner' : member.role;
-                    return {
-                      value: member.id,
-                      label: `${member.name} - ${roleDisplay}`,
-                      avatar: member.avatarUrl || undefined,
-                    };
-                  }),
+                  // Categorias padrão
+                  ...defaultCategories.map((cat) => ({
+                    value: cat,
+                    label: categoryNames[cat] || cat,
+                    color: defaultCategoryColors[cat] || '#6B7280',
+                  })),
+                  // Categorias customizadas
+                  ...customCategories
+                    .filter(c => c.type === type)
+                    .map((customCat) => ({
+                      value: customCat.name,
+                      label: customCat.name,
+                      color: customCat.color,
+                    })),
                 ]}
               />
             </div>
             <button
               type="button"
-              onClick={() => setIsAddMemberModalOpen(true)}
+              onClick={() => setIsCreateCategoryModalOpen(true)}
               className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
               style={{ borderColor: '#1F2937', minWidth: '180px' }}
             >
-              {t('modals.newTransaction.addMember') || 'Adicionar membro'}
+              {t('modals.newTransaction.addCategory') || 'Adicionar categoria'}
             </button>
           </div>
+          {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
+          
+          {category === 'other' && (
+            <div className="mt-3 animate-fade-in">
+              <input
+                type="text"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder={t('modals.newTransaction.newCategoryName') || 'Nome da nova categoria'}
+                className={`
+                  w-full h-14 px-4 rounded-[40px] border
+                  ${errors.customCategory ? 'border-red-500' : 'border-gray-200'}
+                  focus:outline-none focus:ring-2 focus:ring-primary
+                `}
+              />
+              {errors.customCategory && <p className="mt-1 text-sm text-red-600">{errors.customCategory}</p>}
+            </div>
+          )}
         </div>
 
         {/* Account/Card */}
@@ -543,6 +509,41 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
             </button>
           </div>
           {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}
+        </div>
+
+        {/* Member */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('modals.newTransaction.member')} ({t('common.optional') || 'opcional'})
+          </label>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <CustomSelect
+                value={memberId || ''}
+                onChange={(value) => setMemberId(value || null)}
+                placeholder={t('modals.newTransaction.familyGeneral') || 'Família (Geral)'}
+                options={[
+                  { value: '', label: t('modals.newTransaction.familyGeneral') || 'Família (Geral)' },
+                  ...familyMembers.map((member) => {
+                    const roleDisplay = member.role === 'owner' ? 'Owner' : member.role;
+                    return {
+                      value: member.id,
+                      label: `${member.name} - ${roleDisplay}`,
+                      avatar: member.avatarUrl || undefined,
+                    };
+                  }),
+                ]}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsAddMemberModalOpen(true)}
+              className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
+              style={{ borderColor: '#1F2937', minWidth: '180px' }}
+            >
+              {t('modals.newTransaction.addMember') || 'Adicionar membro'}
+            </button>
+          </div>
         </div>
 
 

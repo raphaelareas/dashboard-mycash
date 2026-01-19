@@ -36,16 +36,50 @@ const mapCategoryName = (categoryName: string | null | undefined): TransactionCa
   return categoryName;
 };
 
+// Mapear enum de categoria para nome em português (para buscar no banco)
+const mapCategoryEnumToName = (category: TransactionCategory | string): string => {
+  // Se já é uma string (categoria customizada), retorna direto
+  if (typeof category === 'string' && !['rent', 'food', 'shopping', 'household', 'transport', 'entertainment', 'health', 'education', 'other'].includes(category)) {
+    return category;
+  }
+  
+  // Mapear enum para nome em português
+  const enumToNameMap: Record<TransactionCategory, string> = {
+    'rent': 'Aluguel',
+    'food': 'Alimentação',
+    'shopping': 'Compras',
+    'household': 'Contas de casa',
+    'transport': 'Transporte',
+    'entertainment': 'Entretenimento',
+    'health': 'Saúde',
+    'education': 'Educação',
+    'other': 'Outros',
+  };
+
+  return enumToNameMap[category as TransactionCategory] || category;
+};
+
 // Converter dados do banco para formato da aplicação
 const mapTransactionFromDb = (row: any): Transaction => {
   // Se row.category é um objeto (join), usar row.category.name
   // Se é string ou null, tratar adequadamente
-  const categoryName = typeof row.category === 'object' ? row.category?.name : null;
+  let categoryName: string | null = null;
+  
+  if (row.category) {
+    if (typeof row.category === 'object' && row.category !== null) {
+      categoryName = row.category.name || null;
+    } else if (typeof row.category === 'string') {
+      categoryName = row.category;
+    }
+  }
+  
+  // Se não tem categoria, retornar 'other'
+  const mappedCategory = categoryName ? mapCategoryName(categoryName) : 'other';
   
   return {
     id: row.id,
     type: mapTransactionType(row.type),
-    category: mapCategoryName(categoryName),
+    category: mappedCategory,
     amount: parseFloat(row.amount.toString()),
     description: row.description,
     date: new Date(row.date),
@@ -97,38 +131,91 @@ export const transactionService = {
 
   // Criar nova transação
   async create(transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<Transaction> {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) throw new Error('User not authenticated');
+
     // Buscar category_id pela categoria
     let categoryId: string | null = null;
     if (transaction.category && transaction.category !== 'other') {
+      // Converter enum para nome em português antes de buscar no banco
+      const categoryName = mapCategoryEnumToName(transaction.category);
+      
       // @ts-ignore - Database types serão gerados depois das migrations
       const { data: category } = await supabase
         .from('categories')
         .select('id')
-        .eq('name', transaction.category)
+        .eq('name', categoryName)
+        .eq('user_id', userId)
         .single();
+      
       categoryId = (category as any)?.id || null;
+      
+      // Se não encontrou a categoria e é uma categoria padrão, criar ela
+      if (!categoryId && ['rent', 'food', 'shopping', 'household', 'transport', 'entertainment', 'health', 'education'].includes(transaction.category as string)) {
+        const defaultCategoryColors: Record<string, string> = {
+          'rent': '#EF4444',
+          'food': '#F59E0B',
+          'shopping': '#8B5CF6',
+          'household': '#10B981',
+          'transport': '#3B82F6',
+          'entertainment': '#EC4899',
+          'health': '#06B6D4',
+          'education': '#6366F1',
+        };
+        
+        const categoryType = transaction.type === 'income' ? 'INCOME' : 'EXPENSE';
+        
+        // @ts-ignore
+        const { data: newCategory, error: createError } = await supabase
+          .from('categories')
+          .insert({
+            user_id: userId,
+            name: categoryName,
+            type: categoryType,
+            color: defaultCategoryColors[transaction.category as string] || '#3247FF',
+            is_active: true,
+          })
+          .select('id')
+          .single();
+        
+        if (!createError && newCategory) {
+          categoryId = (newCategory as any)?.id;
+        }
+      }
     }
 
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) throw new Error('User not authenticated');
+    const totalInstallments = transaction.installments || 1;
+    const currentInstallment = transaction.installmentNumber || 1;
+    const isInstallment = totalInstallments > 1 && currentInstallment > 0;
+    
+    // Calcular quantas parcelas restam (ex: 7/12 = 6 parcelas restantes)
+    const remainingInstallments = isInstallment 
+      ? totalInstallments - currentInstallment + 1 
+      : totalInstallments;
+    
+    // Determinar recorrência baseada no installmentRecurrence
+    const recurrence = (transaction as any).installmentRecurrence || 'monthly';
+
+    // Criar a primeira transação (a que o usuário está registrando)
+    const firstTransactionData = {
+      user_id: userId,
+      type: mapTransactionTypeToDb(transaction.type),
+      amount: transaction.amount,
+      description: transaction.description,
+      date: transaction.date.toISOString().split('T')[0],
+      category_id: categoryId,
+      account_id: transaction.accountId || null,
+      member_id: transaction.memberId || null,
+      total_installments: totalInstallments,
+      installment_number: currentInstallment,
+      is_recurring: false,
+      status: transaction.isPaid ? 'COMPLETED' : 'PENDING',
+    };
 
     // @ts-ignore - Database types serão gerados depois das migrations
-    const { data, error } = await supabase
+    const { data: firstTransaction, error: firstError } = await supabase
       .from('transactions')
-      .insert({
-        user_id: userId,
-        type: mapTransactionTypeToDb(transaction.type),
-        amount: transaction.amount,
-        description: transaction.description,
-        date: transaction.date.toISOString().split('T')[0],
-        category_id: categoryId,
-        account_id: transaction.accountId || null,
-        member_id: transaction.memberId || null,
-        total_installments: transaction.installments || 1,
-        installment_number: transaction.installments && transaction.installments > 1 ? 1 : null,
-        is_recurring: transaction.isRecurring || false,
-        status: transaction.isPaid ? 'COMPLETED' : 'PENDING',
-      })
+      .insert(firstTransactionData)
       .select(`
         *,
         category:categories(*),
@@ -137,8 +224,74 @@ export const transactionService = {
       `)
       .single();
 
-    if (error) throw error;
-    return mapTransactionFromDb(data);
+    if (firstError) throw firstError;
+
+    // Se há parcelas restantes, criar as próximas transações automaticamente
+    if (isInstallment && remainingInstallments > 1) {
+      const futureTransactions = [];
+      let currentDate = new Date(transaction.date);
+      
+      // Criar as próximas parcelas (ex: se é 7/12, criar 8, 9, 10, 11, 12)
+      for (let i = 1; i < remainingInstallments; i++) {
+        // Avançar data conforme recorrência
+        currentDate = new Date(currentDate);
+        
+        // Calcular próxima data baseado na recorrência
+        switch (recurrence) {
+          case 'weekly':
+            currentDate.setDate(currentDate.getDate() + 7);
+            break;
+          case 'biweekly':
+            currentDate.setDate(currentDate.getDate() + 14);
+            break;
+          case 'monthly':
+            // Usar setMonth para manter o dia do mês (ex: 28/01 -> 28/02)
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            break;
+          case 'semiannual':
+            currentDate.setMonth(currentDate.getMonth() + 6);
+            break;
+          case 'yearly':
+            currentDate.setFullYear(currentDate.getFullYear() + 1);
+            break;
+          case 'fixed':
+          default:
+            // Mensal como padrão
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            break;
+        }
+        
+        futureTransactions.push({
+          user_id: userId,
+          type: mapTransactionTypeToDb(transaction.type),
+          amount: transaction.amount,
+          description: transaction.description,
+          date: currentDate.toISOString().split('T')[0],
+          category_id: categoryId,
+          account_id: transaction.accountId || null,
+          member_id: transaction.memberId || null,
+          total_installments: totalInstallments,
+          installment_number: currentInstallment + i, // 8, 9, 10, 11, 12
+          is_recurring: false,
+          status: 'PENDING', // Futuras parcelas começam como pendentes
+        });
+      }
+
+      // Inserir todas as parcelas futuras de uma vez
+      if (futureTransactions.length > 0) {
+        // @ts-ignore - Database types serão gerados depois das migrations
+        const { error: futureError } = await supabase
+          .from('transactions')
+          .insert(futureTransactions);
+
+        if (futureError) {
+          console.error('Erro ao criar parcelas futuras:', futureError);
+          // Não lançar erro aqui para não quebrar a criação da primeira transação
+        }
+      }
+    }
+
+    return mapTransactionFromDb(firstTransaction);
   },
 
   // Atualizar transação
@@ -157,11 +310,16 @@ export const transactionService = {
 
     // Buscar category_id se categoria foi alterada
     if (updates.category) {
+      // Converter enum para nome em português antes de buscar no banco
+      const categoryName = mapCategoryEnumToName(updates.category);
+      
+      const userId = (await supabase.auth.getUser()).data.user?.id;
       // @ts-ignore - Database types serão gerados depois das migrations
       const { data: category } = await supabase
         .from('categories')
         .select('id')
-        .eq('name', updates.category)
+        .eq('name', categoryName)
+        .eq('user_id', userId || '')
         .single();
       updateData.category_id = (category as any)?.id || null;
     }

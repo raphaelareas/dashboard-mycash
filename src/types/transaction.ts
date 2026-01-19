@@ -22,6 +22,7 @@ export interface Transaction {
   memberId?: string | null;
   installments?: number; // número total de parcelas (1 = à vista)
   installmentNumber?: number; // número da parcela atual (1, 2, 3...)
+  installmentRecurrence?: 'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed';
   isRecurring?: boolean;
   isPaid?: boolean;
   createdAt: Date;

@@ -363,6 +363,9 @@
     "showing": "Mostrando",
     "transactionType": "Tipo de Transação",
     "applyFilters": "Aplicar Filtros",
+    "dateRange": "Período Personalizado",
+    "useCustomDateRange": "Usar período personalizado",
+    "selectedRange": "Período selecionado:",
     "expenseMarkedAsPaid": "Despesa marcada como paga",
     "expensePaidSuccessfully": "Despesa paga com sucesso"
   }

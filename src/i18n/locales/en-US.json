@@ -15,6 +15,7 @@
     "optional": "optional",
     "select": "Select",
     "to": "to",
+    "clear": "Clear",
     "months": {
       "january": "January",
       "february": "February",
@@ -341,6 +342,11 @@
     "noTransactionsFound": "No transactions found.",
     "showing": "Showing",
     "transactionType": "Transaction Type",
-    "applyFilters": "Apply Filters"
+    "applyFilters": "Apply Filters",
+    "dateRange": "Custom period",
+    "useCustomDateRange": "Use custom period",
+    "selectedRange": "Selected period:",
+    "expenseMarkedAsPaid": "Expense marked as paid",
+    "expensePaidSuccessfully": "Expense successfully paid"
   }
 }

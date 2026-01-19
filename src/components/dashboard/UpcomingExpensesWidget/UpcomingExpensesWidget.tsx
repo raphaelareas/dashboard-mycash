@@ -4,6 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { Toast } from '@/components/ui/Toast';
+import { formatInstallmentDisplay } from '@/utils/installmentUtils';
 
 const WalletIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -29,10 +30,9 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
   const [toastVisible, setToastVisible] = useState(false);
   const [lastMarkedExpenseId, setLastMarkedExpenseId] = useState<string | null>(null);
   
-  // Buscar despesas próximas (próximos 30 dias a partir de hoje)
+  // Buscar despesas do mês atual e futuras
   const today = new Date();
-  const next30Days = new Date();
-  next30Days.setDate(today.getDate() + 30);
+  today.setHours(0, 0, 0, 0);
   
   // Usar getFilteredTransactions para aplicar filtros do dashboard
   const filteredTransactions = getFilteredTransactions();
@@ -40,13 +40,13 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
   const upcomingExpenses = filteredTransactions
     .filter(t => {
       const transactionDate = new Date(t.date);
+      transactionDate.setHours(0, 0, 0, 0);
+      // Mostrar despesas do mês atual e futuras que não foram pagas
       return t.type === 'expense' && 
              transactionDate >= today && 
-             transactionDate <= next30Days;
+             !t.isPaid;
     })
-    .filter(t => !t.isPaid) // Filtrar apenas despesas não pagas
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 5); // Limitar a 5 despesas
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const handleMarkAsPaid = async (expenseId: string) => {
     try {
@@ -110,9 +110,22 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                    {expense.description}
-                  </p>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+                      {expense.description}
+                    </p>
+                    {(() => {
+                      const installmentDisplay = formatInstallmentDisplay(
+                        expense.installmentNumber,
+                        expense.installments
+                      );
+                      return installmentDisplay ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 flex-shrink-0">
+                          {installmentDisplay}
+                        </span>
+                      ) : null;
+                    })()}
+                  </div>
                   <p className="text-sm font-bold text-gray-900 dark:text-gray-100 ml-2 flex-shrink-0">
                     {formatCurrency(expense.amount)}
                   </p>

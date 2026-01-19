@@ -4,6 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/ui/Modal';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDateShort } from '@/utils/formatDateShort';
+import { formatInstallmentDisplay } from '@/utils/installmentUtils';
 import { CreditCard } from '@/types';
 
 interface CardDetailsModalProps {
@@ -170,10 +171,13 @@ export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEd
                         </span>
                       </div>
                       <div className="col-span-1 text-sm text-gray-600">
-                        {expense.installments && expense.installments > 1 
-                          ? `${expense.installmentNumber || 1}/${expense.installments}` 
-                          : '-'
-                        }
+                        {(() => {
+                          const installmentDisplay = formatInstallmentDisplay(
+                            expense.installmentNumber,
+                            expense.installments
+                          );
+                          return installmentDisplay || '-';
+                        })()}
                       </div>
                       <div className="col-span-2 text-right font-bold text-gray-900">
                         {formatCurrency(expense.amount)}
