@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
-import { Category, TransactionType } from '@/types';
+import { Category, TransactionType, TransactionCategory } from '@/types';
 import { CreateCategoryModal } from '@/components/modals/CreateCategoryModal';
 
 const CategoryIcon = () => (

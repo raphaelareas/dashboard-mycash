@@ -202,6 +202,7 @@ export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModa
           email: '',
           role: roleToSave,
           avatarUrl: avatarUrl || undefined,
+          color: '', // Será gerada automaticamente pelo service se vazia
         }, role); // Passar role customizado
       }
       onClose();
