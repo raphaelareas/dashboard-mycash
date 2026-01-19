@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BalanceCard } from '@/components/dashboard/BalanceCard';
 import { IncomeCard } from '@/components/dashboard/IncomeCard';
 import { ExpenseCard } from '@/components/dashboard/ExpenseCard';
@@ -14,6 +14,31 @@ import { CardDetailsModal } from '@/components/modals/CardDetailsModal';
 import { CreditCard } from '@/types';
 
 export default function Dashboard() {
+  const [isDelayed, setIsDelayed] = useState(false);
+  
+  // Se veio da tela de sucesso, adicionar delay de 2 segundos antes de mostrar o dashboard
+  useEffect(() => {
+    const cameFromSuccess = sessionStorage.getItem('fromSuccess');
+    if (cameFromSuccess === 'true') {
+      sessionStorage.removeItem('fromSuccess');
+      const delayTimer = setTimeout(() => {
+        setIsDelayed(true);
+      }, 2000);
+      return () => clearTimeout(delayTimer);
+    } else {
+      setIsDelayed(true);
+    }
+  }, []);
+  
+  if (!isDelayed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        </div>
+      </div>
+    );
+  }
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isAddCardOpen, setIsAddCardOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null);

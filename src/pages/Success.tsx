@@ -9,6 +9,9 @@ export default function Success() {
   const isSignUp = (location.state as { isSignUp?: boolean })?.isSignUp ?? false;
 
   useEffect(() => {
+    // Marcar que estamos vindo da tela de sucesso
+    sessionStorage.setItem('fromSuccess', 'true');
+    
     // Redirecionar para o dashboard após 2 segundos
     const redirectTimer = setTimeout(() => {
       navigate('/', { replace: true });
