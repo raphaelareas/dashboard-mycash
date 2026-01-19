@@ -15,6 +15,7 @@
     "optional": "opcional",
     "select": "Selecione",
     "to": "a",
+    "undo": "Desfazer",
     "months": {
       "january": "Janeiro",
       "february": "Fevereiro",
@@ -154,6 +155,11 @@
     "edit": "Editar",
     "delete": "Deletar",
     "confirmDelete": "Tem certeza que deseja excluir esta categoria?",
+    "color": "Cor",
+    "name": "Nome",
+    "type": "Tipo",
+    "quantity": "Quantidade",
+    "actions": "Ações",
     "categoryNames": {
       "rent": "Aluguel",
       "food": "Alimentação",
@@ -305,6 +311,7 @@
       "editTitle": "Editar categoria",
       "name": "Nome da Categoria",
       "namePlaceholder": "Ex: Academia, Netflix, etc.",
+      "type": "Tipo",
       "color": "Cor da Categoria",
       "connectAccount": "Conectar categoria a uma conta ou cartão",
       "selectAccount": "Selecione uma conta ou cartão",
@@ -349,6 +356,8 @@
     "noTransactionsFound": "Nenhum lançamento encontrado.",
     "showing": "Mostrando",
     "transactionType": "Tipo de Transação",
-    "applyFilters": "Aplicar Filtros"
+    "applyFilters": "Aplicar Filtros",
+    "expenseMarkedAsPaid": "Despesa marcada como paga",
+    "expensePaidSuccessfully": "Despesa paga com sucesso"
   }
 }
