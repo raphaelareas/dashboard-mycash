@@ -297,11 +297,11 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 value={category}
                 onChange={(e) => setCategory(e.target.value as TransactionCategory)}
                 className={`
-                  flex-1 h-14 px-4 rounded-lg border min-w-0
+                  flex-1 h-14 px-4 border min-w-0
                   ${errors.category ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
-                style={{ paddingRight: '24px' }}
+                style={{ paddingRight: '24px', borderRadius: '40px' }}
               >
                 <option value="">Selecione uma categoria</option>
                 {categories.map((cat) => (
@@ -320,7 +320,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <button
                 type="button"
                 onClick={() => setIsCreateCategoryModalOpen(true)}
-                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
                 style={{ borderColor: '#1F2937' }}
               >
                 Adicionar categoria
@@ -361,8 +361,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <select
                 value={memberId || ''}
                 onChange={(e) => setMemberId(e.target.value || null)}
-                className="flex-1 h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary min-w-0"
-                style={{ paddingRight: '24px' }}
+                className="flex-1 h-14 px-4 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary min-w-0"
+                style={{ paddingRight: '24px', borderRadius: '40px' }}
               >
                 <option value="">Família (Geral)</option>
                 {familyMembers.map((member) => (
@@ -374,7 +374,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <button
                 type="button"
                 onClick={() => setIsAddMemberModalOpen(true)}
-                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
                 style={{ borderColor: '#1F2937' }}
               >
                 Adicionar membro
@@ -392,11 +392,11 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
                 className={`
-                  flex-1 h-14 px-4 rounded-lg border min-w-0
+                  flex-1 h-14 px-4 border min-w-0
                   ${errors.accountId ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
-                style={{ paddingRight: '24px' }}
+                style={{ paddingRight: '24px', borderRadius: '40px' }}
               >
                 <option value="">Selecione</option>
                 <optgroup label="Contas Bancárias">
@@ -417,7 +417,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <button
                 type="button"
                 onClick={() => setIsAddCardModalOpen(true)}
-                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap"
+                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
                 style={{ borderColor: '#1F2937' }}
               >
                 Criar novo método
