@@ -150,8 +150,29 @@ export interface UserPreferences {
  */
 export function detectUserLocale(): UserPreferences {
   // Tentar obter do navegador
-  const locale = navigator.language || 'pt-BR';
+  const locale = navigator.language || navigator.languages?.[0] || 'pt-BR';
   const countryCode = locale.split('-')[1]?.toUpperCase() || 'BR';
+  const languageCode = locale.split('-')[0]?.toLowerCase() || 'pt';
+
+  // Mapeamento direto de idioma do navegador para nosso código de idioma
+  const languageMap: Record<string, string> = {
+    'pt': 'pt-BR', // Português -> Português Brasil
+    'en': 'en-US', // Inglês -> Inglês EUA
+    'es': 'es-ES', // Espanhol -> Espanhol Espanha
+    'fr': 'fr-FR', // Francês -> Francês França
+    'no': 'no-NO', // Norueguês -> Norueguês Noruega
+    'nb': 'no-NO', // Norueguês Bokmål
+    'nn': 'no-NO', // Norueguês Nynorsk
+    'de': 'de-DE', // Alemão -> Alemão Alemanha
+  };
+
+  // Primeiro tentar detectar pelo idioma do navegador diretamente
+  let detectedLanguage = languageMap[languageCode];
+  
+  // Se não encontrou pelo idioma, tentar pelo país
+  if (!detectedLanguage) {
+    detectedLanguage = countryToLanguage[countryCode] || 'pt-BR';
+  }
 
   // Obter moeda baseada no país
   const currency = countryToCurrency[countryCode] || 'BRL';
@@ -164,13 +185,10 @@ export function detectUserLocale(): UserPreferences {
     dateFormat = 'MM/DD/YYYY';
   }
 
-  // Obter idioma baseado no país
-  const language = countryToLanguage[countryCode] || 'pt-BR';
-
   return {
     currency,
     dateFormat,
-    language,
+    language: detectedLanguage,
   };
 }
 

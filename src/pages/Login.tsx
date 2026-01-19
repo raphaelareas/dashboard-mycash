@@ -10,6 +10,7 @@ export default function Login() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const { signIn, signUp } = useAuth();
@@ -17,12 +18,17 @@ export default function Login() {
   // Efeito para gerenciar o redirecionamento após sucesso
   useEffect(() => {
     if (success) {
-      // Mostrar feedback de sucesso por 2 segundos, depois redirecionar
+      // Mostrar feedback de sucesso por 1.5 segundos, depois loading por 1.5 segundos, total 3 segundos
+      const loadingTimer = setTimeout(() => {
+        setRedirecting(true);
+      }, 1500);
+
       const redirectTimer = setTimeout(() => {
         window.location.href = '/';
-      }, 2000);
+      }, 3000);
 
       return () => {
+        clearTimeout(loadingTimer);
         clearTimeout(redirectTimer);
       };
     }
@@ -33,6 +39,7 @@ export default function Login() {
         setError(null);
         setLoading(true);
         setSuccess(false);
+        setRedirecting(false);
 
     try {
       if (isSignUp) {
@@ -83,6 +90,43 @@ export default function Login() {
     }
   };
 
+
+  // Tela de feedback de sucesso
+  if (success && !redirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="mb-6">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="#10B981" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {isSignUp ? 'Conta criada com sucesso!' : 'Login realizado com sucesso!'}
+            </h2>
+            <p className="text-gray-600">
+              {isSignUp 
+                ? 'Sua conta foi criada. Redirecionando para o dashboard...' 
+                : 'Redirecionando para o dashboard...'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Tela de loading de redirecionamento
+  if (redirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Redirecionando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -197,7 +241,7 @@ export default function Login() {
                 />
                 <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
                   Eu concordo com os{' '}
-                  <a href="#" className="text-primary hover:underline" onClick={(e) => e.preventDefault()}>
+                  <a href="#" className="underline transition-colors hover:[color:#99B402]" style={{ color: '#080B12' }} onClick={(e) => e.preventDefault()}>
                     termos de uso
                   </a>{' '}
                   do aplicativo

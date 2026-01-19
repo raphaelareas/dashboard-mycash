@@ -155,3 +155,20 @@ textarea:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(215, 255, 0, 0.1);
 }
+
+/* Estilos globais para links */
+a {
+  color: #080B12;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #99B402;
+}
+
+/* Links sem underline (para navegação) */
+a.no-underline,
+a[class*="no-underline"] {
+  text-decoration: none;
+}

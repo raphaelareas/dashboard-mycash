@@ -187,6 +187,8 @@ export default function Settings() {
       });
       // Aplicar mudanças no contexto (idioma será aplicado imediatamente)
       setLanguage(localLanguage);
+      // Marcar que o idioma foi mudado manualmente
+      localStorage.setItem('language_manually_set', 'true');
       alert(t('common.success') + ': ' + t('settings.savePreferences'));
     } catch (error) {
       console.error('Erro ao salvar preferências:', error);

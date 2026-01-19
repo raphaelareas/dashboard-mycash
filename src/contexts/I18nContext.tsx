@@ -19,7 +19,7 @@ interface I18nProviderProps {
 export function I18nProvider({ children }: I18nProviderProps) {
   const { user } = useAuth();
   const [language, setLanguageState] = useState<LanguageCode>(() => {
-    // Tentar carregar do localStorage
+    // Tentar carregar do localStorage primeiro
     const saved = localStorage.getItem('language') as LanguageCode;
     if (saved && translations[saved]) {
       return saved;
@@ -27,7 +27,10 @@ export function I18nProvider({ children }: I18nProviderProps) {
     // Detectar do navegador
     try {
       const detected = detectUserLocale();
-      return (detected.language as LanguageCode) || defaultLanguage;
+      const detectedLang = (detected.language as LanguageCode) || defaultLanguage;
+      // Salvar no localStorage para manter consistência
+      localStorage.setItem('language', detectedLang);
+      return detectedLang;
     } catch (error) {
       console.error('Erro ao detectar locale:', error);
       return defaultLanguage;
@@ -40,13 +43,43 @@ export function I18nProvider({ children }: I18nProviderProps) {
       if (!user?.id) return;
 
       try {
+        // Sempre detectar o idioma do navegador primeiro
+        const detected = detectUserLocale();
+        const detectedLang = (detected.language as LanguageCode) || defaultLanguage;
+        
         const profile = await userService.getProfile(user.id);
-        if (profile?.language && translations[profile.language as LanguageCode]) {
+        
+        // Se o perfil tem idioma salvo E é diferente do detectado, verificar se foi mudança manual
+        // Se o navegador está em português e o perfil tem outro idioma, pode ser que o usuário mudou manualmente
+        // Mas na primeira vez (quando não há preferência salva), sempre usar o detectado
+        const hasManualLanguageChange = localStorage.getItem('language_manually_set') === 'true';
+        
+        if (profile?.language && translations[profile.language as LanguageCode] && hasManualLanguageChange) {
+          // Se o usuário mudou manualmente nas configurações, respeitar a escolha
           setLanguageState(profile.language as LanguageCode);
           localStorage.setItem('language', profile.language);
+        } else {
+          // Caso contrário, usar o idioma detectado do navegador
+          setLanguageState(detectedLang);
+          localStorage.setItem('language', detectedLang);
+          // Atualizar no perfil do usuário para manter sincronizado
+          if (!profile?.language || profile.language !== detectedLang) {
+            try {
+              await userService.updateProfile(user.id, {
+                language: detectedLang,
+              });
+            } catch (updateError) {
+              console.error('Erro ao atualizar idioma no perfil:', updateError);
+            }
+          }
         }
       } catch (error) {
         console.error('Erro ao carregar idioma do perfil:', error);
+        // Em caso de erro, detectar do navegador
+        const detected = detectUserLocale();
+        const detectedLang = (detected.language as LanguageCode) || defaultLanguage;
+        setLanguageState(detectedLang);
+        localStorage.setItem('language', detectedLang);
       }
     };
 
