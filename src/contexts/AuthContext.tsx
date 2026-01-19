@@ -149,6 +149,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            name,
+            full_name: name,
+          },
         },
       });
 

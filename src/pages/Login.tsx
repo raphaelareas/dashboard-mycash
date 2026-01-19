@@ -6,9 +6,10 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const { signIn, signUp } = useAuth();
@@ -16,20 +17,12 @@ export default function Login() {
   // Efeito para gerenciar o redirecionamento após sucesso
   useEffect(() => {
     if (success) {
-      // Mostrar feedback de sucesso por 1 segundo, depois tela de loading
-      const timer = setTimeout(() => {
-        setSuccess(false);
-        setRedirecting(true);
-      }, 1000);
-
-      // Redirecionar após máximo 3 segundos (1s feedback + 2s loading)
-      // Usar window.location para forçar reload completo e garantir que AuthContext reconheça o usuário
+      // Mostrar feedback de sucesso por 2 segundos, depois redirecionar
       const redirectTimer = setTimeout(() => {
         window.location.href = '/';
-      }, 3000);
+      }, 2000);
 
       return () => {
-        clearTimeout(timer);
         clearTimeout(redirectTimer);
       };
     }
@@ -37,15 +30,19 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
-    setSuccess(false);
-    setRedirecting(false);
+        setError(null);
+        setLoading(true);
+        setSuccess(false);
 
     try {
       if (isSignUp) {
         if (!name.trim()) {
           setError('Por favor, informe seu nome');
+          setLoading(false);
+          return;
+        }
+        if (!acceptedTerms) {
+          setError('Você precisa aceitar os termos de uso para criar uma conta');
           setLoading(false);
           return;
         }
@@ -86,17 +83,6 @@ export default function Login() {
     }
   };
 
-  // Tela de loading de redirecionamento
-  if (redirecting) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">Redirecionando...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -164,22 +150,60 @@ export default function Login() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Senha
               </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="••••••••"
-                minLength={6}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full h-14 px-4 pr-12 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="••••••••"
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10 3C5 3 1.73 7.11 1 10C1.73 12.89 5 17 10 17C15 17 18.27 12.89 19 10C18.27 7.11 15 3 10 3ZM10 15C7.24 15 5 12.76 5 10C5 7.24 7.24 5 10 5C12.76 5 15 7.24 15 10C15 12.76 12.76 15 10 15ZM10 7C8.34 7 7 8.34 7 10C7 11.66 8.34 13 10 13C11.66 13 13 11.66 13 10C13 8.34 11.66 7 10 7Z" fill="currentColor"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2.71 3.16L1.29 1.75L15.29 15.75L16.71 14.34C16.8 14.24 16.88 14.13 16.95 14.01C17.68 11.89 14.27 9 10 9C9.6 9 9.21 9.02 8.84 9.06L7.23 7.45C7.75 6.87 8.33 6.35 8.97 5.9C7.5 5.4 6.2 5.2 5.05 5.2C4.5 5.2 3.95 5.25 3.4 5.35L2.71 3.16ZM10 7C12.76 7 15 9.24 15 12C15 12.64 14.87 13.26 14.64 13.82L12.82 12C12.93 11.68 13 11.35 13 11C13 9.34 11.66 8 10 8C9.65 8 9.32 8.07 9 8.18L7.18 6.36C7.74 6.13 8.36 6 9 6H10V7ZM1.73 7.55C1.55 7.75 1.38 7.95 1.23 8.16C0.52 9.11 0 10.11 0 11C0 12.89 3.23 17 7 17C7.64 17 8.26 16.87 8.82 16.64L7.45 15.27C7.02 15.42 6.52 15.5 6 15.5C3.24 15.5 1 13.26 1 10.5C1 9.85 1.13 9.23 1.36 8.67L1.73 7.55ZM10 15C9.36 15 8.74 14.87 8.18 14.64L9.55 13.27C9.98 13.42 10.48 13.5 11 13.5C13.76 13.5 16 11.26 16 8.5C16 7.85 15.87 7.23 15.64 6.67L17.27 5.04C17.45 5.24 17.62 5.44 17.77 5.65C18.48 6.6 19 7.6 19 8.5C19 10.39 15.77 14.5 12 14.5C11.36 14.5 10.74 14.37 10.18 14.14L8.82 15.5H10V15Z" fill="currentColor"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
               {isSignUp && (
                 <p className="mt-1 text-xs text-gray-500">
                   Mínimo de 6 caracteres
                 </p>
               )}
             </div>
+
+            {isSignUp && (
+              <div className="flex items-start">
+                <input
+                  id="terms"
+                  type="checkbox"
+                  required
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
+                  Eu concordo com os{' '}
+                  <a href="#" className="text-primary hover:underline" onClick={(e) => e.preventDefault()}>
+                    termos de uso
+                  </a>{' '}
+                  do aplicativo
+                </label>
+              </div>
+            )}
 
             {error && (
               <div className="p-3 rounded-lg bg-red-50 border border-red-200">

@@ -167,25 +167,30 @@ export function Sidebar() {
 
     try {
       const profile = await userService.getProfile(user.id);
-      if (profile) {
+      if (profile && profile.name) {
         setUserProfile({
           name: profile.name,
           email: profile.email,
           avatarUrl: profile.avatarUrl,
         });
-      } else {
-        // Fallback para dados do auth
-        setUserProfile({
-          name: user.email?.split('@')[0] || 'Usuário',
-          email: user.email || '',
-          avatarUrl: null,
-        });
+        return;
       }
     } catch (error) {
       console.error('Erro ao carregar perfil do usuário:', error);
-      // Fallback para dados do auth
+    }
+
+    // Se não há perfil na tabela users, tentar buscar do metadata do auth
+    const authName = user.user_metadata?.name || user.user_metadata?.full_name;
+    if (authName) {
       setUserProfile({
-        name: user.email?.split('@')[0] || 'Usuário',
+        name: authName,
+        email: user.email || '',
+        avatarUrl: null,
+      });
+    } else {
+      // Último fallback: usar "Usuário" (não usar email como fallback)
+      setUserProfile({
+        name: 'Usuário',
         email: user.email || '',
         avatarUrl: null,
       });

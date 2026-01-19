@@ -32,8 +32,10 @@ const TrashIcon = () => (
 export default function Settings() {
   const { user } = useAuth();
   const { language, setLanguage, t } = useI18n();
-  const [currency, setCurrency] = useState<string>('BRL');
-  const [dateFormat, setDateFormat] = useState<string>('DD/MM/YYYY');
+  // Estados locais que só serão aplicados ao salvar
+  const [localLanguage, setLocalLanguage] = useState<LanguageCode>(language);
+  const [localCurrency, setLocalCurrency] = useState<string>('BRL');
+  const [localDateFormat, setLocalDateFormat] = useState<string>('DD/MM/YYYY');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -54,7 +56,7 @@ export default function Settings() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   
-  // Texto de confirmação baseado no idioma
+  // Texto de confirmação baseado no idioma atual (não o local)
   const getRequiredConfirmationText = (): string => {
     const confirmations: Record<LanguageCode, string> = {
       'pt-BR': 'Sim, quero limpar meus dados',
@@ -79,45 +81,45 @@ export default function Settings() {
         
         if (profile) {
           if (profile.currency) {
-            setCurrency(profile.currency);
+            setLocalCurrency(profile.currency);
           } else {
             const detected = detectUserLocale();
-            setCurrency(detected.currency);
+            setLocalCurrency(detected.currency);
           }
 
           if (profile.dateFormat) {
-            setDateFormat(profile.dateFormat);
+            setLocalDateFormat(profile.dateFormat);
           } else {
             const detected = detectUserLocale();
-            setDateFormat(detected.dateFormat);
+            setLocalDateFormat(detected.dateFormat);
           }
 
-          // Sincronizar idioma do perfil com o contexto
+          // Carregar idioma do perfil para o estado local
           if (profile.language) {
-            setLanguage(profile.language as LanguageCode);
+            setLocalLanguage(profile.language as LanguageCode);
           } else {
             const detected = detectUserLocale();
-            setLanguage((detected.language as LanguageCode) || 'pt-BR');
+            setLocalLanguage((detected.language as LanguageCode) || 'pt-BR');
           }
         } else {
           const detected = detectUserLocale();
-          setCurrency(detected.currency);
-          setDateFormat(detected.dateFormat);
-          setLanguage((detected.language as LanguageCode) || 'pt-BR');
+          setLocalCurrency(detected.currency);
+          setLocalDateFormat(detected.dateFormat);
+          setLocalLanguage((detected.language as LanguageCode) || 'pt-BR');
         }
       } catch (error) {
         console.error('Erro ao carregar preferências:', error);
         const detected = detectUserLocale();
-        setCurrency(detected.currency);
-        setDateFormat(detected.dateFormat);
-        setLanguage((detected.language as LanguageCode) || 'pt-BR');
+        setLocalCurrency(detected.currency);
+        setLocalDateFormat(detected.dateFormat);
+        setLocalLanguage((detected.language as LanguageCode) || 'pt-BR');
       } finally {
         setIsLoading(false);
       }
     };
 
     loadPreferences();
-  }, [user?.id, setLanguage]);
+  }, [user?.id]);
 
   // Solicitar permissão de notificações
   const requestNotificationPermission = async (): Promise<boolean> => {
@@ -171,31 +173,20 @@ export default function Settings() {
     }
   };
 
-  // Handler para mudança de idioma
-  const handleLanguageChange = async (newLanguage: LanguageCode) => {
-    setLanguage(newLanguage);
-    if (user?.id) {
-      try {
-        await userService.updateProfile(user.id, {
-          language: newLanguage,
-        });
-      } catch (error) {
-        console.error('Erro ao salvar idioma:', error);
-      }
-    }
-  };
-
   // Salvar preferências
   const handleSavePreferences = async () => {
     if (!user?.id) return;
 
     try {
       setIsSaving(true);
+      // Atualizar no banco de dados
       await userService.updateProfile(user.id, {
-        currency,
-        dateFormat,
-        language,
+        currency: localCurrency,
+        dateFormat: localDateFormat,
+        language: localLanguage,
       });
+      // Aplicar mudanças no contexto (idioma será aplicado imediatamente)
+      setLanguage(localLanguage);
       alert(t('common.success') + ': ' + t('settings.savePreferences'));
     } catch (error) {
       console.error('Erro ao salvar preferências:', error);
@@ -249,8 +240,8 @@ export default function Settings() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.language')}</label>
               <select
-                value={language}
-                onChange={(e) => handleLanguageChange(e.target.value as LanguageCode)}
+                value={localLanguage}
+                onChange={(e) => setLocalLanguage(e.target.value as LanguageCode)}
                 disabled={isLoading}
                 className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -265,8 +256,8 @@ export default function Settings() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.defaultCurrency')}</label>
               <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
+                value={localCurrency}
+                onChange={(e) => setLocalCurrency(e.target.value)}
                 disabled={isLoading}
                 className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -281,8 +272,8 @@ export default function Settings() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.dateFormat')}</label>
               <select
-                value={dateFormat}
-                onChange={(e) => setDateFormat(e.target.value)}
+                value={localDateFormat}
+                onChange={(e) => setLocalDateFormat(e.target.value)}
                 disabled={isLoading}
                 className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
