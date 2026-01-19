@@ -85,7 +85,7 @@ export function TransactionsTable() {
   };
   const [localType, setLocalType] = useState<'all' | 'income' | 'expense'>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   // Aplicar filtros locais
   const filteredTransactions = useMemo(() => {

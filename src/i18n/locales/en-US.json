@@ -119,6 +119,7 @@
     "next": "Next",
     "page": "Page",
     "pageOf": "Page {current} of {total}",
+    "loadMore": "Load more",
     "bankAccounts": "Bank Accounts",
     "creditCards": "Credit Cards",
     "unknown": "Unknown",

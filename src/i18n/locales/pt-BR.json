@@ -119,6 +119,7 @@
     "next": "Próxima",
     "page": "Página",
     "pageOf": "Página {current} de {total}",
+    "loadMore": "Ver mais",
     "bankAccounts": "Contas Bancárias",
     "creditCards": "Cartões",
     "unknown": "Desconhecido",

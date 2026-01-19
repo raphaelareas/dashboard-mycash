@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -99,8 +99,8 @@ export default function Transactions() {
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [itemsToShow, setItemsToShow] = useState(10);
+  const itemsPerLoad = 10;
 
   // Filtros avançados
   const filteredTransactions = useMemo(() => {
@@ -179,10 +179,18 @@ export default function Transactions() {
     };
   }, [filteredTransactions]);
 
-  // Paginação
-  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
+  // Loading infinito - mostrar apenas os primeiros itemsToShow itens
+  const displayedTransactions = filteredTransactions.slice(0, itemsToShow);
+  const hasMore = filteredTransactions.length > itemsToShow;
+
+  // Resetar itemsToShow quando filtros mudam
+  useEffect(() => {
+    setItemsToShow(itemsPerLoad);
+  }, [selectedMonth, localType, localCategory, localAccount, localMember, localSearch, sortField, sortOrder]);
+
+  const handleLoadMore = () => {
+    setItemsToShow((prev) => prev + itemsPerLoad);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -425,7 +433,7 @@ export default function Transactions() {
 
               {/* Table Body */}
               <div className="divide-y divide-gray-100">
-                {paginatedTransactions.map((transaction, index) => {
+                {displayedTransactions.map((transaction, index) => {
                   const isEven = index % 2 === 0;
                   const avatarUrl = getMemberAvatar(transaction.memberId);
 
@@ -520,25 +528,14 @@ export default function Transactions() {
               </div>
             </div>
 
-            {/* Paginação */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2">
+            {/* Botão Ver Mais - Loading Infinito */}
+            {hasMore && (
+              <div className="flex items-center justify-center mt-4">
                 <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-[40px] disabled:opacity-50 hover:bg-gray-100"
+                  onClick={handleLoadMore}
+                  className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold"
                 >
-                  {t('transactions.previous')}
-                </button>
-                <span className="text-sm text-gray-600">
-                  {t('transactions.page')} {currentPage} {t('common.of') || 'de'} {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 rounded-[40px] disabled:opacity-50 hover:bg-gray-100"
-                >
-                  {t('transactions.next')}
+                  {t('transactions.loadMore') || 'Ver mais'}
                 </button>
               </div>
             )}
