@@ -154,8 +154,8 @@ export function FiltersModal({ isOpen, onClose }: FiltersModalProps) {
                       ? 'text-gray-900'
                       : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                     }
-                    ${tempType === type ? 'style={{ backgroundColor: "#f9f9f9" }}' : ''}
                   `}
+                  style={tempType === type ? { backgroundColor: '#f9f9f9' } : undefined}
                 >
                   {type === 'all' ? t('transactions.all') : type === 'income' ? t('transactions.income') : t('transactions.expense')}
                 </button>
