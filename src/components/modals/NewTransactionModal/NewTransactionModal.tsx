@@ -383,59 +383,20 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('modals.newTransaction.account')}
             </label>
-            {(bankAccounts.filter(a => a.isActive).length === 0 && creditCards.filter(c => c.isActive).length === 0) ? (
-              // Quando não há métodos, mostrar tabs e botão
-              <div className="space-y-3">
-                <div className="flex gap-2 bg-gray-100 p-1 rounded-[40px]">
-                  <button
-                    type="button"
-                    onClick={() => setCreateMethodTab('account')}
-                    className={`flex-1 py-2 px-4 rounded-[40px] font-medium transition-colors ${
-                      createMethodTab === 'account'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Conta
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCreateMethodTab('card')}
-                    className={`flex-1 py-2 px-4 rounded-[40px] font-medium transition-colors ${
-                      createMethodTab === 'card'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Cartão
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCreateMethodModalOpen(true);
-                    setCreateMethodTab(createMethodTab);
-                  }}
-                  className="w-full h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700"
-                  style={{ borderColor: '#1F2937' }}
-                >
-                  Criar {createMethodTab === 'account' ? 'conta' : 'cartão'}
-                </button>
-              </div>
-            ) : (
-              // Quando há métodos, mostrar select normal
-              <div className="flex gap-3">
-                <select
-                  value={accountId}
-                  onChange={(e) => setAccountId(e.target.value)}
-                  className={`
-                    flex-1 h-14 px-4 rounded-[40px] border min-w-0
-                    ${errors.accountId ? 'border-red-500' : 'border-gray-200'}
-                    focus:outline-none focus:ring-2 focus:ring-primary
-                  `}
-                  style={{ paddingRight: '24px' }}
-                >
-                  <option value="">{t('common.select') || 'Selecione'}</option>
+            {/* Sempre mostrar dropdown + botão adicionar método */}
+            <div className="flex gap-3">
+              <select
+                value={accountId}
+                onChange={(e) => setAccountId(e.target.value)}
+                className={`
+                  flex-1 h-14 px-4 rounded-[40px] border min-w-0
+                  ${errors.accountId ? 'border-red-500' : 'border-gray-200'}
+                  focus:outline-none focus:ring-2 focus:ring-primary
+                `}
+                style={{ paddingRight: '24px' }}
+              >
+                <option value="">{t('common.select') || 'Selecione'}</option>
+                {bankAccounts.filter(a => a.isActive).length > 0 && (
                   <optgroup label={t('transactions.bankAccounts')}>
                     {bankAccounts.filter(a => a.isActive).map((account) => (
                       <option key={account.id} value={account.id}>
@@ -443,6 +404,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                       </option>
                     ))}
                   </optgroup>
+                )}
+                {creditCards.filter(c => c.isActive).length > 0 && (
                   <optgroup label={t('transactions.creditCards')}>
                     {creditCards.filter(c => c.isActive).map((card) => (
                       <option key={card.id} value={card.id}>
@@ -450,20 +413,20 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                       </option>
                     ))}
                   </optgroup>
-                </select>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCreateMethodModalOpen(true);
-                    setCreateMethodTab('account');
-                  }}
+                )}
+              </select>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCreateMethodModalOpen(true);
+                  setCreateMethodTab('account');
+                }}
                   className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
                   style={{ borderColor: '#1F2937', minWidth: '180px' }}
                 >
                   Criar novo método
                 </button>
-              </div>
-            )}
+            </div>
             {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}
           </div>
 

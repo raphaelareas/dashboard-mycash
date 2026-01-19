@@ -61,18 +61,22 @@ export const accountService = {
   },
 
   // Criar cartão de crédito
-  async createCreditCard(card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>): Promise<CreditCard> {
+  async createCreditCard(card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>, holderId?: string): Promise<CreditCard> {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('User not authenticated');
 
-    // Buscar primeiro family member como holder padrão
-    const { data: members } = await supabase
-      .from('family_members')
-      .select('id')
-      .eq('user_id', userId)
-      .limit(1);
+    // Buscar holder: usar o fornecido ou buscar primeiro family member como padrão
+    let finalHolderId = holderId;
+    if (!finalHolderId) {
+      const { data: members } = await supabase
+        .from('family_members')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+      finalHolderId = members?.[0]?.id;
+    }
 
-    if (!members || members.length === 0) {
+    if (!finalHolderId) {
       throw new Error('No family member found. Please create a family member first.');
     }
 
@@ -85,7 +89,7 @@ export const accountService = {
         name: card.name,
         bank: card.name,
         last_digits: card.lastFourDigits,
-        holder_id: members[0].id,
+        holder_id: finalHolderId,
         credit_limit: card.limit || null,
         current_bill: card.currentBalance || 0,
         due_day: card.dueDay,
@@ -99,18 +103,22 @@ export const accountService = {
   },
 
   // Criar conta bancária
-  async createBankAccount(account: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>): Promise<BankAccount> {
+  async createBankAccount(account: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>, holderId?: string): Promise<BankAccount> {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('User not authenticated');
 
-    // Buscar primeiro family member como holder padrão
-    const { data: members } = await supabase
-      .from('family_members')
-      .select('id')
-      .eq('user_id', userId)
-      .limit(1);
+    // Buscar holder: usar o fornecido ou buscar primeiro family member como padrão
+    let finalHolderId = holderId;
+    if (!finalHolderId) {
+      const { data: members } = await supabase
+        .from('family_members')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+      finalHolderId = members?.[0]?.id;
+    }
 
-    if (!members || members.length === 0) {
+    if (!finalHolderId) {
       throw new Error('No family member found. Please create a family member first.');
     }
 
@@ -123,7 +131,7 @@ export const accountService = {
         name: account.name,
         bank: account.bankName,
         last_digits: account.accountNumber.slice(-4),
-        holder_id: members[0].id,
+        holder_id: finalHolderId,
         balance: account.balance || 0,
         is_active: account.isActive ?? true,
       })
