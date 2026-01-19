@@ -112,15 +112,20 @@ export function DashboardHeader() {
                     >
                       {member.avatarUrl ? (
                         <div
-                          className="w-full h-full rounded-full border bg-gray-200 dark:bg-gray-600 overflow-hidden"
+                          className="w-full h-full rounded-full border overflow-hidden"
                           style={{ borderColor: '#FFFFFF', borderWidth: '1.2px' }}
                         >
                           <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
                         </div>
                       ) : (
                         <div
-                          className="w-full h-full rounded-full border bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400 font-medium"
-                          style={{ borderColor: '#FFFFFF', borderWidth: '1.2px' }}
+                          className="w-full h-full rounded-full border flex items-center justify-center text-xs font-medium"
+                          style={{
+                            borderColor: '#FFFFFF',
+                            borderWidth: '1.2px',
+                            backgroundColor: member.color,
+                            color: '#111827',
+                          }}
                         >
                           {getInitials(member.name)}
                         </div>

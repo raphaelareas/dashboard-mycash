@@ -144,7 +144,17 @@ export default function People() {
                       className="w-12 h-12 rounded-full flex-shrink-0 object-cover" 
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-gray-300 flex-shrink-0" />
+                    <div
+                      className="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-medium"
+                      style={{ backgroundColor: member.color, color: '#111827' }}
+                    >
+                      {member.name
+                        .split(' ')
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((part) => part[0]?.toUpperCase())
+                        .join('')}
+                    </div>
                   )}
 
                   {/* Informações do membro */}

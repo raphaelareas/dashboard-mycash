@@ -1,6 +1,23 @@
 import { supabase } from '@/lib/supabase';
 import { FamilyMember } from '@/types';
 
+// Paleta de cores pastéis para avatares sem foto
+const PASTEL_COLORS = [
+  '#FFE4E6', // rosa claro
+  '#FEF3C7', // amarelo claro
+  '#E0F2FE', // azul claro
+  '#DCFCE7', // verde claro
+  '#EDE9FE', // roxo claro
+  '#FCE7F3', // rosa/lilás
+  '#FFEDD5', // laranja claro
+  '#E5E7EB', // cinza bem claro (fallback)
+];
+
+const getRandomPastelColor = (): string => {
+  const index = Math.floor(Math.random() * PASTEL_COLORS.length);
+  return PASTEL_COLORS[index];
+};
+
 // Armazenar role original do banco para exibição
 const originalRoles = new Map<string, string>();
 
@@ -28,6 +45,7 @@ const mapFamilyMemberFromDb = (row: any): FamilyMember => {
     email: '', // Email não está no schema atual
     avatarUrl: row.avatar_url || undefined,
     role,
+    color: row.color || '#E5E7EB',
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -75,6 +93,9 @@ export const familyMemberService = {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('User not authenticated');
 
+    // Definir cor do avatar (pastel aleatória se não vier do front)
+    const color = member.color || getRandomPastelColor();
+
     // Mapear role: se tiver customRole, usar ele; senão mapear do TypeScript
     let roleForDb: string;
     if (customRole) {
@@ -95,6 +116,7 @@ export const familyMemberService = {
         name: member.name,
         role: roleForDb,
         avatar_url: member.avatarUrl || null,
+        color,
         is_active: true,
       })
       .select()

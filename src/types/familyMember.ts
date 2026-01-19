@@ -7,6 +7,7 @@ export interface FamilyMember {
   email: string;
   avatarUrl?: string;
   role: FamilyMemberRole;
+  color: string;
   createdAt: Date;
   updatedAt: Date;
 }
