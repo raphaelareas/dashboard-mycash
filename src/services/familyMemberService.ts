@@ -2,13 +2,26 @@ import { supabase } from '@/lib/supabase';
 import { FamilyMember } from '@/types';
 
 const mapFamilyMemberFromDb = (row: any): FamilyMember => {
+  // Mapear role do banco para o tipo TypeScript
+  // Banco pode ter: 'Owner', 'Filho', 'Pai', etc.
+  // TypeScript espera: 'owner' | 'member' | 'viewer'
+  let role: 'owner' | 'member' | 'viewer' = 'member';
+  const roleLower = (row.role || '').toLowerCase();
+  if (roleLower === 'owner') {
+    role = 'owner';
+  } else if (roleLower === 'viewer') {
+    role = 'viewer';
+  } else {
+    role = 'member'; // Qualquer outro role (Filho, Pai, etc.) é tratado como member
+  }
+  
   return {
     id: row.id,
     userId: row.user_id,
     name: row.name,
     email: '', // Email não está no schema atual
     avatarUrl: row.avatar_url || undefined,
-    role: row.role as 'owner' | 'member' | 'viewer',
+    role,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
