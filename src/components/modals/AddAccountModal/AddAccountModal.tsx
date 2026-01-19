@@ -4,6 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/ui/Modal';
 import { BankAccountType } from '@/types';
 import { formatCurrencyInput } from '@/utils/currency.utils';
+import { getRandomColor } from '@/utils/colorUtils';
 
 interface AddAccountModalProps {
   isOpen: boolean;
@@ -97,7 +98,7 @@ export function AddAccountModal({ isOpen, onClose, onAccountCreated }: AddAccoun
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [agency, setAgency] = useState('');
-  const [color, setColor] = useState<string>('#111827'); // gray-900 como padrão
+  const [color, setColor] = useState<string>(() => getRandomColor());
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -110,7 +111,7 @@ export function AddAccountModal({ isOpen, onClose, onAccountCreated }: AddAccoun
       setBankName('');
       setAccountNumber('');
       setAgency('');
-      setColor('#111827');
+      setColor(getRandomColor());
       setErrors({});
     }
   }, [isOpen]);

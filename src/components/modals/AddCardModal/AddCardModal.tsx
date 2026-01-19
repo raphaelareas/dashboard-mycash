@@ -3,6 +3,7 @@ import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/ui/Modal';
 import { formatCurrencyInput } from '@/utils/currency.utils';
+import { getRandomColor } from '@/utils/colorUtils';
 
 interface AddCardModalProps {
   isOpen: boolean;
@@ -26,7 +27,7 @@ export function AddCardModal({ isOpen, onClose, onCardCreated }: AddCardModalPro
   const [limit, setLimit] = useState('');
   const [limitDisplay, setLimitDisplay] = useState('');
   const [lastFourDigits, setLastFourDigits] = useState('');
-  const [theme, setTheme] = useState<string>('#111827'); // gray-900 como padrão
+  const [theme, setTheme] = useState<string>(() => getRandomColor());
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Cores disponíveis para o tema do cartão - sequência horizontal com 4 tons de cada cor (escuro → claro)
@@ -107,7 +108,7 @@ export function AddCardModal({ isOpen, onClose, onCardCreated }: AddCardModalPro
       setLimit('');
       setLimitDisplay('');
       setLastFourDigits('');
-      setTheme('#111827');
+      setTheme(getRandomColor());
       setErrors({});
     }
   }, [isOpen]);

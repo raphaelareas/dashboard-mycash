@@ -4,6 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/ui/Modal';
 import { BankAccountType } from '@/types';
 import { formatCurrencyInput } from '@/utils/currency.utils';
+import { getRandomColor } from '@/utils/colorUtils';
 
 interface CreateMethodModalProps {
   isOpen: boolean;
@@ -89,7 +90,7 @@ export function CreateMethodModal({
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [agency, setAgency] = useState('');
-  const [accountColor, setAccountColor] = useState<string>('#111827');
+  const [accountColor, setAccountColor] = useState<string>(() => getRandomColor());
   const [accountErrors, setAccountErrors] = useState<Record<string, string>>({});
 
   // Estados para Cartão
@@ -100,7 +101,7 @@ export function CreateMethodModal({
   const [limit, setLimit] = useState('');
   const [limitDisplay, setLimitDisplay] = useState('');
   const [lastFourDigits, setLastFourDigits] = useState('');
-  const [cardTheme, setCardTheme] = useState<string>('#111827');
+  const [cardTheme, setCardTheme] = useState<string>(() => getRandomColor());
   const [cardErrors, setCardErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -116,7 +117,7 @@ export function CreateMethodModal({
       setBankName('');
       setAccountNumber('');
       setAgency('');
-      setAccountColor('#111827');
+      setAccountColor(getRandomColor());
       setAccountErrors({});
       
       setCardName('');
@@ -126,7 +127,7 @@ export function CreateMethodModal({
       setLimit('');
       setLimitDisplay('');
       setLastFourDigits('');
-      setCardTheme('#111827');
+      setCardTheme(getRandomColor());
       setCardErrors({});
     }
   }, [isOpen, initialTab]);
