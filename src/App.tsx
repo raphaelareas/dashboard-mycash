@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Success from './pages/Success';
 import Dashboard from './pages/Dashboard';
 import Cards from './pages/Cards';
+import CardDetails from './pages/CardDetails';
 import Accounts from './pages/Accounts';
 import Transactions from './pages/Transactions';
 import People from './pages/People';
@@ -65,6 +66,16 @@ function AppRoutesInner() {
           <ProtectedRoute>
             <Layout>
               <Cards />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cartoes/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <CardDetails />
             </Layout>
           </ProtectedRoute>
         }

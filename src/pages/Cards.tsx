@@ -1,12 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { CreditCard } from '@/types';
-import { CardDetailsModal } from '@/components/modals/CardDetailsModal';
-import { NewTransactionModal } from '@/components/modals/NewTransactionModal';
 import { AddCardModal } from '@/components/modals/AddCardModal';
-import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 
 const CreditCardIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -16,43 +14,17 @@ const CreditCardIcon = () => (
 );
 
 export default function Cards() {
-  const { creditCards, deleteCreditCard } = useFinance();
+  const { creditCards } = useFinance();
   const { t } = useI18n();
-  const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isNewTransactionOpen, setIsNewTransactionOpen] = useState(false);
+  const navigate = useNavigate();
   const [isAddCardOpen, setIsAddCardOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [cardToDelete, setCardToDelete] = useState<CreditCard | null>(null);
 
   const sortedCards = [...creditCards.filter(c => c.isActive)].sort((a, b) => 
     b.currentBalance - a.currentBalance
   );
 
   const handleCardClick = (card: CreditCard) => {
-    setSelectedCard(card);
-    setIsDetailsOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!cardToDelete) return;
-    try {
-      await deleteCreditCard(cardToDelete.id);
-      setIsDeleteModalOpen(false);
-      setCardToDelete(null);
-      if (selectedCard?.id === cardToDelete.id) {
-        setIsDetailsOpen(false);
-        setSelectedCard(null);
-      }
-    } catch (error) {
-      console.error('Erro ao deletar cartão:', error);
-      alert('Erro ao deletar cartão. Tente novamente.');
-    }
-  };
-
-  const handleAddTransaction = () => {
-    setIsDetailsOpen(false);
-    setIsNewTransactionOpen(true);
+    navigate(`/cartoes/${card.id}`);
   };
 
   const calculateUsagePercentage = (current: number, limit?: number): number => {
@@ -169,16 +141,6 @@ export default function Cards() {
                     >
                       {t('cards.viewDetails')}
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsDetailsOpen(false);
-                        setIsNewTransactionOpen(true);
-                      }}
-                      className="flex-1 px-3 py-2 text-sm rounded-[40px] border border-gray-200 hover:bg-gray-50"
-                    >
-                      {t('cards.addExpense')}
-                    </button>
                   </div>
                 </div>
               );
@@ -187,41 +149,8 @@ export default function Cards() {
         )}
       </div>
 
-      {/* Modals */}
-      <CardDetailsModal
-        isOpen={isDetailsOpen}
-        onClose={() => setIsDetailsOpen(false)}
-        card={selectedCard}
-        onAddTransaction={handleAddTransaction}
-        onEditCard={() => {
-          // TODO: Implementar edição
-          setIsDetailsOpen(false);
-        }}
-        onDeleteCard={(cardId) => {
-          const card = creditCards.find(c => c.id === cardId);
-          if (card) {
-            setCardToDelete(card);
-            setIsDetailsOpen(false);
-            setIsDeleteModalOpen(true);
-          }
-        }}
-      />
-      <NewTransactionModal
-        isOpen={isNewTransactionOpen}
-        onClose={() => setIsNewTransactionOpen(false)}
-      />
+      {/* Modal */}
       <AddCardModal isOpen={isAddCardOpen} onClose={() => setIsAddCardOpen(false)} />
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setCardToDelete(null);
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Deletar Cartão"
-        message="Tem certeza que deseja deletar este cartão? Todas as transações associadas a este cartão serão mantidas, mas o cartão será removido permanentemente."
-        itemName={cardToDelete?.name}
-      />
     </>
   );
 }
