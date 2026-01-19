@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { detectUserLocale } from '@/utils/localeDetection';
 
 interface AuthContextType {
   user: User | null;
@@ -101,12 +102,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
             .single();
 
           if (!existingUser) {
-            // Criar perfil do usuário na primeira vez
+            // Criar perfil do usuário na primeira vez com detecção de localização
+            const locale = detectUserLocale();
             // @ts-ignore - Database types serão gerados depois das migrations
             await supabase.from('users').insert({
               id: data.user.id,
               email: data.user.email || '',
               name: data.user.email?.split('@')[0] || 'Usuário',
+              currency: locale.currency,
+              date_format: locale.dateFormat,
+              language: locale.language || 'pt-BR',
             });
           }
         } catch (insertError: any) {
@@ -152,13 +157,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       if (data.user) {
-        // Criar perfil do usuário após signup
+        // Criar perfil do usuário após signup com detecção de localização
         try {
+          const locale = detectUserLocale();
           // @ts-ignore - Database types serão gerados depois das migrations
           await supabase.from('users').insert({
             id: data.user.id,
             email: data.user.email || email,
             name,
+            currency: locale.currency,
+            date_format: locale.dateFormat,
+            language: locale.language || 'pt-BR',
           });
         } catch (insertError: any) {
           // Se falhar ao inserir na tabela users, logar mas não bloquear o signup

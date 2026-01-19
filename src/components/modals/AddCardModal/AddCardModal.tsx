@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/ui/Modal';
-import { BankAccountType } from '@/types';
+import { formatCurrencyInput } from '@/utils/currency.utils';
 
 interface AddCardModalProps {
   isOpen: boolean;
@@ -15,64 +16,132 @@ const CloseIcon = () => (
 );
 
 export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
-  const { addBankAccount, addCreditCard, familyMembers } = useFinance();
-  const [type, setType] = useState<'account' | 'card'>('account');
+  const { addCreditCard, familyMembers } = useFinance();
+  const { t } = useI18n();
   const [name, setName] = useState('');
   const [holderId, setHolderId] = useState('');
-  const [balance, setBalance] = useState('');
   const [closingDay, setClosingDay] = useState('');
   const [dueDay, setDueDay] = useState('');
   const [limit, setLimit] = useState('');
+  const [limitDisplay, setLimitDisplay] = useState('');
   const [lastFourDigits, setLastFourDigits] = useState('');
-  const [theme, setTheme] = useState<'black' | 'lime' | 'white'>('black');
+  const [theme, setTheme] = useState<string>('#111827'); // gray-900 como padrão
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Cores disponíveis para o tema do cartão - sequência horizontal com 4 tons de cada cor (escuro → claro)
+  const cardColors = [
+    // Vermelho - 4 tons (escuro → claro)
+    { color: '#991B1B', name: 'Vermelho Muito Escuro' }, // red-800
+    { color: '#B91C1C', name: 'Vermelho Mais Escuro' }, // red-700
+    { color: '#DC2626', name: 'Vermelho Escuro' }, // red-600
+    { color: '#EF4444', name: 'Vermelho' }, // red-500
+    
+    // Roxo/Violeta - 4 tons (escuro → claro)
+    { color: '#5B21B6', name: 'Roxo Muito Escuro' }, // violet-800
+    { color: '#6D28D9', name: 'Roxo Mais Escuro' }, // violet-700
+    { color: '#7C3AED', name: 'Roxo Escuro' }, // violet-600
+    { color: '#8B5CF6', name: 'Roxo' }, // violet-500
+    
+    // Azul - 4 tons (escuro → claro)
+    { color: '#1E40AF', name: 'Azul Muito Escuro' }, // blue-800
+    { color: '#1D4ED8', name: 'Azul Mais Escuro' }, // blue-700
+    { color: '#2563EB', name: 'Azul Escuro' }, // blue-600
+    { color: '#3B82F6', name: 'Azul' }, // blue-500
+    
+    // Verde Esmeralda - 4 tons (escuro → claro)
+    { color: '#065F46', name: 'Verde Esmeralda Muito Escuro' }, // emerald-800
+    { color: '#047857', name: 'Verde Esmeralda Mais Escuro' }, // emerald-700
+    { color: '#059669', name: 'Verde Esmeralda Escuro' }, // emerald-600
+    { color: '#10B981', name: 'Verde Esmeralda' }, // emerald-500
+    
+    // Rosa/Pink - 4 tons (escuro → claro)
+    { color: '#9F1239', name: 'Rosa Muito Escuro' }, // pink-800
+    { color: '#BE185D', name: 'Rosa Mais Escuro' }, // pink-700
+    { color: '#DB2777', name: 'Rosa Escuro' }, // pink-600
+    { color: '#EC4899', name: 'Rosa' }, // pink-500
+    
+    // Laranja/Âmbar - 4 tons (escuro → claro)
+    { color: '#92400E', name: 'Laranja Muito Escuro' }, // amber-800
+    { color: '#B45309', name: 'Laranja Mais Escuro' }, // amber-700
+    { color: '#D97706', name: 'Laranja Escuro' }, // amber-600
+    { color: '#F59E0B', name: 'Laranja' }, // amber-500
+    
+    // Verde Limão - 4 tons (escuro → claro)
+    { color: '#4D7C0F', name: 'Verde Limão Muito Escuro' }, // lime-700
+    { color: '#65A30D', name: 'Verde Limão Mais Escuro' }, // lime-600
+    { color: '#84CC16', name: 'Verde Limão Escuro' }, // lime-500
+    { color: '#A3E635', name: 'Verde Limão' }, // lime-400
+    
+    // Índigo - 4 tons (escuro → claro)
+    { color: '#3730A3', name: 'Índigo Muito Escuro' }, // indigo-800
+    { color: '#4338CA', name: 'Índigo Mais Escuro' }, // indigo-700
+    { color: '#4F46E5', name: 'Índigo Escuro' }, // indigo-600
+    { color: '#6366F1', name: 'Índigo' }, // indigo-500
+    
+    // Ciano/Teal - 4 tons (escuro → claro)
+    { color: '#0F766E', name: 'Teal Muito Escuro' }, // teal-700
+    { color: '#0D9488', name: 'Teal Escuro' }, // teal-600
+    { color: '#0891B2', name: 'Ciano Escuro' }, // cyan-600
+    { color: '#06B6D4', name: 'Ciano' }, // cyan-500
+    
+    // Cinzas/Pretos - 4 tons (escuro → claro)
+    { color: '#000000', name: 'Preto' },
+    { color: '#111827', name: 'Cinza Muito Escuro' }, // gray-900
+    { color: '#1F2937', name: 'Cinza Escuro' }, // gray-800
+    { color: '#374151', name: 'Cinza' }, // gray-700
+    
+    // Brancos/Cinzas Claros - 4 tons
+    { color: '#FFFFFF', name: 'Branco' },
+    { color: '#F9FAFB', name: 'Cinza Muito Claro' }, // gray-50
+    { color: '#F3F4F6', name: 'Cinza Claro' }, // gray-100
+    { color: '#E5E7EB', name: 'Cinza' }, // gray-200
+  ];
 
   useEffect(() => {
     if (!isOpen) {
-      setType('account');
       setName('');
       setHolderId('');
-      setBalance('');
       setClosingDay('');
       setDueDay('');
       setLimit('');
+      setLimitDisplay('');
       setLastFourDigits('');
-      setTheme('black');
+      setTheme('#111827');
       setErrors({});
     }
   }, [isOpen]);
+
+  const handleLimitChange = (value: string) => {
+    const { display, numeric } = formatCurrencyInput(value);
+    setLimitDisplay(display);
+    setLimit(numeric.toString());
+  };
 
   const handleSubmit = () => {
     const newErrors: Record<string, string> = {};
 
     if (!name || name.length < 3) {
-      newErrors.name = 'Nome deve ter pelo menos 3 caracteres';
+      newErrors.name = t('modals.addCard.nameError');
     }
 
     if (!holderId) {
-      newErrors.holderId = 'Selecione um titular';
+      newErrors.holderId = t('modals.addCard.holderError');
     }
 
-    if (type === 'account') {
-      if (!balance || parseFloat(balance) <= 0) {
-        newErrors.balance = 'Saldo inicial obrigatório';
-      }
-    } else {
-      const closing = parseInt(closingDay);
-      const due = parseInt(dueDay);
-      const limitValue = parseFloat(limit);
+    const closing = parseInt(closingDay);
+    const due = parseInt(dueDay);
+    const limitValue = parseFloat(limit);
 
-      if (!closingDay || closing < 1 || closing > 31) {
-        newErrors.closingDay = 'Dia de fechamento deve ser entre 1 e 31';
-      }
+    if (!closingDay || closing < 1 || closing > 31) {
+      newErrors.closingDay = t('modals.addCard.closingDayError');
+    }
 
-      if (!dueDay || due < 1 || due > 31) {
-        newErrors.dueDay = 'Dia de vencimento deve ser entre 1 e 31';
-      }
+    if (!dueDay || due < 1 || due > 31) {
+      newErrors.dueDay = t('modals.addCard.dueDayError');
+    }
 
-      if (!limit || limitValue <= 0) {
-        newErrors.limit = 'Limite deve ser maior que zero';
-      }
+    if (!limit || limitValue <= 0) {
+      newErrors.limit = t('modals.addCard.limitError');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -80,30 +149,18 @@ export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
       return;
     }
 
-    if (type === 'account') {
-      addBankAccount({
-        name,
-        bankName: name.split(' ')[0] || 'Banco',
-        accountNumber: Math.random().toString().slice(2, 10),
-        type: 'checking' as BankAccountType,
-        balance: parseFloat(balance),
-        currency: 'BRL',
-        isActive: true,
-      });
-    } else {
-      addCreditCard({
-        name,
-        type: 'credit',
-        brand: 'other',
-        lastFourDigits: lastFourDigits || '0000',
-        expirationMonth: 12,
-        expirationYear: new Date().getFullYear() + 1,
-        dueDay: parseInt(dueDay),
-        limit: parseFloat(limit),
-        currentBalance: 0,
-        isActive: true,
-      });
-    }
+    addCreditCard({
+      name,
+      type: 'credit',
+      brand: 'other',
+      lastFourDigits: lastFourDigits || '0000',
+      expirationMonth: 12,
+      expirationYear: new Date().getFullYear() + 1,
+      dueDay: parseInt(dueDay),
+      limit: parseFloat(limit),
+      currentBalance: 0,
+      isActive: true,
+    });
 
     onClose();
   };
@@ -112,7 +169,7 @@ export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
     <Modal isOpen={isOpen} onClose={onClose}>
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
-        <h2 className="text-xl font-bold text-gray-900">Adicionar Conta/Cartão</h2>
+        <h2 className="text-xl font-bold text-gray-900">{t('modals.addCard.title')}</h2>
         <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center">
           <CloseIcon />
         </button>
@@ -120,40 +177,18 @@ export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
 
       {/* Content */}
       <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-        {/* Type Toggle */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => setType('account')}
-            className={`
-              flex-1 py-3 px-4 rounded-lg font-semibold transition-all
-              ${type === 'account' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600'}
-            `}
-          >
-            Conta Bancária
-          </button>
-          <button
-            onClick={() => setType('card')}
-            className={`
-              flex-1 py-3 px-4 rounded-lg font-semibold transition-all
-              ${type === 'card' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600'}
-            `}
-          >
-            Cartão de Crédito
-          </button>
-        </div>
-
         {/* Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {type === 'account' ? 'Nome da Conta' : 'Nome do Cartão'}
+            {t('modals.addCard.name')}
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={type === 'account' ? 'Ex: Nubank Conta' : 'Ex: Nubank Mastercard'}
+            placeholder={t('modals.addCard.namePlaceholder')}
             className={`
-              w-full h-12 px-4 rounded-lg border
+              w-full h-12 px-4 rounded-[40px] border
               ${errors.name ? 'border-red-500' : 'border-gray-200'}
               focus:outline-none focus:ring-2 focus:ring-primary
             `}
@@ -164,18 +199,18 @@ export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
         {/* Holder */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Titular
+            {t('modals.addCard.holder')}
           </label>
           <select
             value={holderId}
             onChange={(e) => setHolderId(e.target.value)}
             className={`
-              w-full h-12 px-4 rounded-lg border
+              w-full h-12 px-4 rounded-[40px] border
               ${errors.holderId ? 'border-red-500' : 'border-gray-200'}
               focus:outline-none focus:ring-2 focus:ring-primary
             `}
           >
-            <option value="">Selecione um titular</option>
+            <option value="">{t('modals.addCard.selectHolder')}</option>
             {familyMembers.map((member) => (
               <option key={member.id} value={member.id}>
                 {member.name}
@@ -185,154 +220,122 @@ export function AddCardModal({ isOpen, onClose }: AddCardModalProps) {
           {errors.holderId && <p className="mt-1 text-sm text-red-600">{errors.holderId}</p>}
         </div>
 
-        {/* Account fields */}
-        {type === 'account' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Saldo Inicial
-            </label>
-            <div className="flex items-center gap-3">
-              <span className="text-gray-600 font-medium">R$</span>
-              <input
-                type="number"
-                step="0.01"
-                value={balance}
-                onChange={(e) => setBalance(e.target.value)}
+        {/* Campo de cor */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('modals.addCard.theme')}
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {cardColors.map((colorOption) => (
+              <button
+                key={colorOption.color}
+                onClick={() => setTheme(colorOption.color)}
+                type="button"
                 className={`
-                  flex-1 h-12 px-4 rounded-lg border
-                  ${errors.balance ? 'border-red-500' : 'border-gray-200'}
-                  focus:outline-none focus:ring-2 focus:ring-primary
+                  w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 flex-shrink-0
+                  ${theme === colorOption.color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}
                 `}
+                style={{ backgroundColor: colorOption.color }}
+                title={colorOption.name}
+                aria-label={colorOption.name}
               />
-            </div>
-            {errors.balance && <p className="mt-1 text-sm text-red-600">{errors.balance}</p>}
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Card fields */}
-        {type === 'card' && (
-          <>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Dia de Fechamento
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="31"
-                  value={closingDay}
-                  onChange={(e) => setClosingDay(e.target.value)}
-                  placeholder="1 a 31"
-                  className={`
-                    w-full h-12 px-4 rounded-lg border
-                    ${errors.closingDay ? 'border-red-500' : 'border-gray-200'}
-                    focus:outline-none focus:ring-2 focus:ring-primary
-                  `}
-                />
-                {errors.closingDay && <p className="mt-1 text-sm text-red-600">{errors.closingDay}</p>}
-              </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('modals.addCard.closingDay')}
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="31"
+              value={closingDay}
+              onChange={(e) => setClosingDay(e.target.value)}
+              placeholder="1 a 31"
+              className={`
+                w-full h-12 px-4 rounded-[40px] border
+                ${errors.closingDay ? 'border-red-500' : 'border-gray-200'}
+                focus:outline-none focus:ring-2 focus:ring-primary
+              `}
+            />
+            {errors.closingDay && <p className="mt-1 text-sm text-red-600">{errors.closingDay}</p>}
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Dia de Vencimento
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="31"
-                  value={dueDay}
-                  onChange={(e) => setDueDay(e.target.value)}
-                  placeholder="1 a 31"
-                  className={`
-                    w-full h-12 px-4 rounded-lg border
-                    ${errors.dueDay ? 'border-red-500' : 'border-gray-200'}
-                    focus:outline-none focus:ring-2 focus:ring-primary
-                  `}
-                />
-                {errors.dueDay && <p className="mt-1 text-sm text-red-600">{errors.dueDay}</p>}
-              </div>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('modals.addCard.dueDay')}
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="31"
+              value={dueDay}
+              onChange={(e) => setDueDay(e.target.value)}
+              placeholder="1 a 31"
+              className={`
+                w-full h-12 px-4 rounded-[40px] border
+                ${errors.dueDay ? 'border-red-500' : 'border-gray-200'}
+                focus:outline-none focus:ring-2 focus:ring-primary
+              `}
+            />
+            {errors.dueDay && <p className="mt-1 text-sm text-red-600">{errors.dueDay}</p>}
+          </div>
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Limite Total
-              </label>
-              <div className="flex items-center gap-3">
-                <span className="text-gray-600 font-medium">R$</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={limit}
-                  onChange={(e) => setLimit(e.target.value)}
-                  className={`
-                    flex-1 h-12 px-4 rounded-lg border
-                    ${errors.limit ? 'border-red-500' : 'border-gray-200'}
-                    focus:outline-none focus:ring-2 focus:ring-primary
-                  `}
-                />
-              </div>
-              {errors.limit && <p className="mt-1 text-sm text-red-600">{errors.limit}</p>}
-            </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('modals.addCard.limit')}
+          </label>
+          <div className="flex items-center gap-3">
+            <span className="text-gray-600 font-medium">R$</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={limitDisplay}
+              onChange={(e) => handleLimitChange(e.target.value)}
+              className={`
+                flex-1 h-12 px-4 rounded-[40px] border
+                ${errors.limit ? 'border-red-500' : 'border-gray-200'}
+                focus:outline-none focus:ring-2 focus:ring-primary
+              `}
+              placeholder="0,00"
+            />
+          </div>
+          {errors.limit && <p className="mt-1 text-sm text-red-600">{errors.limit}</p>}
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Últimos 4 Dígitos (opcional)
-              </label>
-              <input
-                type="text"
-                maxLength={4}
-                value={lastFourDigits}
-                onChange={(e) => setLastFourDigits(e.target.value.replace(/\D/g, ''))}
-                placeholder="1234"
-                className="w-full h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tema Visual
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {(['black', 'lime', 'white'] as const).map((themeOption) => (
-                  <button
-                    key={themeOption}
-                    onClick={() => setTheme(themeOption)}
-                    className={`
-                      h-16 rounded-lg border-2 transition-all
-                      ${theme === themeOption ? 'border-blue-500' : 'border-gray-200'}
-                      ${themeOption === 'black' ? 'bg-gray-900' : ''}
-                      ${themeOption === 'lime' ? 'bg-lime-500' : ''}
-                      ${themeOption === 'white' ? 'bg-white' : ''}
-                    `}
-                  >
-                    <span className={`
-                      text-sm font-semibold
-                      ${themeOption === 'black' || themeOption === 'lime' ? 'text-white' : 'text-gray-900'}
-                    `}>
-                      {themeOption === 'black' ? 'Black' : themeOption === 'lime' ? 'Lime' : 'White'}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Últimos 4 Dígitos (opcional)
+          </label>
+          <input
+            type="text"
+            maxLength={4}
+            value={lastFourDigits}
+            onChange={(e) => setLastFourDigits(e.target.value.replace(/\D/g, ''))}
+            placeholder="1234"
+            className="w-full h-12 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
       </div>
 
       {/* Footer */}
       <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 rounded-b-[16px]">
         <button
           onClick={onClose}
-          className="px-6 py-3 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="px-6 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 transition-colors"
         >
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button
           onClick={handleSubmit}
-          className="px-6 py-3 rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold"
+          className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold"
         >
-          Adicionar
+          {t('modals.addCard.save')}
         </button>
       </div>
     </Modal>

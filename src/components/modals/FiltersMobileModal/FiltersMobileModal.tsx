@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface FiltersMobileModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ const ChevronRightIcon = () => (
 
 export function FiltersMobileModal({ isOpen, onClose }: FiltersMobileModalProps) {
   const { transactionType, selectedMember, dateRange, setTransactionType, setSelectedMember, setDateRange, familyMembers } = useFinance();
+  const { t } = useI18n();
 
   // Estados temporários (não aplicados até clicar em "Aplicar")
   const [tempType, setTempType] = useState<'all' | 'income' | 'expense'>(transactionType);
@@ -80,7 +82,21 @@ export function FiltersMobileModal({ isOpen, onClose }: FiltersMobileModalProps)
   const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
   
-  const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  // Obter nomes dos meses via tradução
+  const monthNames = [
+    t('common.months.january') || 'Janeiro',
+    t('common.months.february') || 'Fevereiro',
+    t('common.months.march') || 'Março',
+    t('common.months.april') || 'Abril',
+    t('common.months.may') || 'Maio',
+    t('common.months.june') || 'Junho',
+    t('common.months.july') || 'Julho',
+    t('common.months.august') || 'Agosto',
+    t('common.months.september') || 'Setembro',
+    t('common.months.october') || 'Outubro',
+    t('common.months.november') || 'Novembro',
+    t('common.months.december') || 'Dezembro',
+  ];
 
   if (!isOpen) return null;
 
@@ -96,7 +112,7 @@ export function FiltersMobileModal({ isOpen, onClose }: FiltersMobileModalProps)
       <div className="fixed inset-0 z-50 flex flex-col lg:hidden animate-slide-in-from-top">
         {/* Header Fixo */}
         <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Filtros</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t('dashboard.filters')}</h2>
           <button
             onClick={onClose}
             className="w-11 h-11 rounded-full hover:bg-gray-100 flex items-center justify-center"
@@ -110,7 +126,7 @@ export function FiltersMobileModal({ isOpen, onClose }: FiltersMobileModalProps)
           {/* Tipo de Transação */}
           <div>
             <label className="block text-sm font-bold text-gray-900 mb-3">
-              Tipo de Transação
+              {t('dashboard.transactionType') || 'Tipo de Transação'}
             </label>
             <div className="grid grid-cols-3 gap-2">
               {(['all', 'income', 'expense'] as const).map((type) => (
@@ -118,14 +134,14 @@ export function FiltersMobileModal({ isOpen, onClose }: FiltersMobileModalProps)
                   key={type}
                   onClick={() => setTempType(type)}
                   className={`
-                    h-12 rounded-lg font-semibold transition-all
+                    h-12 rounded-[40px] font-semibold transition-all
                     ${tempType === type
                       ? 'bg-gray-900 text-white'
                       : 'bg-white border border-gray-200 text-gray-600'
                     }
                   `}
                 >
-                  {type === 'all' ? 'Todos' : type === 'income' ? 'Receitas' : 'Despesas'}
+                  {type === 'all' ? t('transactions.all') : type === 'income' ? t('transactions.income') : t('transactions.expense')}
                 </button>
               ))}
             </div>
@@ -140,21 +156,21 @@ export function FiltersMobileModal({ isOpen, onClose }: FiltersMobileModalProps)
               <button
                 onClick={() => setTempMember(null)}
                 className={`
-                  h-12 px-4 rounded-full font-semibold transition-all
+                  h-12 px-4 rounded-[40px] font-semibold transition-all
                   ${!tempMember
                     ? 'bg-gray-900 text-white'
                     : 'bg-white border border-gray-200 text-gray-600'
                   }
                 `}
               >
-                Todos
+                {t('transactions.allMembers')}
               </button>
               {familyMembers.map((member) => (
                 <button
                   key={member.id}
                   onClick={() => setTempMember(member.id)}
                   className={`
-                    h-12 px-4 rounded-full font-semibold transition-all flex items-center gap-2
+                    h-12 px-4 rounded-[40px] font-semibold transition-all flex items-center gap-2
                     ${tempMember === member.id
                       ? 'bg-gray-900 text-white'
                       : 'bg-white border border-gray-200 text-gray-600'
@@ -225,7 +241,7 @@ export function FiltersMobileModal({ isOpen, onClose }: FiltersMobileModalProps)
                       key={day}
                       onClick={() => handleDateClick(day)}
                       className={`
-                        aspect-square rounded-lg text-sm font-medium transition-all
+                        aspect-square rounded-[40px] text-sm font-medium transition-all
                         ${isSelected
                           ? 'bg-gray-900 text-white'
                           : 'hover:bg-gray-100 text-gray-900'
@@ -245,9 +261,9 @@ export function FiltersMobileModal({ isOpen, onClose }: FiltersMobileModalProps)
         <div className="bg-white border-t border-gray-200 p-4">
           <button
             onClick={handleApply}
-            className="w-full h-14 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+            className="w-full h-14 bg-gray-900 text-white rounded-[40px] font-semibold hover:bg-gray-800 transition-colors"
           >
-            Aplicar Filtros
+            {t('dashboard.applyFilters') || 'Aplicar Filtros'}
           </button>
         </div>
       </div>

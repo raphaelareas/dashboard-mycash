@@ -1,3 +1,4 @@
+import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 
 interface CategoryDonutCardProps {
@@ -7,19 +8,22 @@ interface CategoryDonutCardProps {
   color: string;
 }
 
-const categoryNames: Record<string, string> = {
-  rent: 'Aluguel',
-  food: 'Alimentação',
-  shopping: 'Compras',
-  household: 'Contas de casa',
-  transport: 'Transporte',
-  entertainment: 'Entretenimento',
-  health: 'Saúde',
-  education: 'Educação',
-  other: 'Outros',
-};
-
 export function CategoryDonutCard({ category, amount, percentage, color }: CategoryDonutCardProps) {
+  const { t } = useI18n();
+  
+  // Obter nomes de categorias via tradução
+  const categoryNames: Record<string, string> = {
+    rent: t('categories.categoryNames.rent'),
+    food: t('categories.categoryNames.food'),
+    shopping: t('categories.categoryNames.shopping'),
+    household: t('categories.categoryNames.household'),
+    transport: t('categories.categoryNames.transport'),
+    entertainment: t('categories.categoryNames.entertainment'),
+    health: t('categories.categoryNames.health'),
+    education: t('categories.categoryNames.education'),
+    other: t('categories.categoryNames.other'),
+  };
+  
   const categoryName = categoryNames[category] || category;
   const displayPercentage = Math.min(percentage, 100);
   const circumference = 2 * Math.PI * 28; // raio de 28px

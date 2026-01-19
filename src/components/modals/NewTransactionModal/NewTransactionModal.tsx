@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/ui/Modal';
 import { CreateCategoryModal } from '@/components/modals/CreateCategoryModal';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { AddCardModal } from '@/components/modals/AddCardModal';
 import { TransactionCategory } from '@/types';
+import { formatCurrencyInput } from '@/utils/currency.utils';
 
 interface NewTransactionModalProps {
   isOpen: boolean;
@@ -23,9 +25,9 @@ const IncomeArrowIcon = ({ color = "currentColor" }: { color?: string }) => (
   </svg>
 );
 
-const ExpenseArrowIcon = () => (
+const ExpenseArrowIcon = ({ color = "currentColor" }: { color?: string }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 20V4M6 14L12 20L18 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12 20V4M6 14L12 20L18 14" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
@@ -33,7 +35,21 @@ const categories: TransactionCategory[] = ['rent', 'food', 'shopping', 'househol
 
 export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProps) {
   const { addTransaction, bankAccounts, creditCards, familyMembers } = useFinance();
+  const { t } = useI18n();
   const [type, setType] = useState<'income' | 'expense'>('expense');
+  
+  // Obter nomes de categorias via tradução
+  const categoryNames: Record<string, string> = {
+    rent: t('categories.categoryNames.rent'),
+    food: t('categories.categoryNames.food'),
+    shopping: t('categories.categoryNames.shopping'),
+    household: t('categories.categoryNames.household'),
+    transport: t('categories.categoryNames.transport'),
+    entertainment: t('categories.categoryNames.entertainment'),
+    health: t('categories.categoryNames.health'),
+    education: t('categories.categoryNames.education'),
+    other: t('categories.categoryNames.other'),
+  };
   const [amount, setAmount] = useState('');
   const [amountDisplay, setAmountDisplay] = useState('');
   const [description, setDescription] = useState('');
@@ -94,41 +110,9 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
 
   // Função para formatar valor automaticamente conforme o usuário digita
   const handleAmountChange = (value: string) => {
-    // Remove tudo exceto números
-    const numbersOnly = value.replace(/\D/g, '');
-    
-    if (!numbersOnly) {
-      setAmountDisplay('');
-      setAmount('');
-      return;
-    }
-
-    // Se tiver mais de 2 dígitos, os últimos 2 são centavos
-    // Caso contrário, todos são centavos
-    let reais = '0';
-    let centavos = '00';
-
-    if (numbersOnly.length <= 2) {
-      // Apenas centavos (ex: "89" → "0,89")
-      centavos = numbersOnly.padStart(2, '0');
-    } else {
-      // Reais + centavos (ex: "8000" → "80,00" mas precisamos "8.000,00")
-      // ou "75689" → "756,89"
-      centavos = numbersOnly.slice(-2);
-      reais = numbersOnly.slice(0, -2);
-    }
-
-    // Formata reais com pontos de milhar
-    const reaisFormatted = parseInt(reais || '0').toLocaleString('pt-BR');
-    
-    // Monta o valor formatado
-    const formatted = `${reaisFormatted},${centavos}`;
-    
-    setAmountDisplay(formatted);
-    
-    // Salva o valor numérico (reais + centavos como número decimal)
-    const numericValue = parseFloat(reais || '0') + (parseInt(centavos) / 100);
-    setAmount(numericValue.toString());
+    const { display, numeric } = formatCurrencyInput(value);
+    setAmountDisplay(display);
+    setAmount(numeric.toString());
   };
 
   const handleSubmit = () => {
@@ -136,11 +120,11 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
 
     const numericAmount = parseFloat(amount);
     if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
-      newErrors.amount = 'Valor deve ser maior que zero';
+      newErrors.amount = t('modals.newTransaction.amountError') || 'Valor deve ser maior que zero';
     }
 
     if (!description || description.length < 3) {
-      newErrors.description = 'Descrição deve ter pelo menos 3 caracteres';
+      newErrors.description = t('modals.newTransaction.descriptionError') || 'Descrição deve ter pelo menos 3 caracteres';
     }
 
     if (!category) {
@@ -183,19 +167,19 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           <div 
             className="w-16 h-16 rounded-full flex items-center justify-center"
             style={{ 
-              backgroundColor: type === 'income' ? '#A1E5C9' : '#111827'
+              backgroundColor: type === 'income' ? '#A1E5C9' : '#FAD2D6'
             }}
           >
             {type === 'income' ? (
               <IncomeArrowIcon color="#0D7248" />
             ) : (
-              <ExpenseArrowIcon />
+              <ExpenseArrowIcon color="#B81828" />
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Nova Transação</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t('modals.newTransaction.title')}</h2>
             <p className="text-sm text-gray-600">
-              {type === 'income' ? 'Registre uma nova receita' : 'Registre uma nova despesa'}
+              {type === 'income' ? (t('modals.newTransaction.registerIncome') || 'Registre uma nova receita') : (t('modals.newTransaction.registerExpense') || 'Registre uma nova despesa')}
             </p>
           </div>
         </div>
@@ -211,44 +195,44 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Type Toggle */}
-          <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+          <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px]">
             <button
               onClick={() => setType('income')}
               className={`
-                flex-1 py-3 px-4 rounded-md font-semibold transition-all
+                flex-1 py-3 px-4 rounded-[40px] font-semibold transition-all
                 ${type === 'income' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
               `}
             >
-              Receita
+              {t('modals.newTransaction.income')}
             </button>
             <button
               onClick={() => setType('expense')}
               className={`
-                flex-1 py-3 px-4 rounded-md font-semibold transition-all
+                flex-1 py-3 px-4 rounded-[40px] font-semibold transition-all
                 ${type === 'expense' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
               `}
             >
-              Despesa
+              {t('modals.newTransaction.expense')}
             </button>
           </div>
 
           {/* Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Data da Transação
+              {t('modals.newTransaction.date')}
             </label>
             <input
               type="date"
               value={transactionDate}
               onChange={(e) => setTransactionDate(e.target.value)}
-              className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
           {/* Amount */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Valor da Transação
+              {t('modals.newTransaction.amount')}
             </label>
             <div className="flex items-center gap-3">
               <span className="text-gray-600 font-medium">R$</span>
@@ -258,7 +242,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 value={amountDisplay}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 className={`
-                  flex-1 h-14 px-4 rounded-lg border
+                  flex-1 h-14 px-4 rounded-[40px] border
                   ${errors.amount ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
@@ -271,7 +255,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Descrição
+              {t('modals.newTransaction.description')}
             </label>
             <input
               type="text"
@@ -279,7 +263,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ex: Supermercado Semanal"
               className={`
-                w-full h-14 px-4 rounded-lg border
+                w-full h-14 px-4 rounded-[40px] border
                 ${errors.description ? 'border-red-500' : 'border-gray-200'}
                 focus:outline-none focus:ring-2 focus:ring-primary
               `}
@@ -290,40 +274,33 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Categoria
+              {t('modals.newTransaction.category')}
             </label>
             <div className="flex gap-3">
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as TransactionCategory)}
                 className={`
-                  flex-1 h-14 px-4 border min-w-0
+                  flex-1 h-14 px-4 rounded-[40px] border min-w-0
                   ${errors.category ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
-                style={{ paddingRight: '24px', borderRadius: '40px' }}
+                style={{ paddingRight: '24px', width: '420px' }}
               >
-                <option value="">Selecione uma categoria</option>
+                <option value="">{t('modals.newTransaction.selectCategory') || 'Selecione uma categoria'}</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
-                    {cat === 'rent' ? 'Aluguel' :
-                     cat === 'food' ? 'Alimentação' :
-                     cat === 'shopping' ? 'Compras' :
-                     cat === 'household' ? 'Contas de casa' :
-                     cat === 'transport' ? 'Transporte' :
-                     cat === 'entertainment' ? 'Entretenimento' :
-                     cat === 'health' ? 'Saúde' :
-                     cat === 'education' ? 'Educação' : 'Outros'}
+                    {categoryNames[cat] || cat}
                   </option>
                 ))}
               </select>
               <button
                 type="button"
                 onClick={() => setIsCreateCategoryModalOpen(true)}
-                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
+                className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
                 style={{ borderColor: '#1F2937', minWidth: '180px' }}
               >
-                Adicionar categoria
+                {t('modals.newTransaction.addCategory') || 'Adicionar categoria'}
               </button>
             </div>
             {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
@@ -340,9 +317,9 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                       setErrors({ ...errors, customCategory: '' });
                     }
                   }}
-                  placeholder="Nome da nova categoria"
+                  placeholder={t('modals.newTransaction.newCategoryName') || 'Nome da nova categoria'}
                   className={`
-                    w-full h-14 px-4 rounded-lg border
+                    w-full h-14 px-4 rounded-[40px] border
                     ${errors.customCategory ? 'border-red-500' : 'border-gray-200'}
                     focus:outline-none focus:ring-2 focus:ring-primary
                   `}
@@ -355,16 +332,16 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           {/* Member */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Membro (opcional)
+              {t('modals.newTransaction.member')} ({t('common.optional')})
             </label>
             <div className="flex gap-3">
               <select
                 value={memberId || ''}
                 onChange={(e) => setMemberId(e.target.value || null)}
-                className="flex-1 h-14 px-4 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary min-w-0"
-                style={{ paddingRight: '24px', borderRadius: '40px' }}
+                className="flex-1 h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary min-w-0"
+                style={{ paddingRight: '24px' }}
               >
-                <option value="">Família (Geral)</option>
+                <option value="">{t('modals.newTransaction.familyGeneral') || 'Família (Geral)'}</option>
                 {familyMembers.map((member) => (
                   <option key={member.id} value={member.id}>
                     {member.name}
@@ -374,10 +351,10 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <button
                 type="button"
                 onClick={() => setIsAddMemberModalOpen(true)}
-                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
+                className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
                 style={{ borderColor: '#1F2937', minWidth: '180px' }}
               >
-                Adicionar membro
+                {t('modals.newTransaction.addMember') || 'Adicionar membro'}
               </button>
             </div>
           </div>
@@ -385,28 +362,28 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           {/* Account */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Conta / Cartão
+              {t('modals.newTransaction.account')}
             </label>
             <div className="flex gap-3">
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
                 className={`
-                  flex-1 h-14 px-4 border min-w-0
+                  flex-1 h-14 px-4 rounded-[40px] border min-w-0
                   ${errors.accountId ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
-                style={{ paddingRight: '24px', borderRadius: '40px' }}
+                style={{ paddingRight: '24px' }}
               >
-                <option value="">Selecione</option>
-                <optgroup label="Contas Bancárias">
+                <option value="">{t('common.select') || 'Selecione'}</option>
+                <optgroup label={t('transactions.bankAccounts')}>
                   {bankAccounts.filter(a => a.isActive).map((account) => (
                     <option key={account.id} value={account.id}>
                       {account.name}
                     </option>
                   ))}
                 </optgroup>
-                <optgroup label="Cartões de Crédito">
+                <optgroup label={t('transactions.creditCards')}>
                   {creditCards.filter(c => c.isActive).map((card) => (
                     <option key={card.id} value={card.id}>
                       {card.name}
@@ -417,7 +394,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <button
                 type="button"
                 onClick={() => setIsAddCardModalOpen(true)}
-                className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
+                className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
                 style={{ borderColor: '#1F2937', minWidth: '180px' }}
               >
                 Criar novo método
@@ -430,24 +407,24 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           {isCreditCard && type === 'expense' && (
             <div className="animate-fade-in">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Parcelamento
+                {t('modals.newTransaction.installments')}
               </label>
               <select
                 value={installments}
                 onChange={(e) => setInstallments(parseInt(e.target.value))}
                 disabled={isRecurring}
-                className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                 style={{ paddingRight: '1rem' }}
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
                   <option key={num} value={num}>
-                    {num === 1 ? 'À vista (1x)' : `${num}x`}
+                    {num === 1 ? (t('modals.newTransaction.cash') || 'À vista (1x)') : `${num}x`}
                   </option>
                 ))}
               </select>
               {isRecurring && (
                 <p className="mt-1 text-sm italic text-gray-500">
-                  Parcelamento desabilitado para despesas recorrentes
+                  {t('modals.newTransaction.installmentsDisabledForRecurring') || 'Parcelamento desabilitado para despesas recorrentes'}
                 </p>
               )}
             </div>
@@ -467,12 +444,12 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 />
                 <div className="flex-1">
                   <label htmlFor="recurring" className="font-semibold text-gray-900 block">
-                    Despesa Recorrente
+                    {t('modals.newTransaction.recurringExpense') || 'Despesa Recorrente'}
                   </label>
                   <p className="text-sm text-gray-600 mt-1">
                     {installments > 1
-                      ? 'Não disponível para compras parceladas'
-                      : 'Esta despesa será repetida automaticamente'
+                      ? (t('modals.newTransaction.notAvailableForInstallments') || 'Não disponível para compras parceladas')
+                      : (t('modals.newTransaction.willRepeatAutomatically') || 'Esta despesa será repetida automaticamente')
                     }
                   </p>
                 </div>
@@ -484,30 +461,30 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Frequência
+                        {t('modals.newTransaction.frequency') || 'Frequência'}
                       </label>
                       <select
                         value={recurrenceFrequency}
                         onChange={(e) => setRecurrenceFrequency(e.target.value as 'weekly' | 'biweekly' | 'monthly' | 'yearly')}
-                        className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
                         style={{ paddingRight: '1rem' }}
                       >
-                        <option value="weekly">Semanal</option>
-                        <option value="biweekly">Quinzenal</option>
-                        <option value="monthly">Mensal</option>
-                        <option value="yearly">Anual</option>
+                        <option value="weekly">{t('modals.newTransaction.weekly') || 'Semanal'}</option>
+                        <option value="biweekly">{t('modals.newTransaction.biweekly') || 'Quinzenal'}</option>
+                        <option value="monthly">{t('modals.newTransaction.monthly') || 'Mensal'}</option>
+                        <option value="yearly">{t('modals.newTransaction.yearly') || 'Anual'}</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Quantidade de Vezes
+                        {t('modals.newTransaction.timesCount') || 'Quantidade de Vezes'}
                       </label>
                       <input
                         type="number"
                         min="1"
                         value={recurrenceCount}
                         onChange={(e) => setRecurrenceCount(parseInt(e.target.value) || 1)}
-                        className="w-full h-14 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
                         placeholder="Ex: 12"
                       />
                     </div>
@@ -523,15 +500,15 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-white rounded-b-[16px]">
         <button
           onClick={onClose}
-          className="px-6 py-3 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="px-6 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 transition-colors"
         >
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button
           onClick={handleSubmit}
-          className="px-8 py-3 rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold"
+          className="px-8 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold"
         >
-          Salvar Transação
+          {t('modals.newTransaction.saveTransaction')}
         </button>
       </div>
 
@@ -539,10 +516,11 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       <CreateCategoryModal
         isOpen={isCreateCategoryModalOpen}
         onClose={() => setIsCreateCategoryModalOpen(false)}
-        onSave={(categoryName) => {
+        onSave={(categoryName, color) => {
           setCategory('other');
           setCustomCategory(categoryName);
           setIsCreateCategoryModalOpen(false);
+          // A cor será salva quando a transação for criada (através do categoryService)
         }}
       />
 

@@ -3,3 +3,4 @@ export * from './goal';
 export * from './creditCard';
 export * from './bankAccount';
 export * from './familyMember';
+export * from './category';

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { NewTransactionModal } from '@/components/modals/NewTransactionModal';
@@ -43,24 +44,28 @@ const ArrowDownIcon = () => (
   </svg>
 );
 
-const categoryNames: Record<string, string> = {
-  rent: 'Aluguel',
-  food: 'Alimentação',
-  shopping: 'Compras',
-  household: 'Contas de casa',
-  transport: 'Transporte',
-  entertainment: 'Entretenimento',
-  health: 'Saúde',
-  education: 'Educação',
-  other: 'Outros',
-};
+// categoryNames será obtido via tradução
 
 type SortField = 'date' | 'value' | 'description';
 type SortOrder = 'asc' | 'desc';
 
 export default function Transactions() {
   const { getFilteredTransactions, bankAccounts, creditCards, familyMembers } = useFinance();
+  const { t } = useI18n();
   const [isNewTransactionOpen, setIsNewTransactionOpen] = useState(false);
+  
+  // Obter nomes de categorias via tradução
+  const categoryNames: Record<string, string> = {
+    rent: t('categories.categoryNames.rent'),
+    food: t('categories.categoryNames.food'),
+    shopping: t('categories.categoryNames.shopping'),
+    household: t('categories.categoryNames.household'),
+    transport: t('categories.categoryNames.transport'),
+    entertainment: t('categories.categoryNames.entertainment'),
+    health: t('categories.categoryNames.health'),
+    education: t('categories.categoryNames.education'),
+    other: t('categories.categoryNames.other'),
+  };
   const [localSearch, setLocalSearch] = useState('');
   const [localType, setLocalType] = useState<'all' | 'income' | 'expense'>('all');
   const [localCategory, setLocalCategory] = useState<TransactionCategory | 'all'>('all');
@@ -159,7 +164,7 @@ export default function Transactions() {
     if (account) return account.name;
     const card = creditCards.find((c) => c.id === accountId);
     if (card) return card.name;
-    return 'Desconhecido';
+    return t('transactions.unknown');
   };
 
   const getMemberAvatar = (memberId?: string | null) => {
@@ -169,13 +174,13 @@ export default function Transactions() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor'];
-    const rows = filteredTransactions.map((t) => [
-      formatDateShort(new Date(t.date)),
-      t.description,
-      categoryNames[t.category] || t.category,
-      t.type === 'income' ? 'Receita' : 'Despesa',
-      t.amount.toString(),
+    const headers = [t('transactions.date'), t('transactions.description'), t('transactions.category'), t('transactions.type'), t('transactions.value')];
+    const rows = filteredTransactions.map((transaction) => [
+      formatDateShort(new Date(transaction.date)),
+      transaction.description,
+      categoryNames[transaction.category] || transaction.category,
+      transaction.type === 'income' ? t('transactions.incomeType') : t('transactions.expenseType'),
+      transaction.amount.toString(),
     ]);
 
     const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n');
@@ -192,29 +197,30 @@ export default function Transactions() {
       <div className="w-full py-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">Transações</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('transactions.title')}</h1>
           <button
             onClick={() => setIsNewTransactionOpen(true)}
-            className="px-6 py-3 rounded-lg bg-gray-900 text-white hover:bg-gray-800 flex items-center gap-2"
+            className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 flex items-center gap-2"
           >
             <span>+</span>
-            <span>Nova Transação</span>
+            <span>{t('transactions.newTransaction')}</span>
           </button>
         </div>
 
         {/* Filtros Avançados */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-white rounded-lg border border-gray-200">
           {/* Busca */}
           <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10">
               <SearchIcon />
             </div>
             <input
               type="text"
-              placeholder="Buscar lançamentos..."
+              placeholder={t('transactions.search')}
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pr-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
+              style={{ paddingLeft: '48px' }}
             />
           </div>
 
@@ -222,20 +228,20 @@ export default function Transactions() {
           <select
             value={localType}
             onChange={(e) => setLocalType(e.target.value as 'all' | 'income' | 'expense')}
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="all">Todos</option>
-            <option value="income">Receitas</option>
-            <option value="expense">Despesas</option>
+            <option value="all">{t('transactions.all')}</option>
+            <option value="income">{t('transactions.income')}</option>
+            <option value="expense">{t('transactions.expense')}</option>
           </select>
 
           {/* Categoria */}
           <select
             value={localCategory}
             onChange={(e) => setLocalCategory(e.target.value as TransactionCategory | 'all')}
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="all">Todas as categorias</option>
+            <option value="all">{t('transactions.allCategories')}</option>
             {Object.entries(categoryNames).map(([key, name]) => (
               <option key={key} value={key}>{name}</option>
             ))}
@@ -245,15 +251,15 @@ export default function Transactions() {
           <select
             value={localAccount}
             onChange={(e) => setLocalAccount(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="all">Todas as contas</option>
-            <optgroup label="Contas Bancárias">
+            <option value="all">{t('transactions.allAccounts')}</option>
+            <optgroup label={t('transactions.bankAccounts')}>
               {bankAccounts.filter(a => a.isActive).map((account) => (
                 <option key={account.id} value={account.id}>{account.name}</option>
               ))}
             </optgroup>
-            <optgroup label="Cartões">
+            <optgroup label={t('transactions.creditCards')}>
               {creditCards.filter(c => c.isActive).map((card) => (
                 <option key={card.id} value={card.id}>{card.name}</option>
               ))}
@@ -264,9 +270,9 @@ export default function Transactions() {
           <select
             value={localMember}
             onChange={(e) => setLocalMember(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="all">Todos os membros</option>
+            <option value="all">{t('transactions.allMembers')}</option>
             {familyMembers.map((member) => (
               <option key={member.id} value={member.id}>{member.name}</option>
             ))}
@@ -275,30 +281,31 @@ export default function Transactions() {
           {/* Exportar */}
           <button
             onClick={exportToCSV}
-            className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+            className="w-full h-12 px-4 bg-white border rounded-[40px] text-gray-900 hover:bg-gray-50 transition-colors font-semibold flex items-center justify-center"
+            style={{ borderColor: '#0D0F03', borderWidth: '1px' }}
           >
-            Exportar CSV
+            {t('transactions.exportCSV')}
           </button>
         </div>
 
         {/* Estatísticas */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-white rounded-lg border border-gray-200">
-            <p className="text-sm text-gray-600 mb-1">Total Receitas</p>
+            <p className="text-sm text-gray-600 mb-1">{t('transactions.totalIncome')}</p>
             <p className="text-xl font-bold text-green-700">{formatCurrency(stats.income)}</p>
           </div>
           <div className="p-4 bg-white rounded-lg border border-gray-200">
-            <p className="text-sm text-gray-600 mb-1">Total Despesas</p>
+            <p className="text-sm text-gray-600 mb-1">{t('transactions.totalExpenses')}</p>
             <p className="text-xl font-bold text-gray-900">{formatCurrency(stats.expenses)}</p>
           </div>
           <div className="p-4 bg-white rounded-lg border border-gray-200">
-            <p className="text-sm text-gray-600 mb-1">Diferença</p>
+            <p className="text-sm text-gray-600 mb-1">{t('transactions.difference')}</p>
             <p className={`text-xl font-bold ${stats.difference >= 0 ? 'text-green-700' : 'text-red-600'}`}>
               {formatCurrency(stats.difference)}
             </p>
           </div>
           <div className="p-4 bg-white rounded-lg border border-gray-200">
-            <p className="text-sm text-gray-600 mb-1">Quantidade</p>
+            <p className="text-sm text-gray-600 mb-1">{t('transactions.quantity')}</p>
             <p className="text-xl font-bold text-gray-900">{stats.count}</p>
           </div>
         </div>
@@ -306,12 +313,12 @@ export default function Transactions() {
         {/* Tabela */}
         {filteredTransactions.length === 0 ? (
           <div className="py-24 text-center">
-            <p className="text-gray-500 mb-4">Nenhuma transação registrada ainda</p>
+            <p className="text-gray-500 mb-4">{t('transactions.noTransactions')}</p>
             <button
               onClick={() => setIsNewTransactionOpen(true)}
-              className="px-6 py-3 rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+              className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800"
             >
-              Adicionar Primeira Transação
+              {t('transactions.addFirstTransaction')}
             </button>
           </div>
         ) : (
@@ -319,29 +326,29 @@ export default function Transactions() {
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               {/* Table Header */}
               <div className="bg-gray-50 grid grid-cols-12 gap-4 px-4 py-3 text-sm font-semibold text-gray-600">
-                <div className="col-span-1">Avatar</div>
+                <div className="col-span-1">{t('transactions.avatar')}</div>
                 <button
                   onClick={() => handleSort('date')}
                   className="col-span-1 text-left flex items-center gap-1 hover:text-gray-900"
                 >
-                  Data
+                  {t('transactions.date')}
                   {sortField === 'date' && (sortOrder === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />)}
                 </button>
                 <button
                   onClick={() => handleSort('description')}
                   className="col-span-3 text-left flex items-center gap-1 hover:text-gray-900"
                 >
-                  Descrição
+                  {t('transactions.description')}
                   {sortField === 'description' && (sortOrder === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />)}
                 </button>
-                <div className="col-span-2">Categoria</div>
-                <div className="col-span-2">Conta/Cartão</div>
-                <div className="col-span-1">Parcelas</div>
+                <div className="col-span-2">{t('transactions.category')}</div>
+                <div className="col-span-2">{t('transactions.account')}</div>
+                <div className="col-span-1">{t('transactions.installments')}</div>
                 <button
                   onClick={() => handleSort('value')}
                   className="col-span-2 text-right flex items-center justify-end gap-1 hover:text-gray-900"
                 >
-                  Valor
+                  {t('transactions.value')}
                   {sortField === 'value' && (sortOrder === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />)}
                 </button>
               </div>
@@ -404,19 +411,19 @@ export default function Transactions() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 rounded disabled:opacity-50 hover:bg-gray-100"
+                  className="px-3 py-1 rounded-[40px] disabled:opacity-50 hover:bg-gray-100"
                 >
-                  Anterior
+                  {t('transactions.previous')}
                 </button>
                 <span className="text-sm text-gray-600">
-                  Página {currentPage} de {totalPages}
+                  {t('transactions.page')} {currentPage} {t('common.of') || 'de'} {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 rounded disabled:opacity-50 hover:bg-gray-100"
+                  className="px-3 py-1 rounded-[40px] disabled:opacity-50 hover:bg-gray-100"
                 >
-                  Próxima
+                  {t('transactions.next')}
                 </button>
               </div>
             )}

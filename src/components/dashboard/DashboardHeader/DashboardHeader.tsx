@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { NewTransactionModal } from '@/components/modals/NewTransactionModal';
@@ -45,6 +46,7 @@ const getInitials = (name: string): string => {
 export function DashboardHeader() {
   const { searchText, setSearchText, dateRange, familyMembers, selectedMember, setSelectedMember } = useFinance();
   const { isDesktop, isExpanded } = useSidebar();
+  const { t } = useI18n();
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isNewTransactionOpen, setIsNewTransactionOpen] = useState(false);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
@@ -69,7 +71,7 @@ export function DashboardHeader() {
                 </div>
                 <input
                   type="text"
-                  placeholder="Pesquisar"
+                  placeholder={t('transactions.search')}
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   className="flex-1 min-w-0 bg-transparent border-0 outline-none p-0 text-gray-900 dark:text-gray-100 placeholder-gray-400 [&::-webkit-input-placeholder]:opacity-100"
@@ -84,7 +86,7 @@ export function DashboardHeader() {
               className="flex-shrink-0 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-[40px] bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300 whitespace-nowrap"
             >
               <FilterIcon />
-              <span>Filtros</span>
+              <span>{t('dashboard.filters') || 'Filtros'}</span>
             </button>
 
             {/* Date Picker */}
@@ -131,7 +133,7 @@ export function DashboardHeader() {
                 <button 
                   onClick={() => setIsAddMemberOpen(true)}
                   className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors"
-                  title="Adicionar membro da família"
+                      title={t('people.addMember')}
                 >
                   <span className="text-lg">+</span>
                 </button>
@@ -146,7 +148,7 @@ export function DashboardHeader() {
               className="w-full lg:w-auto pl-4 pr-6 py-2 bg-gray-900 dark:bg-primary text-white dark:text-gray-900 rounded-[40px] hover:bg-gray-800 dark:hover:bg-lime-600 flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <span>+</span>
-              <span>Nova Transação</span>
+              <span>{t('transactions.newTransaction')}</span>
             </button>
           </div>
         </div>

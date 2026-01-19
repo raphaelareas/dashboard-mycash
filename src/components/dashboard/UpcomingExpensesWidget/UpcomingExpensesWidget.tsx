@@ -1,3 +1,5 @@
+import { useI18n } from '@/contexts/I18nContext';
+
 const WalletIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="2"/>
@@ -22,6 +24,7 @@ interface UpcomingExpensesWidgetProps {
 }
 
 export function UpcomingExpensesWidget({ onAddTransaction }: UpcomingExpensesWidgetProps) {
+  const { t } = useI18n();
   // TODO: Implementar lógica de despesas pendentes baseada em transações recorrentes
   // Por enquanto, sempre mostra empty state
   const expenses: any[] = [];
@@ -37,7 +40,7 @@ export function UpcomingExpensesWidget({ onAddTransaction }: UpcomingExpensesWid
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <WalletIcon />
-          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">Próximas despesas</h3>
+          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{t('dashboard.upcomingExpenses')}</h3>
         </div>
 
         <button
@@ -71,7 +74,7 @@ export function UpcomingExpensesWidget({ onAddTransaction }: UpcomingExpensesWid
           ">
             <CheckIcon />
           </div>
-          <p className="text-sm text-gray-400 dark:text-gray-500">Nenhuma despesa pendente</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">{t('dashboard.noPendingExpenses') || 'Nenhuma despesa pendente'}</p>
         </div>
       ) : null}
     </div>

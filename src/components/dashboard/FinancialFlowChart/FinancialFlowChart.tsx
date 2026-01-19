@@ -7,6 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 
 const ChartIcon = () => (
@@ -36,6 +37,7 @@ function formatYAxis(value: number) {
 }
 
 function CustomTooltip({ active, payload, label }: any) {
+  const { t } = useI18n();
   if (active && payload && payload.length) {
     return (
       <div className="
@@ -45,10 +47,10 @@ function CustomTooltip({ active, payload, label }: any) {
       ">
         <p className="font-bold text-gray-900 dark:text-gray-100 mb-2">{label}</p>
         <p className="text-sm text-success-dark dark:text-success mb-1">
-          Receitas: {formatCurrency(payload[0].value)}
+          {t('transactions.income')}: {formatCurrency(payload[0].value)}
         </p>
         <p className="text-sm text-gray-900 dark:text-gray-100">
-          Despesas: {formatCurrency(payload[1].value)}
+          {t('transactions.expense')}: {formatCurrency(payload[1].value)}
         </p>
       </div>
     );
@@ -57,6 +59,7 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export function FinancialFlowChart() {
+  const { t } = useI18n();
   return (
     <div className="
       w-full p-6 rounded-lg
@@ -68,18 +71,18 @@ export function FinancialFlowChart() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <ChartIcon />
-          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">Fluxo financeiro</h3>
+          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{t('dashboard.financialFlow') || 'Fluxo financeiro'}</h3>
         </div>
 
         {/* Legend */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-lime-500" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">Receitas</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">{t('transactions.income')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-gray-900 dark:bg-gray-100" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">Despesas</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">{t('transactions.expense')}</span>
           </div>
         </div>
       </div>

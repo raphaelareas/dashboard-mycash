@@ -5,11 +5,14 @@ import {
   CreditCard,
   BankAccount,
   FamilyMember,
+  Category,
 } from '@/types';
+import { TransactionType } from '@/types';
 import { useAuth } from './AuthContext';
 import { transactionService } from '@/services/transactionService';
 import { accountService } from '@/services/accountService';
 import { familyMemberService } from '@/services/familyMemberService';
+import { categoryService } from '@/services/categoryService';
 
 interface DateRange {
   startDate: Date;
@@ -23,6 +26,7 @@ interface FinanceContextType {
   creditCards: CreditCard[];
   bankAccounts: BankAccount[];
   familyMembers: FamilyMember[];
+  categories: Category[];
 
   // Loading states
   loading: boolean;
@@ -65,6 +69,12 @@ interface FinanceContextType {
   updateFamilyMember: (id: string, member: Partial<FamilyMember>) => Promise<void>;
   deleteFamilyMember: (id: string) => Promise<void>;
 
+  // CRUD Categories
+  addCategory: (category: { name: string; type: TransactionType; color?: string; icon?: string; accountId?: string | null }) => Promise<void>;
+  updateCategory: (id: string, category: Partial<{ name: string; color: string; icon: string; accountId: string | null }>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  refreshCategories: () => Promise<void>;
+
   // Funções de cálculo
   getFilteredTransactions: () => Transaction[];
   calculateTotalBalance: () => number;
@@ -98,6 +108,7 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filtros
@@ -116,6 +127,7 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
       setCreditCards([]);
       setBankAccounts([]);
       setFamilyMembers([]);
+      setCategories([]);
       setGoals([]);
       setLoading(false);
     }
@@ -127,16 +139,18 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     setLoading(true);
     try {
       // Carregar dados em paralelo
-      const [transactionsData, accountsData, membersData] = await Promise.all([
+      const [transactionsData, accountsData, membersData, categoriesData] = await Promise.all([
         transactionService.getAll(user.id),
         accountService.getAll(user.id),
         familyMemberService.getAll(user.id),
+        categoryService.getAllCustom(user.id),
       ]);
 
       setTransactions(transactionsData);
       setCreditCards(accountsData.creditCards);
       setBankAccounts(accountsData.bankAccounts);
       setFamilyMembers(membersData);
+      setCategories(categoriesData);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -306,6 +320,48 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     }
   };
 
+  // CRUD Categories
+  const addCategory = async (category: { name: string; type: TransactionType; color?: string; icon?: string; accountId?: string | null }) => {
+    if (!user?.id) throw new Error('User not authenticated');
+    try {
+      await categoryService.create(category.name, category.type, category.icon, category.color, category.accountId);
+      await refreshCategories();
+    } catch (error) {
+      console.error('Erro ao criar categoria:', error);
+      throw error;
+    }
+  };
+
+  const updateCategory = async (id: string, updates: Partial<{ name: string; color: string; icon: string; accountId: string | null }>) => {
+    try {
+      await categoryService.update(id, updates);
+      await refreshCategories();
+    } catch (error) {
+      console.error('Erro ao atualizar categoria:', error);
+      throw error;
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    try {
+      await categoryService.delete(id);
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+    } catch (error) {
+      console.error('Erro ao deletar categoria:', error);
+      throw error;
+    }
+  };
+
+  const refreshCategories = async () => {
+    if (!user?.id) return;
+    try {
+      const data = await categoryService.getAllCustom(user.id);
+      setCategories(data);
+    } catch (error) {
+      console.error('Erro ao atualizar categorias:', error);
+    }
+  };
+
   // Funções de cálculo (com filtros aplicados)
   const getFilteredTransactions = (): Transaction[] => {
     let filtered = [...transactions];
@@ -405,6 +461,7 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     creditCards,
     bankAccounts,
     familyMembers,
+    categories,
     loading,
     selectedMember,
     dateRange,
@@ -430,6 +487,10 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     addFamilyMember,
     updateFamilyMember,
     deleteFamilyMember,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    refreshCategories,
     getFilteredTransactions,
     calculateTotalBalance,
     calculateIncomeForPeriod,

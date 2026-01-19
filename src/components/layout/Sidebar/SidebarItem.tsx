@@ -38,10 +38,10 @@ export function SidebarItem({ to, icon, label, isCollapsed, disabled = false }: 
   const content = (
     <div
       className={`
-        flex items-center gap-3 px-4 py-3 rounded-[40px]
+        flex items-center py-3 rounded-[40px] min-w-0
         transition-all duration-200 ease-in-out
         ${getButtonClasses()}
-        ${isCollapsed ? 'justify-center' : ''}
+        ${isCollapsed ? 'justify-center px-2 gap-0' : 'px-4 gap-3'}
       `}
     >
       <span className="flex-shrink-0">
@@ -62,8 +62,8 @@ export function SidebarItem({ to, icon, label, isCollapsed, disabled = false }: 
   }
 
   return (
-    <div className="relative group">
-      <Link to={to}>
+    <div className="relative group min-w-0 max-w-full">
+      <Link to={to} className="min-w-0 max-w-full">
         {content}
       </Link>
       

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDateShort } from '@/utils/formatDateShort';
 
@@ -41,21 +42,23 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
-const categoryNames: Record<string, string> = {
-  rent: 'Aluguel',
-  food: 'Alimentação',
-  shopping: 'Compras',
-  household: 'Contas de casa',
-  transport: 'Transporte',
-  entertainment: 'Entretenimento',
-  health: 'Saúde',
-  education: 'Educação',
-  other: 'Outros',
-};
-
 export function TransactionsTable() {
   const { getFilteredTransactions, bankAccounts, creditCards, familyMembers } = useFinance();
+  const { t } = useI18n();
   const [localSearch, setLocalSearch] = useState('');
+  
+  // Obter nomes de categorias via tradução
+  const categoryNames: Record<string, string> = {
+    rent: t('categories.categoryNames.rent'),
+    food: t('categories.categoryNames.food'),
+    shopping: t('categories.categoryNames.shopping'),
+    household: t('categories.categoryNames.household'),
+    transport: t('categories.categoryNames.transport'),
+    entertainment: t('categories.categoryNames.entertainment'),
+    health: t('categories.categoryNames.health'),
+    education: t('categories.categoryNames.education'),
+    other: t('categories.categoryNames.other'),
+  };
   const [localType, setLocalType] = useState<'all' | 'income' | 'expense'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -103,7 +106,7 @@ export function TransactionsTable() {
     const card = creditCards.find((c) => c.id === accountId);
     if (card) return card.name;
 
-    return 'Desconhecido';
+    return t('transactions.unknown');
   };
 
   const getMemberAvatar = (memberId?: string | null) => {
@@ -145,7 +148,7 @@ export function TransactionsTable() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
         <div className="flex items-center gap-2">
           <StatementIcon />
-          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">Extrato detalhado</h3>
+          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{t('dashboard.detailedStatement') || 'Extrato detalhado'}</h3>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -157,7 +160,7 @@ export function TransactionsTable() {
               </div>
               <input
                 type="text"
-                placeholder="Buscar lançamentos..."
+                placeholder={t('transactions.search')}
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 className="flex-1 min-w-0 bg-transparent border-0 outline-none p-0 text-gray-900 dark:text-gray-100 placeholder-gray-400 [&::-webkit-input-placeholder]:opacity-100"
@@ -178,9 +181,9 @@ export function TransactionsTable() {
               focus:outline-none focus:ring-2 focus:ring-primary
             "
           >
-            <option value="all">Todos</option>
-            <option value="income">Receitas</option>
-            <option value="expense">Despesas</option>
+            <option value="all">{t('transactions.all')}</option>
+            <option value="income">{t('transactions.income')}</option>
+            <option value="expense">{t('transactions.expense')}</option>
           </select>
         </div>
       </div>
@@ -189,19 +192,19 @@ export function TransactionsTable() {
       <div className="hidden md:block border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         {/* Table Header */}
         <div className="bg-gray-50 dark:bg-gray-700 grid grid-cols-12 gap-4 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400">
-          <div className="col-span-1">Avatar</div>
-          <div className="col-span-1">Data</div>
-          <div className="col-span-3">Descrição</div>
-          <div className="col-span-2">Categoria</div>
-          <div className="col-span-2">Conta/Cartão</div>
-          <div className="col-span-1">Parcelas</div>
-          <div className="col-span-2 text-right">Valor</div>
+          <div className="col-span-1">{t('transactions.avatar')}</div>
+          <div className="col-span-1">{t('transactions.date')}</div>
+          <div className="col-span-3">{t('transactions.description')}</div>
+          <div className="col-span-2">{t('transactions.category')}</div>
+          <div className="col-span-2">{t('transactions.account')}</div>
+          <div className="col-span-1">{t('transactions.installments')}</div>
+          <div className="col-span-2 text-right">{t('transactions.value')}</div>
         </div>
 
         {/* Table Body */}
         {paginatedTransactions.length === 0 ? (
           <div className="py-24 text-center text-gray-500 dark:text-gray-400">
-            Nenhum lançamento encontrado.
+            {t('dashboard.noTransactionsFound') || 'Nenhum lançamento encontrado.'}
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -296,7 +299,7 @@ export function TransactionsTable() {
       <div className="md:hidden space-y-3 mt-4">
         {paginatedTransactions.length === 0 ? (
           <div className="py-24 text-center text-gray-500 dark:text-gray-400">
-            Nenhum lançamento encontrado.
+            {t('dashboard.noTransactionsFound') || 'Nenhum lançamento encontrado.'}
           </div>
         ) : (
           paginatedTransactions.map((transaction) => {
@@ -332,23 +335,23 @@ export function TransactionsTable() {
                 {/* Detalhes */}
                 <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
                   <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Categoria</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('transactions.category')}</p>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {categoryNames[transaction.category] || transaction.category}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Conta/Cartão</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('transactions.account')}</p>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{getAccountName(transaction.accountId)}</p>
                   </div>
                   {transaction.installments && transaction.installments > 1 && (
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Parcelas</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('transactions.installments')}</p>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{transaction.installments}x</p>
                     </div>
                   )}
                   <div className="text-right">
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Valor</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('transactions.value')}</p>
                     <p className={`text-lg font-bold ${transaction.type === 'income' ? 'text-green-700 dark:text-green-400' : 'text-gray-900 dark:text-gray-100'}`}>
                       {transaction.type === 'income' ? '+' : '-'}
                       {formatCurrency(transaction.amount)}
@@ -365,7 +368,7 @@ export function TransactionsTable() {
       {filteredTransactions.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            Mostrando {startIndex + 1} a {Math.min(endIndex, filteredTransactions.length)} de {filteredTransactions.length}
+            {t('dashboard.showing') || 'Mostrando'} {startIndex + 1} {t('common.to') || 'a'} {Math.min(endIndex, filteredTransactions.length)} {t('common.of')} {filteredTransactions.length}
           </div>
 
           <div className="flex items-center gap-2">

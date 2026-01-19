@@ -1,4 +1,5 @@
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { useCountAnimation } from '@/hooks/useCountAnimation';
 import { formatCurrency } from '@/utils/formatCurrency';
 
@@ -10,6 +11,7 @@ const ExpenseIcon = () => (
 
 export function ExpenseCard() {
   const { calculateExpensesForPeriod } = useFinance();
+  const { t } = useI18n();
   const expenses = calculateExpensesForPeriod();
   const animatedExpenses = useCountAnimation(expenses);
 
@@ -33,7 +35,7 @@ export function ExpenseCard() {
       </div>
 
       {/* Título (menor) - mesmo estilo do "Saldo total" */}
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Despesas</p>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t('dashboard.monthlyExpenses')}</p>
 
       {/* Valor (maior) */}
       <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">

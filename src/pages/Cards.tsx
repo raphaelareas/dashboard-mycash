@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { CreditCard } from '@/types';
 import { CardDetailsModal } from '@/components/modals/CardDetailsModal';
@@ -15,6 +16,7 @@ const CreditCardIcon = () => (
 
 export default function Cards() {
   const { creditCards } = useFinance();
+  const { t } = useI18n();
   const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isNewTransactionOpen, setIsNewTransactionOpen] = useState(false);
@@ -44,13 +46,13 @@ export default function Cards() {
       <div className="w-full py-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Cartões de Crédito</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('cards.title')}</h1>
           <button
             onClick={() => setIsAddCardOpen(true)}
-            className="px-6 py-3 rounded-lg bg-gray-900 text-white hover:bg-gray-800 flex items-center gap-2"
+            className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 flex items-center gap-2"
           >
             <span>+</span>
-            <span>Novo Cartão</span>
+            <span>{t('cards.newCard')}</span>
           </button>
         </div>
 
@@ -60,12 +62,12 @@ export default function Cards() {
             <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
               <CreditCardIcon />
             </div>
-            <h2 className="text-xl font-semibold text-gray-600 mb-4">Nenhum cartão cadastrado</h2>
+            <h2 className="text-xl font-semibold text-gray-600 mb-4">{t('cards.noCards')}</h2>
             <button
               onClick={() => setIsAddCardOpen(true)}
-              className="px-6 py-3 rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+              className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800"
             >
-              Cadastrar Primeiro Cartão
+              {t('cards.registerFirstCard')}
             </button>
           </div>
         ) : (
@@ -90,28 +92,28 @@ export default function Cards() {
                   {/* Valores */}
                   <div className="space-y-3 mb-4">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Limite Total</p>
+                      <p className="text-sm text-gray-600 mb-1">{t('cards.totalLimit')}</p>
                       <p className="text-lg font-bold text-gray-900">
                         {formatCurrency(card.limit || 0)}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Fatura Atual</p>
+                      <p className="text-sm text-gray-600 mb-1">{t('cards.currentBill')}</p>
                       <p className={`text-2xl font-bold ${usage > 80 ? 'text-red-600' : 'text-gray-900'}`}>
                         {formatCurrency(card.currentBalance)}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Limite Disponível</p>
+                      <p className="text-sm text-gray-600 mb-1">{t('cards.availableLimit')}</p>
                       <p className="text-lg font-bold text-green-700">
                         {formatCurrency(available)}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Uso do Limite</p>
+                      <p className="text-sm text-gray-600 mb-1">{t('cards.limitUsage')}</p>
                       <p className="text-lg font-bold text-gray-900">{usage.toFixed(1)}%</p>
                     </div>
                   </div>
@@ -126,7 +128,7 @@ export default function Cards() {
 
                   {/* Datas */}
                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                    <span>Fecha: Dia {card.dueDay}</span>
+                    <span>{t('cards.dueDay')}: {t('common.day') || 'Dia'} {card.dueDay}</span>
                     {card.lastFourDigits && (
                       <span className="font-mono">•••• {card.lastFourDigits}</span>
                     )}
@@ -139,9 +141,9 @@ export default function Cards() {
                         e.stopPropagation();
                         handleCardClick(card);
                       }}
-                      className="flex-1 px-3 py-2 text-sm rounded border border-gray-200 hover:bg-gray-50"
+                      className="flex-1 px-3 py-2 text-sm rounded-[40px] border border-gray-200 hover:bg-gray-50"
                     >
-                      Ver Detalhes
+                      {t('cards.viewDetails')}
                     </button>
                     <button
                       onClick={(e) => {
@@ -149,9 +151,9 @@ export default function Cards() {
                         setIsDetailsOpen(false);
                         setIsNewTransactionOpen(true);
                       }}
-                      className="flex-1 px-3 py-2 text-sm rounded border border-gray-200 hover:bg-gray-50"
+                      className="flex-1 px-3 py-2 text-sm rounded-[40px] border border-gray-200 hover:bg-gray-50"
                     >
-                      Adicionar Despesa
+                      {t('cards.addExpense')}
                     </button>
                   </div>
                 </div>

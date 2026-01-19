@@ -1,4 +1,5 @@
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 
 const CardIcon = () => (
@@ -30,6 +31,7 @@ interface CreditCardsWidgetProps {
 
 export function CreditCardsWidget({ onAddCard, onCardClick }: CreditCardsWidgetProps) {
   const { creditCards } = useFinance();
+  const { t } = useI18n();
 
   const calculateUsagePercentage = (current: number, limit?: number): number => {
     if (!limit || limit === 0) return 0;
@@ -58,7 +60,7 @@ export function CreditCardsWidget({ onAddCard, onCardClick }: CreditCardsWidgetP
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <CardIcon />
-          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">Cartões</h3>
+          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{t('dashboard.creditCards')}</h3>
         </div>
 
         <button
@@ -84,8 +86,8 @@ export function CreditCardsWidget({ onAddCard, onCardClick }: CreditCardsWidgetP
             <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
               <CreditCardIcon />
             </div>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">Nenhum cartão cadastrado</p>
-            <p className="text-gray-400 dark:text-gray-500 text-xs">Clique no botão + para adicionar</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">{t('cards.noCards')}</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs">{t('dashboard.clickToAdd') || 'Clique no botão + para adicionar'}</p>
           </div>
         ) : (
           <>

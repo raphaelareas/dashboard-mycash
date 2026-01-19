@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { useI18n } from '@/contexts/I18nContext';
 
 // Ícones SVG simples
 const HomeIcon = () => (
@@ -47,16 +48,17 @@ interface MenuDropdownProps {
   onClose: () => void;
 }
 
-const menuItems = [
-  { to: '/', icon: <HomeIcon />, label: 'Home' },
-  { to: '/cartoes', icon: <CardsIcon />, label: 'Cartões' },
-  { to: '/transacoes', icon: <TransactionsIcon />, label: 'Transações' },
-  { to: '/metas', icon: <GoalsIcon />, label: 'Metas' },
-  { to: '/perfil', icon: <ProfileIcon />, label: 'Perfil' },
-];
-
 export function MenuDropdown({ isOpen, onClose }: MenuDropdownProps) {
+  const { t } = useI18n();
   const location = useLocation();
+  
+  const menuItems = [
+    { to: '/', icon: <HomeIcon />, label: t('navigation.home') },
+    { to: '/cartoes', icon: <CardsIcon />, label: t('navigation.cards') },
+    { to: '/transacoes', icon: <TransactionsIcon />, label: t('navigation.transactions') },
+    { to: '/metas', icon: <GoalsIcon />, label: t('navigation.goals') || 'Metas' },
+    { to: '/perfil', icon: <ProfileIcon />, label: t('navigation.myAccount') },
+  ];
 
   // Fechar ao clicar fora
   useEffect(() => {
@@ -163,7 +165,7 @@ export function MenuDropdown({ isOpen, onClose }: MenuDropdownProps) {
           <button
             className="
               w-full flex items-center justify-center gap-2
-              px-4 py-3 rounded-lg
+              px-4 py-3 rounded-[40px]
               bg-error text-white
               font-medium
               hover:bg-error-dark
@@ -171,7 +173,7 @@ export function MenuDropdown({ isOpen, onClose }: MenuDropdownProps) {
             "
             onClick={onClose}
           >
-            Sair
+            {t('navigation.logout')}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { useCountAnimation } from '@/hooks/useCountAnimation';
 import { formatCurrency } from '@/utils/formatCurrency';
 
@@ -14,6 +15,7 @@ const BalanceIcon = () => {
 
 export function BalanceCard() {
   const { calculateTotalBalance } = useFinance();
+  const { t } = useI18n();
   const balance = calculateTotalBalance();
   const animatedBalance = useCountAnimation(balance);
 
@@ -35,7 +37,7 @@ export function BalanceCard() {
       </div>
 
       {/* Título (menor) - mesmo estilo para todos os cards */}
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Saldo total</p>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t('dashboard.totalBalance')}</p>
 
       {/* Valor (maior) */}
       <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">

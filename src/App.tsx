@@ -3,17 +3,22 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { FinanceProvider } from './contexts/FinanceContext';
 import { SidebarProvider } from './contexts/SidebarContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { I18nProvider, useI18n } from './contexts/I18nContext';
 import { Layout } from './components/layout/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Cards from './pages/Cards';
+import Accounts from './pages/Accounts';
 import Transactions from './pages/Transactions';
-import Profile from './pages/Profile';
-import Goals from './pages/Goals';
+import People from './pages/People';
+import MyAccount from './pages/MyAccount';
+import Settings from './pages/Settings';
+import Categories from './pages/Categories';
 
 // Componente para proteger rotas que requerem autenticação
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const { t } = useI18n();
 
   // Mostrar loading apenas se ainda está verificando autenticação
   // Mas ter um timeout para evitar loading infinito
@@ -22,7 +27,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -36,7 +41,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function AppRoutes() {
+function AppRoutesInner() {
   const { user } = useAuth();
 
   return (
@@ -63,6 +68,16 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/contas"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Accounts />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/transacoes"
         element={
           <ProtectedRoute>
@@ -73,21 +88,41 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/perfil"
+        path="/pessoas"
         element={
           <ProtectedRoute>
             <Layout>
-              <Profile />
+              <People />
             </Layout>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/metas"
+        path="/minha-conta"
         element={
           <ProtectedRoute>
             <Layout>
-              <Goals />
+              <MyAccount />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/configuracoes"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Settings />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/categorias"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Categories />
             </Layout>
           </ProtectedRoute>
         }
@@ -96,17 +131,23 @@ function AppRoutes() {
   );
 }
 
+function AppRoutes() {
+  return <AppRoutesInner />;
+}
+
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <SidebarProvider>
-            <FinanceProvider>
-              <AppRoutes />
-            </FinanceProvider>
-          </SidebarProvider>
-        </BrowserRouter>
+        <I18nProvider>
+          <BrowserRouter>
+            <SidebarProvider>
+              <FinanceProvider>
+                <AppRoutes />
+              </FinanceProvider>
+            </SidebarProvider>
+          </BrowserRouter>
+        </I18nProvider>
       </AuthProvider>
     </ThemeProvider>
   );

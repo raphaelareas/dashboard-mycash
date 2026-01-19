@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/ui/Modal';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDateShort } from '@/utils/formatDateShort';
@@ -19,21 +20,23 @@ const CloseIcon = () => (
   </svg>
 );
 
-const categoryNames: Record<string, string> = {
-  rent: 'Aluguel',
-  food: 'Alimentação',
-  shopping: 'Compras',
-  household: 'Contas de casa',
-  transport: 'Transporte',
-  entertainment: 'Entretenimento',
-  health: 'Saúde',
-  education: 'Educação',
-  other: 'Outros',
-};
-
 export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEditCard }: CardDetailsModalProps) {
   const { transactions } = useFinance();
+  const { t } = useI18n();
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Obter nomes de categorias via tradução
+  const categoryNames: Record<string, string> = {
+    rent: t('categories.categoryNames.rent'),
+    food: t('categories.categoryNames.food'),
+    shopping: t('categories.categoryNames.shopping'),
+    household: t('categories.categoryNames.household'),
+    transport: t('categories.categoryNames.transport'),
+    entertainment: t('categories.categoryNames.entertainment'),
+    health: t('categories.categoryNames.health'),
+    education: t('categories.categoryNames.education'),
+    other: t('categories.categoryNames.other'),
+  };
   const itemsPerPage = 10;
 
   if (!card) return null;
@@ -72,28 +75,28 @@ export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEd
         {/* Informações do Cartão */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Limite Total</p>
+            <p className="text-sm text-gray-600 mb-1">{t('modals.cardDetails.totalLimit')}</p>
             <p className="text-lg font-bold text-gray-900">{formatCurrency(limit)}</p>
           </div>
 
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Fatura Atual</p>
+            <p className="text-sm text-gray-600 mb-1">{t('modals.cardDetails.currentBill')}</p>
             <p className="text-lg font-bold text-gray-900">{formatCurrency(card.currentBalance)}</p>
           </div>
 
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Limite Disponível</p>
+            <p className="text-sm text-gray-600 mb-1">{t('modals.cardDetails.availableLimit')}</p>
             <p className="text-lg font-bold text-green-700">{formatCurrency(availableLimit)}</p>
           </div>
 
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Percentual de Uso</p>
+            <p className="text-sm text-gray-600 mb-1">{t('modals.cardDetails.usage')}</p>
             <p className="text-lg font-bold text-gray-900">{usagePercentage.toFixed(1)}%</p>
           </div>
 
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Dia de Fechamento</p>
-            <p className="text-lg font-bold text-gray-900">Dia {card.dueDay}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('modals.cardDetails.closeDay')}</p>
+            <p className="text-lg font-bold text-gray-900">{t('common.day')} {card.dueDay}</p>
           </div>
 
           <div className="p-4 bg-gray-50 rounded-lg">
@@ -136,21 +139,21 @@ export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEd
 
         {/* Tabela de Despesas */}
         <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Despesas Vinculadas</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{t('modals.cardDetails.recentTransactions')}</h3>
 
           {cardExpenses.length === 0 ? (
             <div className="py-8 text-center text-gray-500">
-              Nenhuma despesa registrada neste cartão ainda.
+              {t('modals.cardDetails.noTransactions')}
             </div>
           ) : (
             <>
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <div className="bg-gray-50 grid grid-cols-12 gap-4 px-4 py-3 text-sm font-semibold text-gray-600">
-                  <div className="col-span-2">Data</div>
-                  <div className="col-span-4">Descrição</div>
-                  <div className="col-span-3">Categoria</div>
-                  <div className="col-span-1">Parcelas</div>
-                  <div className="col-span-2 text-right">Valor</div>
+                  <div className="col-span-2">{t('transactions.date')}</div>
+                  <div className="col-span-4">{t('transactions.description')}</div>
+                  <div className="col-span-3">{t('transactions.category')}</div>
+                  <div className="col-span-1">{t('transactions.installments')}</div>
+                  <div className="col-span-2 text-right">{t('transactions.value')}</div>
                 </div>
 
                 <div className="divide-y divide-gray-100">
@@ -182,19 +185,19 @@ export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEd
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 rounded disabled:opacity-50 hover:bg-gray-100"
+                    className="px-3 py-1 rounded-[40px] disabled:opacity-50 hover:bg-gray-100"
                   >
-                    Anterior
+                    {t('transactions.previous')}
                   </button>
                   <span className="text-sm text-gray-600">
-                    Página {currentPage} de {totalPages}
+                    {t('transactions.page')} {currentPage} {t('common.of')} {totalPages}
                   </span>
                   <button
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 rounded disabled:opacity-50 hover:bg-gray-100"
+                    className="px-3 py-1 rounded-[40px] disabled:opacity-50 hover:bg-gray-100"
                   >
-                    Próxima
+                    {t('transactions.next')}
                   </button>
                 </div>
               )}
@@ -207,22 +210,22 @@ export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEd
       <div className="flex items-center justify-between gap-3 p-6 border-t border-gray-200 bg-white rounded-b-[16px]">
         <button
           onClick={() => onEditCard?.(card)}
-          className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+          className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"
         >
-          Editar Cartão
+          {t('modals.cardDetails.edit')}
         </button>
         <div className="flex gap-3">
           <button
             onClick={() => onAddTransaction?.()}
-            className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+            className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"
           >
-            Adicionar Despesa
+            {t('modals.cardDetails.addExpense')}
           </button>
           <button
             onClick={onClose}
-            className="px-6 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+            className="px-6 py-2 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800"
           >
-            Fechar
+            {t('modals.cardDetails.close')}
           </button>
         </div>
       </div>

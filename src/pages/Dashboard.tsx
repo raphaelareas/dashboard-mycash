@@ -24,19 +24,19 @@ export default function Dashboard() {
       {/* Nav bar - pesquisa, filtro, data, membros, botão nova transação - Fixa no topo */}
       <DashboardHeader />
       
-      <div className="w-full pt-24 pb-6 space-y-6">
+      <div className="w-full pt-[104px] pb-6 space-y-6">
 
         {/* PRIMEIRO BLOCO: Dividido em 2 colunas - mesma altura */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* COLUNA ESQUERDA (primeira divisão) - mesma altura do card de cartões */}
-          <div className="lg:col-span-8 flex flex-col gap-4 h-full">
+          <div className="lg:col-span-8 flex flex-col gap-6 h-full">
             {/* 4 cards de categorias (primeira linha) - fill container */}
             <div className="flex-1">
               <ExpensesByCategoryGrid />
             </div>
             
             {/* 3 cards maiores abaixo (segunda linha) - ocupando toda largura da primeira divisão */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <BalanceCard />
               <IncomeCard />
               <ExpenseCard />
