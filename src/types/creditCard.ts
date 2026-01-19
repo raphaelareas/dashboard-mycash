@@ -14,6 +14,8 @@ export interface CreditCard {
   limit?: number;
   currentBalance: number;
   bankAccountId?: string;
+  holderId?: string;
+  holderName?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

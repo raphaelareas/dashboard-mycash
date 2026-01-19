@@ -9,6 +9,8 @@ export interface BankAccount {
   type: BankAccountType;
   balance: number;
   currency: string;
+  holderId?: string;
+  holderName?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

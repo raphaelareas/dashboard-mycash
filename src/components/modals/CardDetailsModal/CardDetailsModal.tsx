@@ -12,6 +12,7 @@ interface CardDetailsModalProps {
   card: CreditCard | null;
   onAddTransaction?: () => void;
   onEditCard?: (card: CreditCard) => void;
+  onDeleteCard?: (cardId: string) => void;
 }
 
 const CloseIcon = () => (
@@ -20,7 +21,7 @@ const CloseIcon = () => (
   </svg>
 );
 
-export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEditCard }: CardDetailsModalProps) {
+export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEditCard, onDeleteCard }: CardDetailsModalProps) {
   const { transactions } = useFinance();
   const { t } = useI18n();
   const [currentPage, setCurrentPage] = useState(1);
@@ -209,12 +210,18 @@ export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEd
       {/* Footer */}
       <div className="flex items-center justify-between gap-3 p-6 border-t border-gray-200 bg-white rounded-b-[16px]">
         <button
-          onClick={() => onEditCard?.(card)}
-          className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"
+          onClick={() => onDeleteCard?.(card.id)}
+          className="px-4 py-2 rounded-[40px] border border-red-300 text-red-600 hover:bg-red-50 transition-colors font-semibold"
         >
-          {t('modals.cardDetails.edit')}
+          {t('common.delete') || 'Deletar Cartão'}
         </button>
         <div className="flex gap-3">
+          <button
+            onClick={() => onEditCard?.(card)}
+            className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"
+          >
+            {t('modals.cardDetails.edit')}
+          </button>
           <button
             onClick={() => onAddTransaction?.()}
             className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"

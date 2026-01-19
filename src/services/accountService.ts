@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { CreditCard, BankAccount } from '@/types';
 
 // Mapear Account do banco para CreditCard ou BankAccount
-const mapAccountToCreditCard = (account: any): CreditCard => {
+const mapAccountToCreditCard = (account: any, holder?: any): CreditCard => {
   return {
     id: account.id,
     name: account.name,
@@ -14,13 +14,15 @@ const mapAccountToCreditCard = (account: any): CreditCard => {
     dueDay: account.due_day || 10,
     limit: account.credit_limit ? parseFloat(account.credit_limit.toString()) : undefined,
     currentBalance: parseFloat(account.current_bill.toString()),
+    holderId: account.holder_id,
+    holderName: holder?.name || undefined,
     isActive: account.is_active,
     createdAt: new Date(account.created_at),
     updatedAt: new Date(account.updated_at),
   };
 };
 
-const mapAccountToBankAccount = (account: any): BankAccount => {
+const mapAccountToBankAccount = (account: any, holder?: any): BankAccount => {
   return {
     id: account.id,
     name: account.name,
@@ -29,6 +31,8 @@ const mapAccountToBankAccount = (account: any): BankAccount => {
     type: account.type === 'CHECKING' ? 'checking' : 'savings',
     balance: parseFloat(account.balance.toString()),
     currency: 'BRL',
+    holderId: account.holder_id,
+    holderName: holder?.name || undefined,
     isActive: account.is_active,
     createdAt: new Date(account.created_at),
     updatedAt: new Date(account.updated_at),
@@ -38,7 +42,7 @@ const mapAccountToBankAccount = (account: any): BankAccount => {
 export const accountService = {
   // Buscar todas as contas e cartões do usuário
   async getAll(userId: string): Promise<{ creditCards: CreditCard[]; bankAccounts: BankAccount[] }> {
-    const { data, error } = await supabase
+    const { data: accountsData, error } = await supabase
       .from('accounts')
       .select('*')
       .eq('user_id', userId)
@@ -46,14 +50,30 @@ export const accountService = {
 
     if (error) throw error;
 
+    // Buscar holders para todas as contas
+    const holderIds = [...new Set((accountsData || []).map((a: any) => a.holder_id).filter(Boolean))];
+    const holdersMap = new Map<string, { id: string; name: string }>();
+    
+    if (holderIds.length > 0) {
+      const { data: holdersData } = await supabase
+        .from('family_members')
+        .select('id, name')
+        .in('id', holderIds);
+      
+      (holdersData || []).forEach((holder: any) => {
+        holdersMap.set(holder.id, holder);
+      });
+    }
+
     const creditCards: CreditCard[] = [];
     const bankAccounts: BankAccount[] = [];
 
-    (data || []).forEach((account: any) => {
+    (accountsData || []).forEach((account: any) => {
+      const holder = account.holder_id ? holdersMap.get(account.holder_id) : undefined;
       if (account.type === 'CREDIT_CARD') {
-        creditCards.push(mapAccountToCreditCard(account));
+        creditCards.push(mapAccountToCreditCard(account, holder));
       } else {
-        bankAccounts.push(mapAccountToBankAccount(account));
+        bankAccounts.push(mapAccountToBankAccount(account, holder));
       }
     });
 

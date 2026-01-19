@@ -6,6 +6,7 @@ import { CreditCard } from '@/types';
 import { CardDetailsModal } from '@/components/modals/CardDetailsModal';
 import { NewTransactionModal } from '@/components/modals/NewTransactionModal';
 import { AddCardModal } from '@/components/modals/AddCardModal';
+import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
 
 const CreditCardIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -15,12 +16,14 @@ const CreditCardIcon = () => (
 );
 
 export default function Cards() {
-  const { creditCards } = useFinance();
+  const { creditCards, deleteCreditCard } = useFinance();
   const { t } = useI18n();
   const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isNewTransactionOpen, setIsNewTransactionOpen] = useState(false);
   const [isAddCardOpen, setIsAddCardOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<CreditCard | null>(null);
 
   const sortedCards = [...creditCards.filter(c => c.isActive)].sort((a, b) => 
     b.currentBalance - a.currentBalance
@@ -29,6 +32,22 @@ export default function Cards() {
   const handleCardClick = (card: CreditCard) => {
     setSelectedCard(card);
     setIsDetailsOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!cardToDelete) return;
+    try {
+      await deleteCreditCard(cardToDelete.id);
+      setIsDeleteModalOpen(false);
+      setCardToDelete(null);
+      if (selectedCard?.id === cardToDelete.id) {
+        setIsDetailsOpen(false);
+        setSelectedCard(null);
+      }
+    } catch (error) {
+      console.error('Erro ao deletar cartão:', error);
+      alert('Erro ao deletar cartão. Tente novamente.');
+    }
   };
 
   const handleAddTransaction = () => {
@@ -86,8 +105,13 @@ export default function Cards() {
                     transition-all duration-200 cursor-pointer
                   "
                 >
-                  {/* Nome do Cartão */}
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">{card.name}</h3>
+                  {/* Nome do Cartão e Owner */}
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">{card.name}</h3>
+                    {card.holderName && (
+                      <p className="text-sm text-gray-600">Titular: {card.holderName}</p>
+                    )}
+                  </div>
 
                   {/* Valores */}
                   <div className="space-y-3 mb-4">
@@ -173,12 +197,31 @@ export default function Cards() {
           // TODO: Implementar edição
           setIsDetailsOpen(false);
         }}
+        onDeleteCard={(cardId) => {
+          const card = creditCards.find(c => c.id === cardId);
+          if (card) {
+            setCardToDelete(card);
+            setIsDetailsOpen(false);
+            setIsDeleteModalOpen(true);
+          }
+        }}
       />
       <NewTransactionModal
         isOpen={isNewTransactionOpen}
         onClose={() => setIsNewTransactionOpen(false)}
       />
       <AddCardModal isOpen={isAddCardOpen} onClose={() => setIsAddCardOpen(false)} />
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setCardToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Deletar Cartão"
+        message="Tem certeza que deseja deletar este cartão? Todas as transações associadas a este cartão serão mantidas, mas o cartão será removido permanentemente."
+        itemName={cardToDelete?.name}
+      />
     </>
   );
 }
