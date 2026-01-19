@@ -15,6 +15,8 @@
     "optional": "optional",
     "select": "Auswählen",
     "to": "bis",
+    "undo": "Rückgängig",
+    "clear": "Löschen",
     "months": {
       "january": "Januar",
       "february": "Februar",
@@ -154,6 +156,11 @@
     "edit": "Bearbeiten",
     "delete": "Löschen",
     "confirmDelete": "Sind Sie sicher, dass Sie diese Kategorie löschen möchten?",
+    "color": "Farbe",
+    "name": "Name",
+    "type": "Typ",
+    "quantity": "Menge",
+    "actions": "Aktionen",
     "categoryNames": {
       "rent": "Miete",
       "food": "Lebensmittel",
@@ -198,6 +205,7 @@
   "modals": {
     "newTransaction": {
       "title": "Neue Transaktion",
+      "editTitle": "Transaktion Bearbeiten",
       "type": "Typ",
       "income": "Einnahme",
       "expense": "Ausgabe",
@@ -216,7 +224,16 @@
       "addCategory": "Kategorie hinzufügen",
       "amountError": "Betrag muss größer als null sein",
       "descriptionError": "Beschreibung muss mindestens 3 Zeichen lang sein",
+      "categoryError": "Wählen Sie eine Kategorie",
+      "accountError": "Wählen Sie ein Konto oder eine Karte",
+      "installmentsError": "Gesamtzahl der Raten muss zwischen 1 und 360 liegen",
+      "installmentNumberError": "Aktuelle Rate muss zwischen 1 und 360 liegen",
+      "customCategoryError": "Geben Sie den Kategorienamen ein",
       "saveTransaction": "Transaktion Speichern",
+      "total": "Gesamt",
+      "installment": "Rate",
+      "currentInstallment": "Aktuelle Rate",
+      "totalInstallments": "Gesamtzahl der Raten",
       "transactionDate": "Transaktionsdatum",
       "transactionAmount": "Transaktionsbetrag",
       "familyGeneral": "Familie (Allgemein)",
@@ -228,7 +245,14 @@
       "weekly": "Wöchentlich",
       "biweekly": "Zweiwöchentlich",
       "monthly": "Monatlich",
+      "semiannual": "Halbjährlich",
       "yearly": "Jährlich",
+      "fixed": "Fest",
+      "recurrence": "Wiederholung",
+      "total": "Gesamt",
+      "installment": "Rate",
+      "currentInstallment": "Aktuelle Rate",
+      "totalInstallments": "Gesamtzahl der Raten",
       "timesCount": "Anzahl der Male",
       "cash": "Bar (1x)",
       "installmentsDisabledForRecurring": "Raten für wiederkehrende Ausgaben deaktiviert",
@@ -304,6 +328,11 @@
       "cancel": "Abbrechen",
       "nameError": "Kategoriename ist erforderlich"
     },
+    "createMethod": {
+      "title": "Neue Methode erstellen",
+      "accountTab": "Konto",
+      "cardTab": "Karte"
+    },
     "cardDetails": {
       "title": "Kartendetails",
       "edit": "Karte Bearbeiten",
@@ -319,6 +348,16 @@
       "noTransactions": "Noch keine Ausgaben auf dieser Karte registriert.",
       "usagePercentage": "Nutzungsprozentsatz",
       "lastFourDigits": "Letzte 4 Ziffern"
+    },
+    "editInstallments": {
+      "title": "Wie möchten Sie diese Änderungen anwenden?",
+      "description": "Diese Ausgabe ist Teil eines Ratenkaufs. Wählen Sie, wie Sie die Änderungen anwenden möchten.",
+      "onlyThis": "Nur diese Rate",
+      "onlyThisHint": "Ändert nur diesen Monat, lässt die anderen Raten unverändert.",
+      "all": "Alle Raten (einschließlich vergangener und zukünftiger)",
+      "allHint": "Ändert diese und alle anderen Raten dieses Kaufs.",
+      "fromCurrent": "Ab dieser Rate",
+      "fromCurrentHint": "Ändert diesen Monat und alle zukünftigen Raten, lässt die vorherigen unverändert."
     }
   },
   "dashboard": {
@@ -341,6 +380,18 @@
     "noTransactionsFound": "Keine Transaktionen gefunden.",
     "showing": "Anzeigen",
     "transactionType": "Transaktionstyp",
-    "applyFilters": "Filter Anwenden"
+    "applyFilters": "Filter Anwenden",
+    "dateRange": "Benutzerdefinierter Zeitraum",
+    "useCustomDateRange": "Benutzerdefinierten Zeitraum verwenden",
+    "selectedRange": "Ausgewählter Zeitraum:",
+    "expenseMarkedAsPaid": "Ausgabe als bezahlt markiert",
+    "expensePaidSuccessfully": "Ausgabe erfolgreich bezahlt"
+  },
+  "imageCrop": {
+    "cancel": "Abbrechen",
+    "save": "Speichern"
+  },
+  "cardDetails": {
+    "installments": "Raten"
   }
 }

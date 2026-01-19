@@ -15,6 +15,8 @@
     "optional": "optionnel",
     "select": "Sélectionner",
     "to": "à",
+    "undo": "Annuler",
+    "clear": "Effacer",
     "months": {
       "january": "Janvier",
       "february": "Février",
@@ -154,6 +156,11 @@
     "edit": "Modifier",
     "delete": "Supprimer",
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette catégorie ?",
+    "color": "Couleur",
+    "name": "Nom",
+    "type": "Type",
+    "quantity": "Quantité",
+    "actions": "Actions",
     "categoryNames": {
       "rent": "Loyer",
       "food": "Alimentation",
@@ -198,6 +205,7 @@
   "modals": {
     "newTransaction": {
       "title": "Nouvelle Transaction",
+      "editTitle": "Modifier Transaction",
       "type": "Type",
       "income": "Revenu",
       "expense": "Dépense",
@@ -216,7 +224,16 @@
       "addCategory": "Ajouter catégorie",
       "amountError": "Le montant doit être supérieur à zéro",
       "descriptionError": "La description doit contenir au moins 3 caractères",
+      "categoryError": "Sélectionnez une catégorie",
+      "accountError": "Sélectionnez un compte ou une carte",
+      "installmentsError": "Le total des versements doit être entre 1 et 360",
+      "installmentNumberError": "L'échéance actuelle doit être entre 1 et 360",
+      "customCategoryError": "Entrez le nom de la catégorie",
       "saveTransaction": "Enregistrer Transaction",
+      "total": "Total",
+      "installment": "Échéance",
+      "currentInstallment": "Échéance Actuelle",
+      "totalInstallments": "Total des Échéances",
       "transactionDate": "Date de la Transaction",
       "transactionAmount": "Montant de la Transaction",
       "familyGeneral": "Famille (Général)",
@@ -228,7 +245,14 @@
       "weekly": "Hebdomadaire",
       "biweekly": "Bimensuel",
       "monthly": "Mensuel",
+      "semiannual": "Semestriel",
       "yearly": "Annuel",
+      "fixed": "Fixe",
+      "recurrence": "Récurrence",
+      "total": "Total",
+      "installment": "Échéance",
+      "currentInstallment": "Échéance Actuelle",
+      "totalInstallments": "Total des Échéances",
       "timesCount": "Nombre de Fois",
       "cash": "Au comptant (1x)",
       "installmentsDisabledForRecurring": "Versements désactivés pour les dépenses récurrentes",
@@ -304,6 +328,11 @@
       "cancel": "Annuler",
       "nameError": "Le nom de la catégorie est obligatoire"
     },
+    "createMethod": {
+      "title": "Créer nouveau moyen",
+      "accountTab": "Compte",
+      "cardTab": "Carte"
+    },
     "cardDetails": {
       "title": "Détails de la Carte",
       "edit": "Modifier Carte",
@@ -319,6 +348,16 @@
       "noTransactions": "Aucune dépense enregistrée sur cette carte pour le moment.",
       "usagePercentage": "Pourcentage d'Utilisation",
       "lastFourDigits": "4 Derniers Chiffres"
+    },
+    "editInstallments": {
+      "title": "Comment souhaitez-vous appliquer ces modifications ?",
+      "description": "Cette dépense fait partie d'un achat à crédit. Choisissez comment vous souhaitez appliquer les modifications.",
+      "onlyThis": "Seulement cette échéance",
+      "onlyThisHint": "Modifie uniquement ce mois, en gardant les autres échéances telles quelles.",
+      "all": "Toutes les échéances (passées et futures)",
+      "allHint": "Modifie celle-ci et toutes les autres échéances de cet achat.",
+      "fromCurrent": "À partir de cette échéance",
+      "fromCurrentHint": "Modifie ce mois et toutes les échéances futures, en gardant les précédentes telles quelles."
     }
   },
   "dashboard": {
@@ -341,6 +380,18 @@
     "noTransactionsFound": "Aucune transaction trouvée.",
     "showing": "Affichage",
     "transactionType": "Type de Transaction",
-    "applyFilters": "Appliquer les Filtres"
+    "applyFilters": "Appliquer les Filtres",
+    "dateRange": "Période personnalisée",
+    "useCustomDateRange": "Utiliser période personnalisée",
+    "selectedRange": "Période sélectionnée :",
+    "expenseMarkedAsPaid": "Dépense marquée comme payée",
+    "expensePaidSuccessfully": "Dépense payée avec succès"
+  },
+  "imageCrop": {
+    "cancel": "Annuler",
+    "save": "Enregistrer"
+  },
+  "cardDetails": {
+    "installments": "Versements"
   }
 }

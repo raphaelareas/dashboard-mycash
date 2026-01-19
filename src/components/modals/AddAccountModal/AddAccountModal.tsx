@@ -258,7 +258,7 @@ export function AddAccountModal({ isOpen, onClose, onAccountCreated }: AddAccoun
         {/* Holder */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Titular
+            {t('modals.addAccount.holder') || 'Titular'}
           </label>
           <select
             value={holderId}
@@ -270,7 +270,7 @@ export function AddAccountModal({ isOpen, onClose, onAccountCreated }: AddAccoun
             `}
             style={{ paddingRight: '24px' }}
           >
-            <option value="">Selecione um titular</option>
+            <option value="">{t('modals.addAccount.selectHolder') || 'Selecione um titular'}</option>
             {familyMembers.map((member) => (
               <option key={member.id} value={member.id}>
                 {member.name}
@@ -306,7 +306,7 @@ export function AddAccountModal({ isOpen, onClose, onAccountCreated }: AddAccoun
         {/* Campo de cor */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cor para conta
+            {t('modals.addAccount.color') || 'Cor'}
           </label>
           <div className="flex flex-wrap gap-2">
             {accountColors.map((colorOption) => (
@@ -333,7 +333,7 @@ export function AddAccountModal({ isOpen, onClose, onAccountCreated }: AddAccoun
           onClick={onClose}
           className="px-6 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 transition-colors"
         >
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button
           onClick={handleSubmit}

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface ImageCropModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ const CloseIcon = () => (
 );
 
 export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCropModalProps) {
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [imageSrc, setImageSrc] = useState<string>('');
   const [scale, setScale] = useState(1);
@@ -243,13 +245,13 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
             onClick={onClose}
             className="px-6 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 transition-colors"
           >
-            Cancelar
+            {t('imageCrop.cancel') || 'Cancelar'}
           </button>
           <button
             onClick={handleSave}
             className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold"
           >
-            Salvar
+            {t('imageCrop.save') || 'Salvar'}
           </button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { NewTransactionModal } from '@/components/modals/NewTransactionModal';
 import { EditTransactionModal } from '@/components/modals/EditTransactionModal';
+import { MonthSelector } from '@/components/ui/MonthSelector';
 import { TransactionCategory, Transaction } from '@/types';
 
 const SearchIcon = () => (
@@ -50,6 +51,27 @@ const ArrowDownIcon = () => (
 type SortField = 'date' | 'value' | 'description';
 type SortOrder = 'asc' | 'desc';
 
+function hexToRgba(hex: string, alpha: number): string {
+  const normalized = hex.trim().replace('#', '');
+  const isShort = normalized.length === 3;
+  const isFull = normalized.length === 6;
+  if (!isShort && !isFull) return `rgba(0, 0, 0, ${alpha})`;
+
+  const full = isShort
+    ? normalized
+        .split('')
+        .map((c) => c + c)
+        .join('')
+    : normalized;
+
+  const r = Number.parseInt(full.slice(0, 2), 16);
+  const g = Number.parseInt(full.slice(2, 4), 16);
+  const b = Number.parseInt(full.slice(4, 6), 16);
+
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return `rgba(0, 0, 0, ${alpha})`;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export default function Transactions() {
   const { getFilteredTransactions, bankAccounts, creditCards, familyMembers, categories: customCategories } = useFinance();
   const { t } = useI18n();
@@ -74,6 +96,7 @@ export default function Transactions() {
   const [localCategory, setLocalCategory] = useState<TransactionCategory | 'all'>('all');
   const [localAccount, setLocalAccount] = useState<string>('all');
   const [localMember, setLocalMember] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -82,6 +105,14 @@ export default function Transactions() {
   // Filtros avançados
   const filteredTransactions = useMemo(() => {
     let transactions = getFilteredTransactions();
+
+    // Filtro por mês/ano
+    const selectedYear = selectedMonth.getFullYear();
+    const selectedMonthIndex = selectedMonth.getMonth();
+    transactions = transactions.filter((t) => {
+      const transactionDate = new Date(t.date);
+      return transactionDate.getFullYear() === selectedYear && transactionDate.getMonth() === selectedMonthIndex;
+    });
 
     if (localType !== 'all') {
       transactions = transactions.filter((t) => t.type === localType);
@@ -132,7 +163,7 @@ export default function Transactions() {
     });
 
     return transactions;
-  }, [getFilteredTransactions, localType, localCategory, localAccount, localMember, localSearch, sortField, sortOrder]);
+  }, [getFilteredTransactions, selectedMonth, localType, localCategory, localAccount, localMember, localSearch, sortField, sortOrder, categoryNames]);
 
   // Estatísticas
   const stats = useMemo(() => {
@@ -200,7 +231,13 @@ export default function Transactions() {
       <div className="w-full py-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">{t('transactions.title')}</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold text-gray-900">{t('transactions.title')}</h1>
+            {/* Seletor de Mês */}
+            <div className="flex items-center">
+              <MonthSelector currentMonth={selectedMonth} onMonthChange={setSelectedMonth} />
+            </div>
+          </div>
           <button
             onClick={() => setIsNewTransactionOpen(true)}
             className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 flex items-center gap-2"
@@ -210,85 +247,114 @@ export default function Transactions() {
           </button>
         </div>
 
-        {/* Filtros Avançados */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-white rounded-lg border border-gray-200">
-          {/* Busca */}
-          <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10">
-              <SearchIcon />
+        {/* Barra Superior com Filtros e Navegação */}
+        <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+          {/* Primeira Linha: Busca e Tabs de Tipo */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            {/* Busca */}
+            <div className="relative flex-1 min-w-[200px]">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10">
+                <SearchIcon />
+              </div>
+              <input
+                type="text"
+                placeholder={t('transactions.search')}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                className="w-full pr-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
+                style={{ paddingLeft: '48px' }}
+              />
             </div>
-            <input
-              type="text"
-              placeholder={t('transactions.search')}
-              value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
-              className="w-full pr-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
-              style={{ paddingLeft: '48px' }}
-            />
+
+            {/* Tabs de Tipo (Todos, Entrada, Saída) */}
+            <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px]">
+              <button
+                onClick={() => setLocalType('all')}
+                className={`
+                  px-4 py-2 rounded-[40px] font-medium transition-all text-sm whitespace-nowrap
+                  ${localType === 'all' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
+                `}
+              >
+                {t('transactions.all')}
+              </button>
+              <button
+                onClick={() => setLocalType('income')}
+                className={`
+                  px-4 py-2 rounded-[40px] font-medium transition-all text-sm whitespace-nowrap
+                  ${localType === 'income' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
+                `}
+              >
+                {t('transactions.income')}
+              </button>
+              <button
+                onClick={() => setLocalType('expense')}
+                className={`
+                  px-4 py-2 rounded-[40px] font-medium transition-all text-sm whitespace-nowrap
+                  ${localType === 'expense' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
+                `}
+              >
+                {t('transactions.expense')}
+              </button>
+            </div>
           </div>
 
-          {/* Tipo */}
-          <select
-            value={localType}
-            onChange={(e) => setLocalType(e.target.value as 'all' | 'income' | 'expense')}
-            className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="all">{t('transactions.all')}</option>
-            <option value="income">{t('transactions.income')}</option>
-            <option value="expense">{t('transactions.expense')}</option>
-          </select>
+          {/* Segunda Linha: Filtros e Exportar */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            {/* Filtros: Categoria, Conta, Membro - Aproveitando melhor o espaço */}
+            <div className="flex flex-wrap gap-3 flex-1">
+              {/* Categoria */}
+              <select
+                value={localCategory}
+                onChange={(e) => setLocalCategory(e.target.value as TransactionCategory | 'all')}
+                className="flex-1 min-w-[180px] px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              >
+                <option value="all">{t('transactions.allCategories')}</option>
+                {Object.entries(categoryNames).map(([key, name]) => (
+                  <option key={key} value={key}>{name}</option>
+                ))}
+              </select>
 
-          {/* Categoria */}
-          <select
-            value={localCategory}
-            onChange={(e) => setLocalCategory(e.target.value as TransactionCategory | 'all')}
-            className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="all">{t('transactions.allCategories')}</option>
-            {Object.entries(categoryNames).map(([key, name]) => (
-              <option key={key} value={key}>{name}</option>
-            ))}
-          </select>
+              {/* Conta/Cartão */}
+              <select
+                value={localAccount}
+                onChange={(e) => setLocalAccount(e.target.value)}
+                className="flex-1 min-w-[180px] px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              >
+                <option value="all">{t('transactions.allAccounts')}</option>
+                <optgroup label={t('transactions.bankAccounts')}>
+                  {bankAccounts.filter(a => a.isActive).map((account) => (
+                    <option key={account.id} value={account.id}>{account.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label={t('transactions.creditCards')}>
+                  {creditCards.filter(c => c.isActive).map((card) => (
+                    <option key={card.id} value={card.id}>{card.name}</option>
+                  ))}
+                </optgroup>
+              </select>
 
-          {/* Conta/Cartão */}
-          <select
-            value={localAccount}
-            onChange={(e) => setLocalAccount(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="all">{t('transactions.allAccounts')}</option>
-            <optgroup label={t('transactions.bankAccounts')}>
-              {bankAccounts.filter(a => a.isActive).map((account) => (
-                <option key={account.id} value={account.id}>{account.name}</option>
-              ))}
-            </optgroup>
-            <optgroup label={t('transactions.creditCards')}>
-              {creditCards.filter(c => c.isActive).map((card) => (
-                <option key={card.id} value={card.id}>{card.name}</option>
-              ))}
-            </optgroup>
-          </select>
+              {/* Membro */}
+              <select
+                value={localMember}
+                onChange={(e) => setLocalMember(e.target.value)}
+                className="flex-1 min-w-[180px] px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              >
+                <option value="all">{t('transactions.allMembers')}</option>
+                {familyMembers.map((member) => (
+                  <option key={member.id} value={member.id}>{member.name}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Membro */}
-          <select
-            value={localMember}
-            onChange={(e) => setLocalMember(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-200 rounded-[40px] focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="all">{t('transactions.allMembers')}</option>
-            {familyMembers.map((member) => (
-              <option key={member.id} value={member.id}>{member.name}</option>
-            ))}
-          </select>
-
-          {/* Exportar */}
-          <button
-            onClick={exportToCSV}
-            className="w-full h-12 px-4 bg-white border rounded-[40px] text-gray-900 hover:bg-gray-50 transition-colors font-semibold flex items-center justify-center"
-            style={{ borderColor: '#0D0F03', borderWidth: '1px' }}
-          >
-            {t('transactions.exportCSV')}
-          </button>
+            {/* Exportar CSV - No final da segunda linha */}
+            <button
+              onClick={exportToCSV}
+              className="px-4 py-2 bg-white border rounded-[40px] text-gray-900 hover:bg-gray-50 transition-colors font-semibold flex items-center justify-center whitespace-nowrap"
+              style={{ borderColor: '#0D0F03', borderWidth: '1px' }}
+            >
+              {t('transactions.exportCSV')}
+            </button>
+          </div>
         </div>
 
         {/* Estatísticas */}
@@ -328,33 +394,33 @@ export default function Transactions() {
           <>
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               {/* Table Header */}
-              <div className="bg-gray-50 grid grid-cols-12 gap-4 px-4 py-3 text-sm font-semibold text-gray-600">
-                <div className="col-span-1">{t('transactions.avatar')}</div>
+              <div className="bg-gray-50 grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px_48px] gap-x-3 px-4 py-3 text-sm font-semibold text-gray-600">
+                <div>{t('transactions.avatar')}</div>
                 <button
                   onClick={() => handleSort('date')}
-                  className="col-span-1 text-left flex items-center gap-1 hover:text-gray-900"
+                  className="text-left flex items-center gap-1 hover:text-gray-900 whitespace-nowrap"
                 >
                   {t('transactions.date')}
                   {sortField === 'date' && (sortOrder === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />)}
                 </button>
                 <button
                   onClick={() => handleSort('description')}
-                  className="col-span-3 text-left flex items-center gap-1 hover:text-gray-900"
+                  className="text-left flex items-center gap-1 hover:text-gray-900"
                 >
                   {t('transactions.description')}
                   {sortField === 'description' && (sortOrder === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />)}
                 </button>
-                <div className="col-span-2">{t('transactions.category')}</div>
-                <div className="col-span-2">{t('transactions.account')}</div>
-                <div className="col-span-1">{t('transactions.installments')}</div>
+                <div>{t('transactions.category')}</div>
+                <div>{t('transactions.account')}</div>
+                <div className="pl-8">{t('transactions.installments')}</div>
                 <button
                   onClick={() => handleSort('value')}
-                  className="col-span-1 text-right flex items-center justify-end gap-1 hover:text-gray-900"
+                  className="text-right flex items-center justify-end gap-1 hover:text-gray-900 whitespace-nowrap"
                 >
                   {t('transactions.value')}
                   {sortField === 'value' && (sortOrder === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />)}
                 </button>
-                <div className="col-span-1"></div>
+                <div aria-hidden="true" />
               </div>
 
               {/* Table Body */}
@@ -366,27 +432,27 @@ export default function Transactions() {
                   return (
                     <div
                       key={transaction.id}
-                      className={`grid grid-cols-12 gap-4 px-4 py-3 ${isEven ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-colors`}
+                      className={`grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px_48px] gap-x-3 px-4 py-3 ${isEven ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-colors`}
                     >
-                      <div className="col-span-1 flex items-center">
+                      <div className="flex items-center">
                         {avatarUrl ? (
-                          <img src={avatarUrl} alt="" className="w-6 h-6 rounded-full" />
+                          <img src={avatarUrl} alt="" className="w-6 h-6 rounded-full flex-shrink-0" />
                         ) : (
-                          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                             <UserIcon />
                           </div>
                         )}
                       </div>
-                      <div className="col-span-1 flex items-center text-sm text-gray-600">
+                      <div className="flex items-center text-sm text-gray-600 whitespace-nowrap">
                         {formatDateShort(new Date(transaction.date))}
                       </div>
-                      <div className="col-span-3 flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${transaction.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${transaction.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                           {transaction.type === 'income' ? <IncomeIcon /> : <ExpenseIcon />}
                         </div>
-                        <span className="font-semibold text-gray-900">{transaction.description}</span>
+                        <span className="font-semibold text-gray-900 truncate">{transaction.description}</span>
                       </div>
-                      <div className="col-span-2 flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         {(() => {
                           // Buscar cor da categoria
                           let categoryColor = '#3247FF'; // Cor padrão
@@ -404,29 +470,36 @@ export default function Transactions() {
                                 style={{ backgroundColor: categoryColor }}
                                 title={categoryColor}
                               />
-                              <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs">
+                              <span
+                                className="px-2 py-1 rounded-full text-xs truncate border"
+                                style={{
+                                  backgroundColor: hexToRgba(categoryColor, 0.05),
+                                  borderColor: hexToRgba(categoryColor, 0.15),
+                                  color: categoryColor,
+                                }}
+                              >
                                 {categoryName}
                               </span>
                             </>
                           );
                         })()}
                       </div>
-                      <div className="col-span-2 flex items-center text-sm text-gray-600">
-                        {getAccountName(transaction.accountId)}
+                      <div className="flex items-center text-sm text-gray-600 min-w-0">
+                        <span className="truncate">{getAccountName(transaction.accountId)}</span>
                       </div>
-                      <div className="col-span-1 flex items-center text-sm text-gray-600">
+                      <div className="pl-8 flex items-center justify-center text-sm text-gray-600 whitespace-nowrap">
                         {transaction.installments && transaction.installments > 1 
                           ? `${transaction.installmentNumber || 1}/${transaction.installments}` 
                           : '-'
                         }
                       </div>
-                      <div className="col-span-1 flex items-center justify-end">
-                        <span className={`font-bold ${transaction.type === 'income' ? 'text-green-700' : 'text-gray-900'}`}>
+                      <div className="flex items-center justify-end">
+                        <span className={`font-bold whitespace-nowrap ${transaction.type === 'income' ? 'text-green-700' : 'text-gray-900'}`}>
                           {transaction.type === 'income' ? '+' : '-'}
                           {formatCurrency(transaction.amount)}
                         </span>
                       </div>
-                      <div className="col-span-1 flex items-center justify-end">
+                      <div className="flex items-center justify-start">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

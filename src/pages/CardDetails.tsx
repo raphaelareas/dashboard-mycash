@@ -127,12 +127,12 @@ export default function CardDetails() {
 
           <div className="p-4 bg-white border border-gray-200 rounded-lg">
             <p className="text-sm text-gray-600 mb-1">{t('cards.dueDay')}</p>
-            <p className="text-lg font-bold text-gray-900">Dia {card.dueDay}</p>
+            <p className="text-lg font-bold text-gray-900">{t('common.day')} {card.dueDay}</p>
           </div>
 
           {card.lastFourDigits && (
             <div className="p-4 bg-white border border-gray-200 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Últimos 4 Dígitos</p>
+              <p className="text-sm text-gray-600 mb-1">{t('modals.cardDetails.lastFourDigits') || 'Últimos 4 Dígitos'}</p>
               <p className="text-lg font-bold text-gray-900 font-mono">•••• {card.lastFourDigits}</p>
             </div>
           )}
@@ -189,11 +189,11 @@ export default function CardDetails() {
           ) : (
             <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
               <div className="bg-gray-50 grid grid-cols-12 gap-4 px-4 py-3 text-sm font-semibold text-gray-600">
-                <div className="col-span-2">Data</div>
-                <div className="col-span-4">Descrição</div>
-                <div className="col-span-3">Categoria</div>
-                <div className="col-span-1">Parcelas</div>
-                <div className="col-span-2 text-right">Valor</div>
+                <div className="col-span-2">{t('transactions.date')}</div>
+                <div className="col-span-4">{t('transactions.description')}</div>
+                <div className="col-span-3">{t('transactions.category')}</div>
+                <div className="col-span-1">{t('cardDetails.installments') || 'Parcelas'}</div>
+                <div className="col-span-2 text-right">{t('transactions.value')}</div>
               </div>
 
               <div className="divide-y divide-gray-100">

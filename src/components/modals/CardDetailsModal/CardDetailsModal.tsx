@@ -102,7 +102,7 @@ export function CardDetailsModal({ isOpen, onClose, card, onAddTransaction, onEd
           </div>
 
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Últimos 4 Dígitos</p>
+            <p className="text-sm text-gray-600 mb-1">{t('modals.cardDetails.lastFourDigits') || 'Últimos 4 Dígitos'}</p>
             <p className="text-lg font-bold text-gray-900">•••• {card.lastFourDigits}</p>
           </div>
         </div>

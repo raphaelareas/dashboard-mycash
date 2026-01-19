@@ -129,11 +129,11 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
     }
 
     if (!category) {
-      newErrors.category = 'Selecione uma categoria';
+      newErrors.category = t('modals.newTransaction.categoryError') || 'Selecione uma categoria';
     }
 
     if (category === 'other' && !customCategory.trim()) {
-      newErrors.customCategory = 'Informe o nome da categoria';
+      newErrors.customCategory = t('modals.newTransaction.customCategoryError') || 'Informe o nome da categoria';
     }
 
     if (isInstallment) {
@@ -141,16 +141,16 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       const currentNum = parseInt(installmentNumber);
       
       if (!totalInstallments || isNaN(totalNum) || totalNum < 1 || totalNum > 360) {
-        newErrors.installments = 'Total de parcelas deve ser entre 1 e 360';
+        newErrors.installments = t('modals.newTransaction.installmentsError') || 'Total de parcelas deve ser entre 1 e 360';
       }
       
       if (!installmentNumber || isNaN(currentNum) || currentNum < 1 || currentNum > 360) {
-        newErrors.installmentNumber = 'Parcela atual deve ser entre 1 e 360';
+        newErrors.installmentNumber = t('modals.newTransaction.installmentNumberError') || 'Parcela atual deve ser entre 1 e 360';
       }
     }
 
     if (!accountId) {
-      newErrors.accountId = 'Selecione uma conta ou cartão';
+      newErrors.accountId = t('modals.newTransaction.accountError') || 'Selecione uma conta ou cartão';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -293,7 +293,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                     ${!isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
                   `}
                 >
-                  Total
+                  {t('modals.newTransaction.total') || 'Total'}
                 </button>
                 <button
                   type="button"
@@ -303,7 +303,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                     ${isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
                   `}
                 >
-                  Parcela
+                  {t('modals.newTransaction.installment') || 'Parcela'}
                 </button>
               </div>
             </div>
@@ -315,7 +315,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Parcela Atual
+                      {t('modals.newTransaction.currentInstallment') || 'Parcela Atual'}
                     </label>
                     <input
                       type="text"
@@ -343,7 +343,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Total de Parcelas
+                      {t('modals.newTransaction.totalInstallments') || 'Total de Parcelas'}
                     </label>
                     <input
                       type="text"

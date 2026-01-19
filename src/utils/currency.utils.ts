@@ -78,8 +78,9 @@ export function formatCurrencyInput(value: string): { display: string; numeric: 
     maximumFractionDigits: 0,
   });
   
-  // Monta o valor formatado com prefixo R$
-  const display = `R$ ${reaisFormatted},${centavos}`;
+  // Monta o valor formatado SEM prefixo (apenas número com vírgula)
+  // Ex: "9000" -> "9.000,00"
+  const display = `${reaisFormatted},${centavos}`;
   
   // Calcula o valor numérico
   const numeric = parseFloat(reais || '0') + (parseInt(centavos) / 100);

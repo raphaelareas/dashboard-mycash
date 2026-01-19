@@ -15,6 +15,8 @@
     "optional": "valgfritt",
     "select": "Velg",
     "to": "til",
+    "undo": "Angre",
+    "clear": "Tøm",
     "months": {
       "january": "Januar",
       "february": "Februar",
@@ -154,6 +156,11 @@
     "edit": "Rediger",
     "delete": "Slett",
     "confirmDelete": "Er du sikker på at du vil slette denne kategorien?",
+    "color": "Farge",
+    "name": "Navn",
+    "type": "Type",
+    "quantity": "Antall",
+    "actions": "Handlinger",
     "categoryNames": {
       "rent": "Leie",
       "food": "Mat",
@@ -198,6 +205,7 @@
   "modals": {
     "newTransaction": {
       "title": "Ny Transaksjon",
+      "editTitle": "Rediger Transaksjon",
       "type": "Type",
       "income": "Inntekt",
       "expense": "Utgift",
@@ -216,7 +224,16 @@
       "addCategory": "Legg til kategori",
       "amountError": "Beløpet må være større enn null",
       "descriptionError": "Beskrivelsen må være minst 3 tegn",
+      "categoryError": "Velg en kategori",
+      "accountError": "Velg en konto eller kort",
+      "installmentsError": "Totalt antall avdrag må være mellom 1 og 360",
+      "installmentNumberError": "Gjeldende avdrag må være mellom 1 og 360",
+      "customCategoryError": "Skriv inn kategorinavnet",
       "saveTransaction": "Lagre Transaksjon",
+      "total": "Totalt",
+      "installment": "Avdrag",
+      "currentInstallment": "Gjeldende Avdrag",
+      "totalInstallments": "Totalt Antall Avdrag",
       "transactionDate": "Transaksjonsdato",
       "transactionAmount": "Transaksjonsbeløp",
       "familyGeneral": "Familie (Generelt)",
@@ -228,7 +245,14 @@
       "weekly": "Ukentlig",
       "biweekly": "Annenhver uke",
       "monthly": "Månedlig",
+      "semiannual": "Halvårlig",
       "yearly": "Årlig",
+      "fixed": "Fast",
+      "recurrence": "Gjentakelse",
+      "total": "Totalt",
+      "installment": "Avdrag",
+      "currentInstallment": "Gjeldende Avdrag",
+      "totalInstallments": "Totalt Antall Avdrag",
       "timesCount": "Antall Ganger",
       "cash": "Kontant (1x)",
       "installmentsDisabledForRecurring": "Avdrag deaktivert for gjentakende utgifter",
@@ -304,6 +328,11 @@
       "cancel": "Avbryt",
       "nameError": "Kategorinavn er påkrevd"
     },
+    "createMethod": {
+      "title": "Opprett ny metode",
+      "accountTab": "Konto",
+      "cardTab": "Kort"
+    },
     "cardDetails": {
       "title": "Kortdetaljer",
       "edit": "Rediger Kort",
@@ -319,6 +348,16 @@
       "noTransactions": "Ingen utgifter registrert på dette kortet ennå.",
       "usagePercentage": "Bruksprosent",
       "lastFourDigits": "Siste 4 Siffer"
+    },
+    "editInstallments": {
+      "title": "Hvordan vil du bruke disse endringene?",
+      "description": "Denne utgiften er del av et avdragskjøp. Velg hvordan du vil bruke endringene.",
+      "onlyThis": "Kun denne avdragen",
+      "onlyThisHint": "Endrer kun denne måneden, beholder de andre avdragene som de er.",
+      "all": "Alle avdrag (inkludert tidligere og fremtidige)",
+      "allHint": "Endrer denne og alle andre avdrag for dette kjøpet.",
+      "fromCurrent": "Fra denne avdragen og fremover",
+      "fromCurrentHint": "Endrer denne måneden og alle fremtidige avdrag, beholder de tidligere som de er."
     }
   },
   "dashboard": {
@@ -341,6 +380,18 @@
     "noTransactionsFound": "Ingen transaksjoner funnet.",
     "showing": "Viser",
     "transactionType": "Transaksjonstype",
-    "applyFilters": "Bruk Filtre"
+    "applyFilters": "Bruk Filtre",
+    "dateRange": "Egendefinert periode",
+    "useCustomDateRange": "Bruk egendefinert periode",
+    "selectedRange": "Valgt periode:",
+    "expenseMarkedAsPaid": "Utgift merket som betalt",
+    "expensePaidSuccessfully": "Utgift betalt med suksess"
+  },
+  "imageCrop": {
+    "cancel": "Avbryt",
+    "save": "Lagre"
+  },
+  "cardDetails": {
+    "installments": "Avdrag"
   }
 }

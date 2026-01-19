@@ -167,18 +167,23 @@ export default function Categories() {
             <div className="divide-y divide-gray-100">
               {filteredCategories.map((category, index) => {
                 const isEven = index % 2 === 0;
+                const isDefaultCategory = category.id.startsWith('default_');
+                
                 const categoryTransactions = transactions.filter(t => {
+                  // Se for categoria padrão, verificar pelo enum
+                  if (isDefaultCategory) {
+                    const categoryEnum = category.id.replace('default_', '') as TransactionCategory;
+                    // Verificar se a transação usa o mesmo enum ou o nome traduzido
+                    return t.category === categoryEnum || 
+                           t.category === category.name ||
+                           (typeof t.category === 'string' && categoryNames[categoryEnum] === t.category);
+                  }
+                  
                   // Para categorias customizadas, verificar pelo nome
                   if (typeof t.category === 'string') {
                     return t.category === category.name;
                   }
-                  // Para categorias padrão, verificar se o enum corresponde
-                  // As categorias padrão não têm id, então verificamos pelo nome traduzido
-                  const defaultCategoryNames = Object.keys(categoryNames);
-                  if (defaultCategoryNames.includes(t.category as string)) {
-                    // Se a categoria padrão tem o mesmo nome traduzido
-                    return categoryNames[t.category as string] === category.name || t.category === category.name;
-                  }
+                  
                   return false;
                 });
                 const transactionCount = categoryTransactions.length;

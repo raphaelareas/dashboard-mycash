@@ -15,6 +15,7 @@
     "optional": "optional",
     "select": "Select",
     "to": "to",
+    "undo": "Undo",
     "clear": "Clear",
     "months": {
       "january": "January",
@@ -155,6 +156,11 @@
     "edit": "Edit",
     "delete": "Delete",
     "confirmDelete": "Are you sure you want to delete this category?",
+    "color": "Color",
+    "name": "Name",
+    "type": "Type",
+    "quantity": "Quantity",
+    "actions": "Actions",
     "categoryNames": {
       "rent": "Rent",
       "food": "Food",
@@ -196,9 +202,14 @@
     "uploadError": "Error uploading image. Please try again.",
     "saveError": "Error saving profile. Please try again."
   },
+  "imageCrop": {
+    "cancel": "Cancel",
+    "save": "Save"
+  },
   "modals": {
     "newTransaction": {
       "title": "New Transaction",
+      "editTitle": "Edit Transaction",
       "type": "Type",
       "income": "Income",
       "expense": "Expense",
@@ -217,6 +228,11 @@
       "addCategory": "Add category",
       "amountError": "Amount must be greater than zero",
       "descriptionError": "Description must be at least 3 characters",
+      "categoryError": "Select a category",
+      "accountError": "Select an account or card",
+      "installmentsError": "Total installments must be between 1 and 360",
+      "installmentNumberError": "Current installment must be between 1 and 360",
+      "customCategoryError": "Enter the category name",
       "saveTransaction": "Save Transaction",
       "transactionDate": "Transaction Date",
       "transactionAmount": "Transaction Amount",
@@ -229,7 +245,14 @@
       "weekly": "Weekly",
       "biweekly": "Biweekly",
       "monthly": "Monthly",
+      "semiannual": "Semiannual",
       "yearly": "Yearly",
+      "fixed": "Fixed",
+      "recurrence": "Recurrence",
+      "total": "Total",
+      "installment": "Installment",
+      "currentInstallment": "Current Installment",
+      "totalInstallments": "Total Installments",
       "timesCount": "Number of Times",
       "cash": "Cash (1x)",
       "installmentsDisabledForRecurring": "Installments disabled for recurring expenses",
@@ -305,6 +328,11 @@
       "cancel": "Cancel",
       "nameError": "Category name is required"
     },
+    "createMethod": {
+      "title": "Create new method",
+      "accountTab": "Account",
+      "cardTab": "Card"
+    },
     "cardDetails": {
       "title": "Card Details",
       "edit": "Edit Card",
@@ -320,7 +348,20 @@
       "noTransactions": "No expenses registered on this card yet.",
       "usagePercentage": "Usage Percentage",
       "lastFourDigits": "Last 4 Digits"
+    },
+    "editInstallments": {
+      "title": "How do you want to apply these changes?",
+      "description": "This expense is part of an installment purchase. Choose how you want to apply the changes.",
+      "onlyThis": "Only this installment",
+      "onlyThisHint": "Changes only this month, keeping the other installments as they are.",
+      "all": "All installments (including past and future)",
+      "allHint": "Changes this and all other installments of this purchase.",
+      "fromCurrent": "From this installment onward",
+      "fromCurrentHint": "Changes this month and all future installments, keeping the previous ones as they are."
     }
+  },
+  "cardDetails": {
+    "installments": "Installments"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -348,5 +389,12 @@
     "selectedRange": "Selected period:",
     "expenseMarkedAsPaid": "Expense marked as paid",
     "expensePaidSuccessfully": "Expense successfully paid"
+  },
+  "imageCrop": {
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "cardDetails": {
+    "installments": "Installments"
   }
 }

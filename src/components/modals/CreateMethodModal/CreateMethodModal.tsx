@@ -264,7 +264,7 @@ export function CreateMethodModal({
     <Modal isOpen={isOpen} onClose={onClose}>
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
-        <h2 className="text-xl font-bold text-gray-900">Criar novo método</h2>
+        <h2 className="text-xl font-bold text-gray-900">{t('modals.createMethod.title') || 'Criar novo método'}</h2>
         <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center">
           <CloseIcon />
         </button>
@@ -283,7 +283,7 @@ export function CreateMethodModal({
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Conta
+            {t('modals.createMethod.accountTab') || 'Conta'}
           </button>
           <button
             type="button"
@@ -294,7 +294,7 @@ export function CreateMethodModal({
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Cartão
+            {t('modals.createMethod.cardTab') || 'Cartão'}
           </button>
         </div>
 

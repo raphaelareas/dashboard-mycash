@@ -32,7 +32,14 @@ const ExpenseArrowIcon = ({ color = "currentColor" }: { color?: string }) => (
 const defaultCategories: TransactionCategory[] = ['rent', 'food', 'shopping', 'household', 'transport', 'entertainment', 'health', 'education', 'other'];
 
 export function EditTransactionModal({ isOpen, onClose, transaction }: EditTransactionModalProps) {
-  const { updateTransaction, bankAccounts, creditCards, familyMembers, categories: customCategories } = useFinance();
+  const {
+    updateTransaction,
+    bankAccounts,
+    creditCards,
+    familyMembers,
+    categories: customCategories,
+    transactions,
+  } = useFinance();
   const { t } = useI18n();
   
   // Obter nomes de categorias via tradução
@@ -70,13 +77,22 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
   const [isCreateMethodModalOpen, setIsCreateMethodModalOpen] = useState(false);
   const [createMethodTab, setCreateMethodTab] = useState<'account' | 'card'>('account');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isScopeModalOpen, setIsScopeModalOpen] = useState(false);
+  const [pendingUpdates, setPendingUpdates] = useState<Partial<Transaction> | null>(null);
+  const [isSavingScope, setIsSavingScope] = useState(false);
 
   // Carregar dados da transação quando modal abrir
   useEffect(() => {
     if (isOpen && transaction) {
       setType(transaction.type);
       setAmount(transaction.amount.toString());
-      setAmountDisplay(formatCurrencyInput(transaction.amount.toString()).display);
+      // Exibir o valor original da transação formatado corretamente
+      // Ex: 170 -> "170,00"
+      const formattedAmount = new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(transaction.amount);
+      setAmountDisplay(formattedAmount);
       setDescription(transaction.description);
       setCategory(transaction.category as TransactionCategory | string);
       setMemberId(transaction.memberId || null);
@@ -145,11 +161,11 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
     }
 
     if (!category) {
-      newErrors.category = 'Selecione uma categoria';
+      newErrors.category = t('modals.newTransaction.categoryError') || 'Selecione uma categoria';
     }
 
     if (category === 'other' && !customCategory.trim()) {
-      newErrors.customCategory = 'Informe o nome da categoria';
+      newErrors.customCategory = t('modals.newTransaction.customCategoryError') || 'Informe o nome da categoria';
     }
 
     if (isInstallment) {
@@ -157,16 +173,16 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       const currentNum = parseInt(installmentNumber);
       
       if (!totalInstallments || isNaN(totalNum) || totalNum < 1 || totalNum > 360) {
-        newErrors.installments = 'Total de parcelas deve ser entre 1 e 360';
+        newErrors.installments = t('modals.newTransaction.installmentsError') || 'Total de parcelas deve ser entre 1 e 360';
       }
       
       if (!installmentNumber || isNaN(currentNum) || currentNum < 1 || currentNum > 360) {
-        newErrors.installmentNumber = 'Parcela atual deve ser entre 1 e 360';
+        newErrors.installmentNumber = t('modals.newTransaction.installmentNumberError') || 'Parcela atual deve ser entre 1 e 360';
       }
     }
 
     if (!accountId) {
-      newErrors.accountId = 'Selecione uma conta ou cartão';
+      newErrors.accountId = t('modals.newTransaction.accountError') || 'Selecione uma conta ou cartão';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -174,23 +190,82 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       return;
     }
 
+    const updates: Partial<Transaction> = {
+      type,
+      category: category as TransactionCategory | string,
+      amount: numericAmount,
+      description: category === 'other' && customCategory ? `${customCategory}: ${description}` : description,
+      date: new Date(transactionDate),
+      accountId,
+      memberId,
+      installments: isInstallment ? parseInt(totalInstallments) : 1,
+      installmentNumber: isInstallment ? parseInt(installmentNumber) : undefined,
+      isRecurring: false,
+    };
+
+    const hasInstallmentSeries = (transaction.installments || 1) > 1 && isInstallment;
+
+    // Se for uma compra parcelada, perguntar o escopo da atualização
+    if (hasInstallmentSeries) {
+      setPendingUpdates(updates);
+      setIsScopeModalOpen(true);
+      return;
+    }
+
     try {
-      await updateTransaction(transaction.id, {
-        type,
-        category: category as TransactionCategory | string,
-        amount: numericAmount,
-        description: category === 'other' && customCategory ? `${customCategory}: ${description}` : description,
-        date: new Date(transactionDate),
-        accountId,
-        memberId,
-        installments: isInstallment ? parseInt(totalInstallments) : 1,
-        installmentNumber: isInstallment ? parseInt(installmentNumber) : undefined,
-        isRecurring: false,
-      });
+      await updateTransaction(transaction.id, updates);
       onClose();
     } catch (error) {
       console.error('Erro ao atualizar transação:', error);
       setErrors({ submit: 'Erro ao atualizar transação. Tente novamente.' });
+    }
+  };
+
+  const handleConfirmScope = async (scope: 'single' | 'all' | 'fromCurrent') => {
+    if (!transaction || !pendingUpdates) return;
+
+    setIsSavingScope(true);
+
+    try {
+      if (scope === 'single') {
+        await updateTransaction(transaction.id, pendingUpdates);
+      } else {
+        const baseInstallments = transaction.installments || 1;
+        const baseInstallmentNumber = transaction.installmentNumber || 1;
+
+        // Encontrar todas as parcelas relacionadas a esta compra
+        const seriesTransactions = transactions.filter((t) => {
+          if ((t.installments || 1) !== baseInstallments) return false;
+
+          const sameType = t.type === transaction.type;
+          const sameDescription = t.description === transaction.description;
+          const sameAccount = t.accountId === transaction.accountId;
+          const sameMember = (t.memberId || null) === (transaction.memberId || null);
+          const sameCategory = t.category === transaction.category;
+
+          return sameType && sameDescription && sameAccount && sameMember && sameCategory;
+        });
+
+        const transactionsToUpdate =
+          scope === 'all'
+            ? seriesTransactions
+            : seriesTransactions.filter(
+                (t) => (t.installmentNumber || 1) >= baseInstallmentNumber
+              );
+
+        for (const tItem of transactionsToUpdate) {
+          await updateTransaction(tItem.id, pendingUpdates);
+        }
+      }
+
+      setIsScopeModalOpen(false);
+      setPendingUpdates(null);
+      onClose();
+    } catch (error) {
+      console.error('Erro ao atualizar parcelas da transação:', error);
+      setErrors({ submit: 'Erro ao atualizar parcelas da transação. Tente novamente.' });
+    } finally {
+      setIsSavingScope(false);
     }
   };
 
@@ -306,7 +381,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                   ${!isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
                 `}
               >
-                Total
+                {t('modals.newTransaction.total') || 'Total'}
               </button>
               <button
                 type="button"
@@ -316,7 +391,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                   ${isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
                 `}
               >
-                Parcela
+                {t('modals.newTransaction.installment') || 'Parcela'}
               </button>
             </div>
           </div>
@@ -328,7 +403,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Parcela Atual
+                    {t('modals.newTransaction.currentInstallment') || 'Parcela Atual'}
                   </label>
                   <input
                     type="text"
@@ -356,7 +431,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Total de Parcelas
+                    {t('modals.newTransaction.totalInstallments') || 'Total de Parcelas'}
                   </label>
                   <input
                     type="text"
@@ -484,7 +559,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
               `}
               style={{ paddingRight: '24px', width: '420px' }}
             >
-              <option value="">Selecione</option>
+              <option value="">{t('common.select') || 'Selecione'}</option>
               {bankAccounts.filter(a => a.isActive).map((account) => (
                 <option key={account.id} value={account.id}>
                   {account.name}
@@ -505,7 +580,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
               className="px-6 h-14 rounded-[40px] border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
               style={{ borderColor: '#1F2937', minWidth: '180px' }}
             >
-              Criar novo método
+              {t('modals.createMethod.title') || 'Criar novo método'}
             </button>
           </div>
           {errors.accountId && <p className="mt-1 text-sm text-red-600">{errors.accountId}</p>}
@@ -595,6 +670,82 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
           setAccountId(cardId);
         }}
       />
+
+      {/* Modal de escopo de atualização de parcelas */}
+      <Modal isOpen={isScopeModalOpen} onClose={() => !isSavingScope && setIsScopeModalOpen(false)}>
+        <div className="p-6 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {t('modals.editInstallments.title') ||
+                'Como você quer aplicar estas alterações?'}
+            </h3>
+            <p className="mt-1 text-sm text-gray-600">
+              {t('modals.editInstallments.description') ||
+                'Esta despesa faz parte de uma compra parcelada. Escolha como deseja aplicar as alterações.'}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              type="button"
+              disabled={isSavingScope}
+              onClick={() => handleConfirmScope('single')}
+              className="w-full px-4 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 text-left transition-colors"
+            >
+              <span className="block font-medium text-gray-900">
+                {t('modals.editInstallments.onlyThis') || 'Somente esta parcela'}
+              </span>
+              <span className="block text-sm text-gray-600">
+                {t('modals.editInstallments.onlyThisHint') ||
+                  'Altera apenas este mês, mantendo as outras parcelas como estão.'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isSavingScope}
+              onClick={() => handleConfirmScope('all')}
+              className="w-full px-4 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 text-left transition-colors"
+            >
+              <span className="block font-medium text-gray-900">
+                {t('modals.editInstallments.all') ||
+                  'Todas as parcelas (incluindo anteriores e futuras)'}
+              </span>
+              <span className="block text-sm text-gray-600">
+                {t('modals.editInstallments.allHint') ||
+                  'Altera esta e todas as outras parcelas desta compra.'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isSavingScope}
+              onClick={() => handleConfirmScope('fromCurrent')}
+              className="w-full px-4 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 text-left transition-colors"
+            >
+              <span className="block font-medium text-gray-900">
+                {t('modals.editInstallments.fromCurrent') ||
+                  'Somente desta parcela em diante'}
+              </span>
+              <span className="block text-sm text-gray-600">
+                {t('modals.editInstallments.fromCurrentHint') ||
+                  'Altera este mês e todas as parcelas futuras, mantendo as anteriores como estão.'}
+              </span>
+            </button>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              disabled={isSavingScope}
+              onClick={() => setIsScopeModalOpen(false)}
+              className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50 text-sm transition-colors"
+            >
+              {t('common.cancel')}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </Modal>
   );
 }

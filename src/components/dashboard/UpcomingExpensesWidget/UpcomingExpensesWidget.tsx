@@ -87,7 +87,8 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
       {/* Expenses List */}
       {upcomingExpenses.length === 0 ? (
         <div className="
-          py-12 px-4
+          px-4 py-4
+          flex-1
           flex flex-col items-center justify-center
           border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg
         ">
@@ -99,7 +100,7 @@ export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
           ">
             <CheckIcon />
           </div>
-          <p className="text-sm text-gray-400 dark:text-gray-500">{t('dashboard.noPendingExpenses')}</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 text-center">{t('dashboard.noPendingExpenses')}</p>
         </div>
       ) : (
         <div className="space-y-2 flex-1 overflow-y-auto">

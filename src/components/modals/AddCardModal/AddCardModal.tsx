@@ -313,7 +313,7 @@ export function AddCardModal({ isOpen, onClose, onCardCreated }: AddCardModalPro
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Últimos 4 Dígitos (opcional)
+            {t('modals.addCard.lastFourDigits') || 'Últimos 4 Dígitos (opcional)'}
           </label>
           <input
             type="text"

@@ -15,6 +15,8 @@
     "optional": "opcional",
     "select": "Seleccione",
     "to": "a",
+    "undo": "Deshacer",
+    "clear": "Limpiar",
     "months": {
       "january": "Enero",
       "february": "Febrero",
@@ -154,6 +156,11 @@
     "edit": "Editar",
     "delete": "Eliminar",
     "confirmDelete": "¿Está seguro de que desea eliminar esta categoría?",
+    "color": "Color",
+    "name": "Nombre",
+    "type": "Tipo",
+    "quantity": "Cantidad",
+    "actions": "Acciones",
     "categoryNames": {
       "rent": "Alquiler",
       "food": "Alimentación",
@@ -198,6 +205,7 @@
   "modals": {
     "newTransaction": {
       "title": "Nueva Transacción",
+      "editTitle": "Editar Transacción",
       "type": "Tipo",
       "income": "Ingreso",
       "expense": "Gasto",
@@ -216,7 +224,16 @@
       "addCategory": "Agregar categoría",
       "amountError": "El valor debe ser mayor que cero",
       "descriptionError": "La descripción debe tener al menos 3 caracteres",
+      "categoryError": "Seleccione una categoría",
+      "accountError": "Seleccione una cuenta o tarjeta",
+      "installmentsError": "El total de cuotas debe estar entre 1 y 360",
+      "installmentNumberError": "La cuota actual debe estar entre 1 y 360",
+      "customCategoryError": "Ingrese el nombre de la categoría",
       "saveTransaction": "Guardar Transacción",
+      "total": "Total",
+      "installment": "Cuota",
+      "currentInstallment": "Cuota Actual",
+      "totalInstallments": "Total de Cuotas",
       "transactionDate": "Fecha de la Transacción",
       "transactionAmount": "Valor de la Transacción",
       "familyGeneral": "Familia (General)",
@@ -228,7 +245,14 @@
       "weekly": "Semanal",
       "biweekly": "Quincenal",
       "monthly": "Mensual",
+      "semiannual": "Semestral",
       "yearly": "Anual",
+      "fixed": "Fija",
+      "recurrence": "Recurrencia",
+      "total": "Total",
+      "installment": "Cuota",
+      "currentInstallment": "Cuota Actual",
+      "totalInstallments": "Total de Cuotas",
       "timesCount": "Cantidad de Veces",
       "cash": "Al contado (1x)",
       "installmentsDisabledForRecurring": "Cuotas deshabilitadas para gastos recurrentes",
@@ -304,6 +328,11 @@
       "cancel": "Cancelar",
       "nameError": "El nombre de la categoría es obligatorio"
     },
+    "createMethod": {
+      "title": "Crear nuevo método",
+      "accountTab": "Cuenta",
+      "cardTab": "Tarjeta"
+    },
     "cardDetails": {
       "title": "Detalles de la Tarjeta",
       "edit": "Editar Tarjeta",
@@ -319,6 +348,16 @@
       "noTransactions": "Aún no hay gastos registrados en esta tarjeta.",
       "usagePercentage": "Porcentaje de Uso",
       "lastFourDigits": "Últimos 4 Dígitos"
+    },
+    "editInstallments": {
+      "title": "¿Cómo desea aplicar estos cambios?",
+      "description": "Este gasto forma parte de una compra a plazos. Elija cómo desea aplicar los cambios.",
+      "onlyThis": "Solo esta cuota",
+      "onlyThisHint": "Cambia solo este mes, manteniendo las otras cuotas como están.",
+      "all": "Todas las cuotas (incluyendo pasadas y futuras)",
+      "allHint": "Cambia esta y todas las demás cuotas de esta compra.",
+      "fromCurrent": "Solo desde esta cuota en adelante",
+      "fromCurrentHint": "Cambia este mes y todas las cuotas futuras, manteniendo las anteriores como están."
     }
   },
   "dashboard": {
@@ -341,6 +380,18 @@
     "noTransactionsFound": "No se encontraron transacciones.",
     "showing": "Mostrando",
     "transactionType": "Tipo de Transacción",
-    "applyFilters": "Aplicar Filtros"
+    "applyFilters": "Aplicar Filtros",
+    "dateRange": "Período personalizado",
+    "useCustomDateRange": "Usar período personalizado",
+    "selectedRange": "Período seleccionado:",
+    "expenseMarkedAsPaid": "Gasto marcado como pagado",
+    "expensePaidSuccessfully": "Gasto pagado con éxito"
+  },
+  "imageCrop": {
+    "cancel": "Cancelar",
+    "save": "Guardar"
+  },
+  "cardDetails": {
+    "installments": "Cuotas"
   }
 }

@@ -377,7 +377,7 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   const deleteCategory = async (id: string) => {
     try {
       await categoryService.delete(id);
-      setCategories((prev) => prev.filter((c) => c.id !== id));
+      await refreshCategories(); // Recarregar para atualizar lista (categorias padrão podem reaparecer se não foram criadas como customizadas)
     } catch (error) {
       console.error('Erro ao deletar categoria:', error);
       throw error;

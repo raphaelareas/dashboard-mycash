@@ -5,6 +5,27 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { formatInstallmentDisplay } from '@/utils/installmentUtils';
 
+function hexToRgba(hex: string, alpha: number): string {
+  const normalized = hex.trim().replace('#', '');
+  const isShort = normalized.length === 3;
+  const isFull = normalized.length === 6;
+  if (!isShort && !isFull) return `rgba(0, 0, 0, ${alpha})`;
+
+  const full = isShort
+    ? normalized
+        .split('')
+        .map((c) => c + c)
+        .join('')
+    : normalized;
+
+  const r = Number.parseInt(full.slice(0, 2), 16);
+  const g = Number.parseInt(full.slice(2, 4), 16);
+  const b = Number.parseInt(full.slice(4, 6), 16);
+
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return `rgba(0, 0, 0, ${alpha})`;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 const SearchIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="2"/>
@@ -44,7 +65,7 @@ const ChevronRightIcon = () => (
 );
 
 export function TransactionsTable() {
-  const { getFilteredTransactions, bankAccounts, creditCards, familyMembers } = useFinance();
+  const { getFilteredTransactions, bankAccounts, creditCards, familyMembers, categories: customCategories } = useFinance();
   const { t } = useI18n();
   const [localSearch, setLocalSearch] = useState('');
   
@@ -192,14 +213,14 @@ export function TransactionsTable() {
       {/* Table - Desktop */}
       <div className="hidden md:block border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         {/* Table Header */}
-        <div className="bg-gray-50 dark:bg-gray-700 grid grid-cols-12 gap-4 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400">
-          <div className="col-span-1">{t('transactions.avatar')}</div>
-          <div className="col-span-1">{t('transactions.date')}</div>
-          <div className="col-span-3">{t('transactions.description')}</div>
-          <div className="col-span-2">{t('transactions.category')}</div>
-          <div className="col-span-2">{t('transactions.account')}</div>
-          <div className="col-span-1">{t('transactions.installments')}</div>
-          <div className="col-span-2 text-right">{t('transactions.value')}</div>
+        <div className="bg-gray-50 dark:bg-gray-700 grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px] gap-x-3 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400">
+          <div>{t('transactions.avatar')}</div>
+          <div className="whitespace-nowrap">{t('transactions.date')}</div>
+          <div>{t('transactions.description')}</div>
+          <div>{t('transactions.category')}</div>
+          <div>{t('transactions.account')}</div>
+          <div className="pl-8">{t('transactions.installments')}</div>
+          <div className="text-right whitespace-nowrap">{t('transactions.value')}</div>
         </div>
 
         {/* Table Body */}
@@ -217,35 +238,35 @@ export function TransactionsTable() {
                 <div
                   key={transaction.id}
                   className={`
-                    grid grid-cols-12 gap-4 px-4 py-3
+                    grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px] gap-x-3 px-4 py-3
                     ${isEven ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700/50'}
                     hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150
                   `}
                 >
                   {/* Avatar */}
-                  <div className="col-span-1 flex items-center">
+                  <div className="flex items-center">
                     {avatarUrl ? (
                       <img
                         src={avatarUrl}
                         alt=""
-                        className="w-6 h-6 rounded-full"
+                        className="w-6 h-6 rounded-full flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
                         <UserIcon />
                       </div>
                     )}
                   </div>
 
                   {/* Date */}
-                  <div className="col-span-1 flex items-center text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                     {formatDateShort(new Date(transaction.date))}
                   </div>
 
                   {/* Description */}
-                  <div className="col-span-3 flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <div className={`
-                      w-6 h-6 rounded-full flex items-center justify-center
+                      w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0
                       ${transaction.type === 'income' 
                         ? 'bg-success-light dark:bg-success/20 text-success-dark dark:text-success' 
                         : 'bg-error-light dark:bg-error/20 text-error-dark dark:text-error'}
@@ -256,23 +277,50 @@ export function TransactionsTable() {
                         <ExpenseIcon />
                       )}
                     </div>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">{transaction.description}</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100 truncate">{transaction.description}</span>
                   </div>
 
                   {/* Category */}
-                  <div className="col-span-2 flex items-center">
-                    <span className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs">
-                      {categoryNames[transaction.category] || transaction.category}
-                    </span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {(() => {
+                      // Buscar cor da categoria
+                      let categoryColor = '#3247FF'; // Cor padrão
+                      const categoryName = categoryNames[transaction.category] || transaction.category;
+                      const categoryData = customCategories.find(c => 
+                        c.name.toLowerCase() === categoryName.toLowerCase() && c.type === transaction.type
+                      );
+                      if (categoryData) {
+                        categoryColor = categoryData.color;
+                      }
+                      return (
+                        <>
+                          <div
+                            className="w-3 h-3 rounded-full flex-shrink-0 border border-gray-200 dark:border-gray-600"
+                            style={{ backgroundColor: categoryColor }}
+                            title={categoryColor}
+                          />
+                          <span
+                            className="px-2 py-1 rounded-full text-xs truncate border"
+                            style={{
+                              backgroundColor: hexToRgba(categoryColor, 0.05),
+                              borderColor: hexToRgba(categoryColor, 0.15),
+                              color: categoryColor,
+                            }}
+                          >
+                            {categoryName}
+                          </span>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   {/* Account */}
-                  <div className="col-span-2 flex items-center text-sm text-gray-600 dark:text-gray-400">
-                    {getAccountName(transaction.accountId)}
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 min-w-0">
+                    <span className="truncate">{getAccountName(transaction.accountId)}</span>
                   </div>
 
                   {/* Installments */}
-                  <div className="col-span-1 flex items-center text-sm text-gray-600 dark:text-gray-400">
+                  <div className="pl-8 flex items-center justify-center text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                     {(() => {
                       const installmentDisplay = formatInstallmentDisplay(
                         transaction.installmentNumber,
@@ -283,9 +331,9 @@ export function TransactionsTable() {
                   </div>
 
                   {/* Value */}
-                  <div className="col-span-2 flex items-center justify-end">
+                  <div className="flex items-center justify-end">
                     <span className={`
-                      font-bold
+                      font-bold whitespace-nowrap
                       ${transaction.type === 'income' ? 'text-success-dark dark:text-success' : 'text-gray-900 dark:text-gray-100'}
                     `}>
                       {transaction.type === 'income' ? '+' : '-'}

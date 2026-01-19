@@ -202,7 +202,11 @@
     "uploadError": "Erro ao fazer upload da imagem. Tente novamente.",
     "saveError": "Erro ao salvar perfil. Tente novamente."
   },
-  "modals": {
+    "imageCrop": {
+      "cancel": "Cancelar",
+      "save": "Salvar"
+    },
+    "modals": {
     "newTransaction": {
       "title": "Nova Transação",
       "editTitle": "Edição de transação",
@@ -224,6 +228,11 @@
       "addCategory": "Adicionar categoria",
       "amountError": "Valor deve ser maior que zero",
       "descriptionError": "Descrição deve ter pelo menos 3 caracteres",
+      "categoryError": "Selecione uma categoria",
+      "accountError": "Selecione uma conta ou cartão",
+      "installmentsError": "Total de parcelas deve ser entre 1 e 360",
+      "installmentNumberError": "Parcela atual deve ser entre 1 e 360",
+      "customCategoryError": "Informe o nome da categoria",
       "saveTransaction": "Salvar Transação",
       "transactionDate": "Data da Transação",
       "transactionAmount": "Valor da Transação",
@@ -240,6 +249,10 @@
       "yearly": "Anual",
       "fixed": "Fixa",
       "recurrence": "Recorrência",
+      "total": "Total",
+      "installment": "Parcela",
+      "currentInstallment": "Parcela Atual",
+      "totalInstallments": "Total de Parcelas",
       "timesCount": "Quantidade de Vezes",
       "cash": "À vista (1x)",
       "installmentsDisabledForRecurring": "Parcelamento desabilitado para despesas recorrentes",
@@ -325,6 +338,11 @@
       "nameError": "Nome da categoria é obrigatório",
       "nameMinLengthError": "Nome da categoria deve ter pelo menos 2 caracteres"
     },
+    "createMethod": {
+      "title": "Criar novo método",
+      "accountTab": "Conta",
+      "cardTab": "Cartão"
+    },
     "cardDetails": {
       "title": "Detalhes do Cartão",
       "edit": "Editar Cartão",
@@ -340,6 +358,16 @@
       "noTransactions": "Nenhuma despesa registrada neste cartão ainda.",
       "usagePercentage": "Percentual de Uso",
       "lastFourDigits": "Últimos 4 Dígitos"
+    },
+    "editInstallments": {
+      "title": "Como você quer aplicar estas alterações?",
+      "description": "Esta despesa faz parte de uma compra parcelada. Escolha como deseja aplicar as alterações.",
+      "onlyThis": "Somente esta parcela",
+      "onlyThisHint": "Altera apenas este mês, mantendo as outras parcelas como estão.",
+      "all": "Todas as parcelas (incluindo anteriores e futuras)",
+      "allHint": "Altera esta e todas as outras parcelas desta compra.",
+      "fromCurrent": "Somente desta parcela em diante",
+      "fromCurrentHint": "Altera este mês e todas as parcelas futuras, mantendo as anteriores como estão."
     }
   },
   "dashboard": {
@@ -368,5 +396,12 @@
     "selectedRange": "Período selecionado:",
     "expenseMarkedAsPaid": "Despesa marcada como paga",
     "expensePaidSuccessfully": "Despesa paga com sucesso"
+  },
+  "imageCrop": {
+    "cancel": "Cancelar",
+    "save": "Salvar"
+  },
+  "cardDetails": {
+    "installments": "Parcelas"
   }
 }
