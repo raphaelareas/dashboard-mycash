@@ -1,7 +1,13 @@
 import { supabase } from '@/lib/supabase';
 import { FamilyMember } from '@/types';
 
+// Armazenar role original do banco para exibição
+const originalRoles = new Map<string, string>();
+
 const mapFamilyMemberFromDb = (row: any): FamilyMember => {
+  // Armazenar role original do banco
+  originalRoles.set(row.id, row.role);
+  
   // Mapear role do banco para o tipo TypeScript
   // Banco pode ter: 'Owner', 'Filho', 'Pai', etc.
   // TypeScript espera: 'owner' | 'member' | 'viewer'
@@ -27,6 +33,11 @@ const mapFamilyMemberFromDb = (row: any): FamilyMember => {
   };
 };
 
+// Função helper para obter role original
+export const getOriginalRole = (memberId: string): string | undefined => {
+  return originalRoles.get(memberId);
+};
+
 export const familyMemberService = {
   // Buscar todos os membros da família do usuário
   async getAll(userId: string): Promise<FamilyMember[]> {
@@ -38,8 +49,14 @@ export const familyMemberService = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data || []).map(mapFamilyMemberFromDb);
+    
+    // Limpar cache de roles originais antes de mapear
+    originalRoles.clear();
+    
+    const members = (data || []).map(mapFamilyMemberFromDb);
+    return members;
   },
+
 
   // Buscar membro por ID
   async getById(id: string): Promise<FamilyMember | null> {
@@ -54,9 +71,21 @@ export const familyMemberService = {
   },
 
   // Criar novo membro
-  async create(member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>): Promise<FamilyMember> {
+  async create(member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>, customRole?: string): Promise<FamilyMember> {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('User not authenticated');
+
+    // Mapear role: se tiver customRole, usar ele; senão mapear do TypeScript
+    let roleForDb: string;
+    if (customRole) {
+      // Role customizado (Filho, Pai, etc.) - usar diretamente
+      roleForDb = customRole;
+    } else if (member.role === 'owner') {
+      roleForDb = 'Owner';
+    } else {
+      // Para outros roles TypeScript, salvar como 'Member'
+      roleForDb = 'Member';
+    }
 
     // @ts-ignore - Database types serão gerados depois das migrations
     const { data, error } = await supabase
@@ -64,7 +93,7 @@ export const familyMemberService = {
       .insert({
         user_id: userId,
         name: member.name,
-        role: member.role,
+        role: roleForDb,
         avatar_url: member.avatarUrl || null,
         is_active: true,
       })
@@ -76,11 +105,22 @@ export const familyMemberService = {
   },
 
   // Atualizar membro
-  async update(id: string, updates: Partial<FamilyMember>): Promise<FamilyMember> {
+  async update(id: string, updates: Partial<FamilyMember>, customRole?: string): Promise<FamilyMember> {
     const updateData: any = {};
 
     if (updates.name) updateData.name = updates.name;
-    if (updates.role) updateData.role = updates.role;
+    if (updates.role !== undefined || customRole) {
+      // Se tiver customRole, usar ele; senão mapear do TypeScript
+      if (customRole) {
+        updateData.role = customRole;
+      } else if (updates.role === 'owner') {
+        updateData.role = 'Owner';
+      } else {
+        // Para outros roles TypeScript, manter como está (será mapeado de volta)
+        // Mas na prática, vamos buscar o role atual do banco e manter
+        updateData.role = updates.role;
+      }
+    }
     if (updates.avatarUrl !== undefined) updateData.avatar_url = updates.avatarUrl || null;
 
     // @ts-ignore - Database types serão gerados depois das migrations

@@ -3,86 +3,143 @@ import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
+import { FamilyMember } from '@/types';
+import { getOriginalRole } from '@/services/familyMemberService';
+
+const EditIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.3333 2.00002C11.5084 1.82487 11.7163 1.68601 11.9451 1.59129C12.1739 1.49657 12.4189 1.44775 12.6667 1.44775C12.9144 1.44775 13.1594 1.49657 13.3882 1.59129C13.617 1.68601 13.8249 1.82487 14 2.00002C14.1751 2.17517 14.314 2.38313 14.4087 2.61193C14.5034 2.84073 14.5522 3.08569 14.5522 3.33335C14.5522 3.58101 14.5034 3.82597 14.4087 4.05477C14.314 4.28357 14.1751 4.49153 14 4.66669L5.00001 13.6667L1.33334 14.6667L2.33334 11L11.3333 2.00002Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const DeleteIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 4H14M6 4V2C6 1.73478 6.10536 1.48043 6.29289 1.29289C6.48043 1.10536 6.73478 1 7 1H9C9.26522 1 9.51957 1.10536 9.70711 1.29289C9.89464 1.48043 10 1.73478 10 2V4M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2762C12.026 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31305 14.6667 3.97391 14.5262 3.72386 14.2762C3.47381 14.0261 3.33334 13.687 3.33334 13.3333V4H12.6667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
 
 export default function People() {
-  const { familyMembers } = useFinance();
+  const { familyMembers, deleteFamilyMember } = useFinance();
   const { t } = useI18n();
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
 
-  const currentUser = familyMembers[0] || null;
+  const handleDelete = async (member: FamilyMember) => {
+    // Não permitir deletar o owner
+    if (member.role.toLowerCase() === 'owner') {
+      alert('Não é possível deletar o dono da conta');
+      return;
+    }
+
+    if (window.confirm(`Tem certeza que deseja remover ${member.name} da família?`)) {
+      try {
+        await deleteFamilyMember(member.id);
+      } catch (error) {
+        console.error('Erro ao deletar membro:', error);
+        alert('Erro ao deletar membro. Tente novamente.');
+      }
+    }
+  };
+
+  const handleEdit = (member: FamilyMember) => {
+    setEditingMember(member);
+    setIsAddMemberOpen(true);
+  };
 
   return (
     <>
       <div className="w-full py-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">{t('people.title')}</h1>
+        {/* Header com botão fixo no topo direito */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">{t('people.title')}</h1>
+          <button
+            onClick={() => {
+              setEditingMember(null);
+              setIsAddMemberOpen(true);
+            }}
+            className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold flex items-center gap-2"
+          >
+            <span>+</span>
+            <span>{t('people.addMember')}</span>
+          </button>
+        </div>
 
-        <div className="space-y-6">
-          {/* Perfil do Usuário */}
-          {currentUser && (
-            <div className="p-6 bg-white rounded-lg border border-gray-200">
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                <div className="w-30 h-30 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0" style={{ width: '120px', height: '120px' }}>
-                  {currentUser.avatarUrl ? (
-                    <img src={currentUser.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+        {/* Lista de Membros da Família - Sem empty state, sempre tem owner */}
+        <div className="p-6 bg-white rounded-lg border border-gray-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">{t('people.familyMembers')}</h3>
+
+          <div className="space-y-0">
+            {familyMembers.map((member, index) => {
+              const isEven = index % 2 === 0;
+              // Obter role original do banco (Filho, Pai, etc.) ou usar o mapeado
+              const originalRole = getOriginalRole(member.id);
+              const roleDisplay = originalRole || (member.role.toLowerCase() === 'owner' ? 'Owner' : member.role);
+              
+              return (
+                <div
+                  key={member.id}
+                  className={`
+                    flex items-center gap-4 p-4 transition-colors
+                    ${isEven ? 'bg-white' : 'bg-gray-50'}
+                    hover:bg-gray-100
+                  `}
+                >
+                  {/* Botões de ação no canto esquerdo */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => handleEdit(member)}
+                      className="p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-900"
+                      title="Editar membro"
+                    >
+                      <EditIcon />
+                    </button>
+                    {member.role.toLowerCase() !== 'owner' && (
+                      <button
+                        onClick={() => handleDelete(member)}
+                        className="p-2 rounded-lg hover:bg-red-50 transition-colors text-red-600 hover:text-red-700"
+                        title="Deletar membro"
+                      >
+                        <DeleteIcon />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Avatar */}
+                  {member.avatarUrl ? (
+                    <img 
+                      src={member.avatarUrl} 
+                      alt={member.name} 
+                      className="w-12 h-12 rounded-full flex-shrink-0 object-cover" 
+                    />
                   ) : (
-                    <div className="w-full h-full rounded-full bg-gray-300" />
+                    <div className="w-12 h-12 rounded-full bg-gray-300 flex-shrink-0" />
                   )}
-                </div>
-                
-                <div className="flex-1 text-center md:text-left">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">{currentUser.name}</h2>
-                  <p className="text-gray-600 mb-2">{currentUser.role}</p>
-                  <p className="text-gray-600 mb-2 flex items-center justify-center md:justify-start gap-2">
-                    <span>✉</span>
-                    <span>{currentUser.email}</span>
+
+                  {/* Informações do membro */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">{member.name}</p>
+                    <p className="text-sm text-gray-600">{roleDisplay}</p>
+                  </div>
+
+                  {/* Renda mensal */}
+                  <p className="text-lg font-bold text-gray-900 flex-shrink-0">
+                    {formatCurrency(0)}
                   </p>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Membros da Família */}
-          <div className="p-6 bg-white rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-900">{t('people.familyMembers')}</h3>
-            </div>
-
-            {familyMembers.length <= 1 ? (
-              <div className="py-8 text-center">
-                <p className="text-gray-500 mb-4">{t('people.addFamilyMemberDescription') || 'Adicione membros da sua família para compartilhar as finanças'}</p>
-                <button
-                  onClick={() => setIsAddMemberOpen(true)}
-                  className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800"
-                >
-                  {t('people.addMember')}
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {familyMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                  >
-                    {member.avatarUrl ? (
-                      <img src={member.avatarUrl} alt="" className="w-12 h-12 rounded-full" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-gray-300" />
-                    )}
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{member.name}</p>
-                      <p className="text-sm text-gray-600">{member.role}</p>
-                    </div>
-                    <p className="text-lg font-bold text-gray-900">{formatCurrency(0)}</p>
-                  </div>
-                ))}
-              </div>
-            )}
+              );
+            })}
           </div>
         </div>
       </div>
 
-      <AddMemberModal isOpen={isAddMemberOpen} onClose={() => setIsAddMemberOpen(false)} />
+      <AddMemberModal 
+        isOpen={isAddMemberOpen} 
+        onClose={() => {
+          setIsAddMemberOpen(false);
+          setEditingMember(null);
+        }}
+        editingMember={editingMember}
+      />
     </>
   );
 }

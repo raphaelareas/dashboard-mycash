@@ -6,6 +6,8 @@ import { Modal } from '@/components/ui/Modal';
 import { formatCurrencyInput } from '@/utils/currency.utils';
 import { ImageCropModal } from '@/components/modals/ImageCropModal';
 import { storageService } from '@/services/storageService';
+import { FamilyMember } from '@/types';
+import { getOriginalRole } from '@/services/familyMemberService';
 
 const UploadIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,6 +26,7 @@ const UploadIcon = () => (
 interface AddMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editingMember?: FamilyMember | null;
 }
 
 const CloseIcon = () => (
@@ -34,8 +37,8 @@ const CloseIcon = () => (
 
 const roleSuggestions = ['Pai', 'Mãe', 'Filho', 'Filha', 'Avô', 'Avó', 'Tio', 'Tia'];
 
-export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
-  const { addFamilyMember } = useFinance();
+export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModalProps) {
+  const { addFamilyMember, updateFamilyMember } = useFinance();
   const { user } = useAuth();
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,7 +64,18 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
   }, [isOpen, familyMembers]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen && editingMember) {
+      // Modo edição: preencher campos
+      setName(editingMember.name);
+      // Buscar role original do banco usando getOriginalRole
+      const originalRole = getOriginalRole(editingMember.id);
+      const roleDisplay = originalRole || (editingMember.role === 'owner' ? 'Owner' : editingMember.role);
+      setRole(roleDisplay);
+      setAvatarUrl(editingMember.avatarUrl || '');
+      setMonthlyIncomeDisplay('');
+      setMonthlyIncome('');
+    } else if (!isOpen) {
+      // Resetar campos
       setName('');
       setRole('');
       setAvatarUrl('');
@@ -72,7 +86,7 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
       setIsCropModalOpen(false);
       setIsUploading(false);
     }
-  }, [isOpen]);
+  }, [isOpen, editingMember]);
 
   const handleMonthlyIncomeChange = (value: string) => {
     const { display, numeric } = formatCurrencyInput(value);
@@ -120,7 +134,7 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
 
     if (!name || name.length < 3) {
@@ -136,22 +150,62 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
       return;
     }
 
-    addFamilyMember({
-      userId: user?.id || '', // O serviço obtém do usuário autenticado, mas o tipo requer este campo
-      name,
-      email: '',
-      role: role as 'owner' | 'member' | 'viewer',
-      avatarUrl: avatarUrl || undefined,
-    });
-
-    onClose();
+    try {
+      if (editingMember) {
+        // Modo edição - passar role customizado diretamente
+        const roleLower = role.toLowerCase();
+        let roleToSave: 'owner' | 'member' | 'viewer' = 'member';
+        
+        if (roleLower === 'owner') {
+          roleToSave = 'owner';
+        } else if (roleLower === 'viewer') {
+          roleToSave = 'viewer';
+        } else {
+          roleToSave = 'member';
+        }
+        
+        // Passar role customizado (Filho, Pai, etc.) como parâmetro adicional
+        await updateFamilyMember(editingMember.id, {
+          name,
+          role: roleToSave,
+          avatarUrl: avatarUrl || undefined,
+        }, role); // Passar role customizado
+      } else {
+        // Modo criação - passar role customizado diretamente
+        const roleLower = role.toLowerCase();
+        let roleToSave: 'owner' | 'member' | 'viewer' = 'member';
+        
+        if (roleLower === 'owner') {
+          roleToSave = 'owner';
+        } else if (roleLower === 'viewer') {
+          roleToSave = 'viewer';
+        } else {
+          roleToSave = 'member';
+        }
+        
+        // Passar role customizado (Filho, Pai, etc.) como parâmetro adicional
+        await addFamilyMember({
+          userId: user?.id || '',
+          name,
+          email: '',
+          role: roleToSave,
+          avatarUrl: avatarUrl || undefined,
+        }, role); // Passar role customizado
+      }
+      onClose();
+    } catch (error) {
+      console.error('Erro ao salvar membro:', error);
+      setErrors({ submit: 'Erro ao salvar membro. Tente novamente.' });
+    }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
-        <h2 className="text-xl font-bold text-gray-900">{t('modals.addMember.title')}</h2>
+        <h2 className="text-xl font-bold text-gray-900">
+          {editingMember ? 'Editar Membro da Família' : t('modals.addMember.title')}
+        </h2>
         <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center">
           <CloseIcon />
         </button>

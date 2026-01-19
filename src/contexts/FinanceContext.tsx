@@ -65,8 +65,8 @@ interface FinanceContextType {
   deleteBankAccount: (id: string) => Promise<void>;
 
   // CRUD FamilyMembers
-  addFamilyMember: (member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateFamilyMember: (id: string, member: Partial<FamilyMember>) => Promise<void>;
+  addFamilyMember: (member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>, customRole?: string) => Promise<void>;
+  updateFamilyMember: (id: string, member: Partial<FamilyMember>, customRole?: string) => Promise<void>;
   deleteFamilyMember: (id: string) => Promise<void>;
 
   // CRUD Categories
@@ -288,9 +288,9 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   };
 
   // CRUD FamilyMembers
-  const addFamilyMember = async (member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addFamilyMember = async (member: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>, customRole?: string) => {
     try {
-      const newMember = await familyMemberService.create(member);
+      const newMember = await familyMemberService.create(member, customRole);
       setFamilyMembers((prev) => [...prev, newMember]);
     } catch (error) {
       console.error('Erro ao criar membro:', error);
@@ -298,9 +298,9 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     }
   };
 
-  const updateFamilyMember = async (id: string, updates: Partial<FamilyMember>) => {
+  const updateFamilyMember = async (id: string, updates: Partial<FamilyMember>, customRole?: string) => {
     try {
-      const updated = await familyMemberService.update(id, updates);
+      const updated = await familyMemberService.update(id, updates, customRole);
       setFamilyMembers((prev) =>
         prev.map((m) => (m.id === id ? updated : m))
       );
