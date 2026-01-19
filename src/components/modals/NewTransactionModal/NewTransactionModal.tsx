@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/ui/Modal';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import { CreateCategoryModal } from '@/components/modals/CreateCategoryModal';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { CreateMethodModal } from '@/components/modals/CreateMethodModal';
@@ -293,59 +294,30 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               {t('modals.newTransaction.category')}
             </label>
             <div className="flex gap-3 items-center">
-              <div className="flex-1 relative" style={{ width: '420px' }}>
-                <select
+              <div className="flex-1" style={{ width: '420px' }}>
+                <CustomSelect
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as TransactionCategory)}
-                  className={`
-                    w-full h-14 px-4 rounded-[40px] border min-w-0
-                    ${errors.category ? 'border-red-500' : 'border-gray-200'}
-                    focus:outline-none focus:ring-2 focus:ring-primary
-                  `}
-                  style={{ paddingRight: category ? '48px' : '24px' }}
-                >
-                  <option value="">{t('modals.newTransaction.selectCategory') || 'Selecione uma categoria'}</option>
-                  {/* Categorias padrão */}
-                  {defaultCategories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {categoryNames[cat] || cat}
-                    </option>
-                  ))}
-                  {/* Categorias customizadas */}
-                  {customCategories
-                    .filter(c => c.type === type)
-                    .map((customCat) => (
-                      <option key={customCat.id} value={customCat.name}>
-                        {customCat.name}
-                      </option>
-                    ))}
-                </select>
-                {/* Mostrar cor ao lado quando categoria está selecionada */}
-                {category && (() => {
-                  // Buscar cor da categoria padrão ou customizada
-                  let categoryColor = '#3247FF'; // Cor padrão
-                  
-                  // Verificar se é categoria padrão (não tem cor específica, usar padrão)
-                  if (defaultCategories.includes(category as TransactionCategory)) {
-                    categoryColor = '#3247FF';
-                  } else {
-                    // Buscar categoria customizada pelo nome
-                    const selectedCategoryData = customCategories.find(c => 
-                      c.name.toLowerCase() === category.toLowerCase() && c.type === type
-                    );
-                    if (selectedCategoryData) {
-                      categoryColor = selectedCategoryData.color;
-                    }
-                  }
-                  
-                  return (
-                    <div
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full flex-shrink-0 pointer-events-none border border-gray-200"
-                      style={{ backgroundColor: categoryColor }}
-                      title={categoryColor}
-                    />
-                  );
-                })()}
+                  onChange={(value) => setCategory(value as TransactionCategory)}
+                  placeholder={t('modals.newTransaction.selectCategory') || 'Selecione uma categoria'}
+                  className={errors.category ? 'border-red-500' : ''}
+                  error={!!errors.category}
+                  options={[
+                    // Categorias padrão
+                    ...defaultCategories.map((cat) => ({
+                      value: cat,
+                      label: categoryNames[cat] || cat,
+                      color: '#3247FF', // Cor padrão para categorias padrão
+                    })),
+                    // Categorias customizadas
+                    ...customCategories
+                      .filter(c => c.type === type)
+                      .map((customCat) => ({
+                        value: customCat.name,
+                        label: customCat.name,
+                        color: customCat.color,
+                      })),
+                  ]}
+                />
               </div>
               <button
                 type="button"
@@ -388,22 +360,24 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               {t('modals.newTransaction.member')} ({t('common.optional')})
             </label>
             <div className="flex gap-3">
-              <select
-                value={memberId || ''}
-                onChange={(e) => setMemberId(e.target.value || null)}
-                className="flex-1 h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary min-w-0"
-                style={{ paddingRight: '24px' }}
-              >
-                <option value="">{t('modals.newTransaction.familyGeneral') || 'Família (Geral)'}</option>
-                {familyMembers.map((member) => {
-                  const roleDisplay = member.role.toLowerCase() === 'owner' ? 'Owner' : member.role;
-                  return (
-                    <option key={member.id} value={member.id}>
-                      {member.name} - {roleDisplay}
-                    </option>
-                  );
-                })}
-              </select>
+              <div className="flex-1">
+                <CustomSelect
+                  value={memberId || ''}
+                  onChange={(value) => setMemberId(value || null)}
+                  placeholder={t('modals.newTransaction.familyGeneral') || 'Família (Geral)'}
+                  options={[
+                    { value: '', label: t('modals.newTransaction.familyGeneral') || 'Família (Geral)' },
+                    ...familyMembers.map((member) => {
+                      const roleDisplay = member.role.toLowerCase() === 'owner' ? 'Owner' : member.role;
+                      return {
+                        value: member.id,
+                        label: `${member.name} - ${roleDisplay}`,
+                        avatar: member.avatarUrl || undefined,
+                      };
+                    }),
+                  ]}
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => setIsAddMemberModalOpen(true)}
@@ -473,52 +447,35 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('modals.newTransaction.installments') || 'Quantidade de Parcelas'}
               </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min="1"
-                  max="12"
-                  value={installments}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value) || 1;
-                    const clampedValue = Math.max(1, Math.min(12, value));
-                    setInstallments(clampedValue);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'ArrowUp') {
-                      e.preventDefault();
-                      setInstallments(prev => Math.min(12, prev + 1));
-                    } else if (e.key === 'ArrowDown') {
-                      e.preventDefault();
-                      setInstallments(prev => Math.max(1, prev - 1));
+              <input
+                type="text"
+                value={installments}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  if (value === '') {
+                    setInstallments(1);
+                  } else {
+                    const numValue = parseInt(value);
+                    if (!isNaN(numValue) && numValue >= 1 && numValue <= 12) {
+                      setInstallments(numValue);
                     }
-                  }}
-                  disabled={isRecurring}
-                  className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setInstallments(prev => Math.min(12, prev + 1))}
-                    disabled={isRecurring || installments >= 12}
-                    className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M6 3V9M3 6H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInstallments(prev => Math.max(1, prev - 1))}
-                    disabled={isRecurring || installments <= 1}
-                    className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3 6H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                    setInstallments(1);
+                  } else {
+                    const numValue = parseInt(e.target.value);
+                    if (numValue > 12) {
+                      setInstallments(12);
+                    }
+                  }
+                }}
+                disabled={isRecurring}
+                className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                placeholder="1"
+                inputMode="numeric"
+              />
               {isRecurring && (
                 <p className="mt-1 text-sm italic text-gray-500">
                   {t('modals.newTransaction.installmentsDisabledForRecurring') || 'Parcelamento desabilitado para despesas recorrentes'}
@@ -577,12 +534,27 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                         {t('modals.newTransaction.timesCount') || 'Quantidade de Vezes'}
                       </label>
                       <input
-                        type="number"
-                        min="1"
+                        type="text"
                         value={recurrenceCount}
-                        onChange={(e) => setRecurrenceCount(parseInt(e.target.value) || 1)}
-                        className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '');
+                          if (value === '') {
+                            setRecurrenceCount(1);
+                          } else {
+                            const numValue = parseInt(value);
+                            if (!isNaN(numValue) && numValue >= 1) {
+                              setRecurrenceCount(numValue);
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                            setRecurrenceCount(1);
+                          }
+                        }}
+                        className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder="Ex: 12"
+                        inputMode="numeric"
                       />
                     </div>
                   </div>
