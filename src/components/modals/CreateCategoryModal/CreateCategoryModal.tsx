@@ -190,7 +190,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, init
           {/* Tipo de Categoria (Despesa ou Entrada) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('modals.createCategory.type') || 'Tipo'}
+              {t('modals.createCategory.type')}
             </label>
             <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px]">
               <button
@@ -201,7 +201,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, init
                   ${categoryType === 'expense' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'}
                 `}
               >
-                {t('categories.expenses') || 'Despesa'}
+                {t('categories.expenses')}
               </button>
               <button
                 type="button"
@@ -211,7 +211,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSave, initialName, init
                   ${categoryType === 'income' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'}
                 `}
               >
-                {t('categories.income') || 'Entrada'}
+                {t('categories.income')}
               </button>
             </div>
           </div>

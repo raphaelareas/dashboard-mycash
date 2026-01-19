@@ -156,11 +156,11 @@ export default function Categories() {
           <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Header da Lista */}
             <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-sm font-semibold text-gray-600 border-b border-gray-200">
-              <div className="col-span-1">{t('categories.color') || 'Cor'}</div>
-              <div className="col-span-3">{t('categories.name') || 'Nome'}</div>
-              <div className="col-span-2">{t('categories.type') || 'Tipo'}</div>
-              <div className="col-span-2">{t('categories.quantity') || 'Quantidade'}</div>
-              <div className="col-span-4 flex justify-end gap-2">{t('categories.actions') || 'Ações'}</div>
+              <div className="col-span-1">{t('categories.color')}</div>
+              <div className="col-span-3">{t('categories.name')}</div>
+              <div className="col-span-2">{t('categories.type')}</div>
+              <div className="col-span-2">{t('categories.quantity')}</div>
+              <div className="col-span-4 flex justify-end gap-2">{t('categories.actions')}</div>
             </div>
 
             {/* Lista de Categorias */}
