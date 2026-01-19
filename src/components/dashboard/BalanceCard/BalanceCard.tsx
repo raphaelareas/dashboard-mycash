@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { useCountAnimation } from '@/hooks/useCountAnimation';
@@ -14,17 +15,27 @@ const BalanceIcon = () => {
 };
 
 export function BalanceCard() {
-  const { calculateTotalBalance } = useFinance();
+  const { calculateTotalBalance, setTransactionType } = useFinance();
   const { t } = useI18n();
+  const navigate = useNavigate();
   const balance = calculateTotalBalance();
   const animatedBalance = useCountAnimation(balance);
 
+  const handleClick = () => {
+    setTransactionType('all');
+    navigate('/transacoes');
+  };
+
   return (
-    <div className="
-      w-full p-6 rounded-lg
-      bg-white dark:bg-gray-800 
-      border border-gray-200 dark:border-gray-700
-    ">
+    <div
+      onClick={handleClick}
+      className="
+        w-full p-6 rounded-lg
+        bg-white dark:bg-gray-800 
+        border border-gray-200 dark:border-gray-700
+        cursor-pointer hover:shadow-md transition-shadow
+      "
+    >
       {/* Estrutura: Ícone > Título > Valor */}
       {/* Ícone no topo */}
       <div className="mb-3">

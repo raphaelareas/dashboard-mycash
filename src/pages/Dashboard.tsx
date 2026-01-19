@@ -10,14 +10,10 @@ import { TransactionsTable } from '@/components/dashboard/TransactionsTable';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { AddCardModal } from '@/components/modals/AddCardModal';
-import { CardDetailsModal } from '@/components/modals/CardDetailsModal';
-import { CreditCard } from '@/types';
 
 export default function Dashboard() {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isAddCardOpen, setIsAddCardOpen] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null);
-  const [isCardDetailsOpen, setIsCardDetailsOpen] = useState(false);
   const [isDelayed, setIsDelayed] = useState(() => {
     // Verificar imediatamente se veio da tela de sucesso
     const cameFromSuccess = sessionStorage.getItem('fromSuccess');
@@ -74,10 +70,6 @@ export default function Dashboard() {
           <div className="lg:col-span-4">
             <CreditCardsWidget 
               onAddCard={() => setIsAddCardOpen(true)}
-              onCardClick={(card) => {
-                setSelectedCard(card);
-                setIsCardDetailsOpen(true);
-              }}
             />
           </div>
         </div>
@@ -104,13 +96,6 @@ export default function Dashboard() {
       {/* Modals */}
       <AddMemberModal isOpen={isAddMemberOpen} onClose={() => setIsAddMemberOpen(false)} />
       <AddCardModal isOpen={isAddCardOpen} onClose={() => setIsAddCardOpen(false)} />
-      <CardDetailsModal
-        isOpen={isCardDetailsOpen}
-        onClose={() => setIsCardDetailsOpen(false)}
-        card={selectedCard}
-        onAddTransaction={() => setIsCardDetailsOpen(false)}
-        onEditCard={() => setIsCardDetailsOpen(false)}
-      />
     </>
   );
 }

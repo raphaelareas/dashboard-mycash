@@ -4,7 +4,8 @@ import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { NewTransactionModal } from '@/components/modals/NewTransactionModal';
-import { TransactionCategory } from '@/types';
+import { EditTransactionModal } from '@/components/modals/EditTransactionModal';
+import { TransactionCategory, Transaction } from '@/types';
 
 const SearchIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -50,9 +51,11 @@ type SortField = 'date' | 'value' | 'description';
 type SortOrder = 'asc' | 'desc';
 
 export default function Transactions() {
-  const { getFilteredTransactions, bankAccounts, creditCards, familyMembers } = useFinance();
+  const { getFilteredTransactions, bankAccounts, creditCards, familyMembers, categories: customCategories } = useFinance();
   const { t } = useI18n();
   const [isNewTransactionOpen, setIsNewTransactionOpen] = useState(false);
+  const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   
   // Obter nomes de categorias via tradução
   const categoryNames: Record<string, string> = {
@@ -346,11 +349,12 @@ export default function Transactions() {
                 <div className="col-span-1">{t('transactions.installments')}</div>
                 <button
                   onClick={() => handleSort('value')}
-                  className="col-span-2 text-right flex items-center justify-end gap-1 hover:text-gray-900"
+                  className="col-span-1 text-right flex items-center justify-end gap-1 hover:text-gray-900"
                 >
                   {t('transactions.value')}
                   {sortField === 'value' && (sortOrder === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />)}
                 </button>
+                <div className="col-span-1"></div>
               </div>
 
               {/* Table Body */}
@@ -382,10 +386,30 @@ export default function Transactions() {
                         </div>
                         <span className="font-semibold text-gray-900">{transaction.description}</span>
                       </div>
-                      <div className="col-span-2 flex items-center">
-                        <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs">
-                          {categoryNames[transaction.category] || transaction.category}
-                        </span>
+                      <div className="col-span-2 flex items-center gap-2">
+                        {(() => {
+                          // Buscar cor da categoria
+                          let categoryColor = '#3247FF'; // Cor padrão
+                          const categoryName = categoryNames[transaction.category] || transaction.category;
+                          const categoryData = customCategories.find(c => 
+                            c.name.toLowerCase() === categoryName.toLowerCase() && c.type === transaction.type
+                          );
+                          if (categoryData) {
+                            categoryColor = categoryData.color;
+                          }
+                          return (
+                            <>
+                              <div
+                                className="w-3 h-3 rounded-full flex-shrink-0 border border-gray-200"
+                                style={{ backgroundColor: categoryColor }}
+                                title={categoryColor}
+                              />
+                              <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs">
+                                {categoryName}
+                              </span>
+                            </>
+                          );
+                        })()}
                       </div>
                       <div className="col-span-2 flex items-center text-sm text-gray-600">
                         {getAccountName(transaction.accountId)}
@@ -393,11 +417,26 @@ export default function Transactions() {
                       <div className="col-span-1 flex items-center text-sm text-gray-600">
                         {transaction.installments && transaction.installments > 1 ? `${transaction.installments}x` : '-'}
                       </div>
-                      <div className="col-span-2 flex items-center justify-end">
+                      <div className="col-span-1 flex items-center justify-end">
                         <span className={`font-bold ${transaction.type === 'income' ? 'text-green-700' : 'text-gray-900'}`}>
                           {transaction.type === 'income' ? '+' : '-'}
                           {formatCurrency(transaction.amount)}
                         </span>
+                      </div>
+                      <div className="col-span-1 flex items-center justify-end">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTransaction(transaction);
+                            setIsEditTransactionOpen(true);
+                          }}
+                          className="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center transition-colors"
+                          title="Editar transação"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11.333 2.00001C11.5084 1.82445 11.7163 1.68606 11.9439 1.59331C12.1715 1.50056 12.4142 1.45557 12.6587 1.46131C12.9031 1.46706 13.1441 1.5234 13.3671 1.62669C13.5901 1.72998 13.7906 1.87797 13.9573 2.06268C14.124 2.24738 14.2534 2.46499 14.3378 2.7019C14.4222 2.9388 14.4598 3.19047 14.4482 3.44195C14.4366 3.69342 14.376 3.93963 14.2699 4.16618C14.1638 4.39273 14.0144 4.59504 13.8313 4.76001L13.106 5.48668L10.5133 2.89334L11.2387 2.16801C11.2387 2.16801 11.333 2.00001 11.333 2.00001ZM9.88667 3.44668L12.48 6.04001L5.83333 12.6867L3.24 10.0933L9.88667 3.44668ZM2.66667 11.3333L5.26 13.9267L2.66667 13.3333V11.3333Z" fill="currentColor" stroke="currentColor" strokeWidth="0.5"/>
+                          </svg>
+                        </button>
                       </div>
                     </div>
                   );
@@ -432,6 +471,14 @@ export default function Transactions() {
       </div>
 
       <NewTransactionModal isOpen={isNewTransactionOpen} onClose={() => setIsNewTransactionOpen(false)} />
+      <EditTransactionModal
+        isOpen={isEditTransactionOpen}
+        onClose={() => {
+          setIsEditTransactionOpen(false);
+          setSelectedTransaction(null);
+        }}
+        transaction={selectedTransaction}
+      />
     </>
   );
 }

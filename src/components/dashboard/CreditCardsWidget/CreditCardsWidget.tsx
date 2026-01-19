@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -26,12 +27,12 @@ const CreditCardIcon = () => (
 
 interface CreditCardsWidgetProps {
   onAddCard?: () => void;
-  onCardClick?: (card: import('@/types').CreditCard) => void;
 }
 
-export function CreditCardsWidget({ onAddCard, onCardClick }: CreditCardsWidgetProps) {
+export function CreditCardsWidget({ onAddCard }: CreditCardsWidgetProps) {
   const { creditCards } = useFinance();
   const { t } = useI18n();
+  const navigate = useNavigate();
 
   const calculateUsagePercentage = (current: number, limit?: number): number => {
     if (!limit || limit === 0) return 0;
@@ -96,10 +97,12 @@ export function CreditCardsWidget({ onAddCard, onCardClick }: CreditCardsWidgetP
           const bgColor = getCardColor(index);
           const textColor = getTextColor(bgColor);
 
+          const availableLimit = (card.limit || 0) - card.currentBalance;
+
           return (
             <div
               key={card.id}
-              onClick={() => onCardClick?.(card)}
+              onClick={() => navigate(`/cartoes/${card.id}`)}
               className="
                 p-4 rounded-lg bg-white dark:bg-gray-700 shadow-sm
                 hover:-translate-y-1 hover:shadow-md
@@ -119,10 +122,21 @@ export function CreditCardsWidget({ onAddCard, onCardClick }: CreditCardsWidgetP
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{card.name}</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">
-                  {formatCurrency(card.currentBalance)}
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">
+                <div className="space-y-1">
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Saldo disponível</p>
+                    <p className="text-lg font-bold text-green-700 dark:text-green-400">
+                      {formatCurrency(availableLimit)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Saldo gasto</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      {formatCurrency(card.currentBalance)}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                   •••• {card.lastFourDigits}
                 </p>
               </div>
