@@ -321,7 +321,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 type="button"
                 onClick={() => setIsCreateCategoryModalOpen(true)}
                 className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
-                style={{ borderColor: '#1F2937' }}
+                style={{ borderColor: '#1F2937', minWidth: '180px' }}
               >
                 Adicionar categoria
               </button>
@@ -375,7 +375,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 type="button"
                 onClick={() => setIsAddMemberModalOpen(true)}
                 className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
-                style={{ borderColor: '#1F2937' }}
+                style={{ borderColor: '#1F2937', minWidth: '180px' }}
               >
                 Adicionar membro
               </button>
@@ -418,7 +418,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 type="button"
                 onClick={() => setIsAddCardModalOpen(true)}
                 className="px-6 h-14 rounded-full border hover:bg-gray-50 transition-colors font-medium text-gray-700 whitespace-nowrap flex-shrink-0"
-                style={{ borderColor: '#1F2937' }}
+                style={{ borderColor: '#1F2937', minWidth: '180px' }}
               >
                 Criar novo método
               </button>
