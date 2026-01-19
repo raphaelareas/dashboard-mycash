@@ -102,7 +102,7 @@ export function DashboardHeader() {
 
             {/* Widget Membros da Família - avatares sobrepostos (apenas desktop, apenas quando há membros) */}
             {isDesktop && familyMembers.length > 0 && (
-              <div className="flex items-center flex-shrink-0" style={{ marginLeft: '-8px' }}>
+              <div className="flex items-center flex-shrink-0" style={{ marginLeft: '-10px' }}>
                 {familyMembers.map((member, index) => {
                   const isSelected = selectedMember === member.id;
                   return (
@@ -112,13 +112,13 @@ export function DashboardHeader() {
                       className={`
                         w-8 h-8 rounded-full border-2 transition-colors overflow-hidden relative
                         ${isSelected 
-                          ? 'border-primary ring-2 ring-primary ring-offset-2 z-10' 
+                          ? 'border-primary ring-2 ring-primary ring-offset-2' 
                           : 'border-gray-200 dark:border-gray-700 hover:border-primary'
                         }
                       `}
                       style={{ 
-                        marginLeft: index > 0 ? '-8px' : '0',
-                        zIndex: familyMembers.length - index
+                        marginLeft: index > 0 ? '-10px' : '0',
+                        zIndex: index + 1 // Da esquerda para direita: fundo (1) → frente (último)
                       }}
                       title={member.name}
                       aria-label={`Filtrar por ${member.name}`}
@@ -138,7 +138,7 @@ export function DashboardHeader() {
                   onClick={() => navigate('/pessoas')}
                   className="w-8 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:border-primary hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors relative"
                   style={{ 
-                    marginLeft: '-8px',
+                    marginLeft: '-10px',
                     zIndex: familyMembers.length + 1
                   }}
                   title={t('people.addMember')}
