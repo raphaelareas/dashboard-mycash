@@ -17,9 +17,9 @@ const CloseIcon = () => (
   </svg>
 );
 
-const IncomeArrowIcon = () => (
+const IncomeArrowIcon = ({ color = "currentColor" }: { color?: string }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 4V20M6 10L12 4L18 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12 4V20M6 10L12 4L18 10" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
@@ -187,9 +187,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             }}
           >
             {type === 'income' ? (
-              <div style={{ color: '#0D7248' }}>
-                <IncomeArrowIcon />
-              </div>
+              <IncomeArrowIcon color="#0D7248" />
             ) : (
               <ExpenseArrowIcon />
             )}
