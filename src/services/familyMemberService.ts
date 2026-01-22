@@ -116,12 +116,22 @@ export const familyMemberService = {
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Erro ao buscar membros da família:', error);
+      throw error;
+    }
+    
+    if (!data) {
+      console.warn('Nenhum membro retornado do banco');
+      return [];
+    }
+    
+    console.log(`Membros retornados do banco: ${data.length}`);
     
     // Limpar cache de roles originais antes de mapear
     originalRoles.clear();
     
-    const members = (data || []).map(mapFamilyMemberFromDb);
+    const members = data.map(mapFamilyMemberFromDb);
     return members;
   },
 

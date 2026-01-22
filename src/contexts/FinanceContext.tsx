@@ -169,21 +169,50 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     }, 30000);
 
     try {
-      // Carregar dados em paralelo
-      const [transactionsData, accountsData, membersData, categoriesData] = await Promise.all([
+      // Carregar dados em paralelo com tratamento individual de erros
+      const results = await Promise.allSettled([
         transactionService.getAll(user.id),
         accountService.getAll(user.id),
         familyMemberService.getAll(user.id),
         categoryService.getAllCustom(user.id),
       ]);
 
-      setTransactions(transactionsData);
-      setCreditCards(accountsData.creditCards);
-      setBankAccounts(accountsData.bankAccounts);
-      setFamilyMembers(membersData);
-      setCategories(categoriesData);
+      // Processar resultados individualmente
+      if (results[0].status === 'fulfilled') {
+        setTransactions(results[0].value);
+        console.log(`✅ Transações carregadas: ${results[0].value.length}`);
+      } else {
+        console.error('❌ Erro ao carregar transações:', results[0].reason);
+        setTransactions([]);
+      }
+
+      if (results[1].status === 'fulfilled') {
+        setCreditCards(results[1].value.creditCards);
+        setBankAccounts(results[1].value.bankAccounts);
+        console.log(`✅ Contas carregadas: ${results[1].value.bankAccounts.length} contas, ${results[1].value.creditCards.length} cartões`);
+      } else {
+        console.error('❌ Erro ao carregar contas:', results[1].reason);
+        setCreditCards([]);
+        setBankAccounts([]);
+      }
+
+      if (results[2].status === 'fulfilled') {
+        setFamilyMembers(results[2].value);
+        console.log(`✅ Membros carregados: ${results[2].value.length}`);
+      } else {
+        console.error('❌ Erro ao carregar membros:', results[2].reason);
+        setFamilyMembers([]);
+      }
+
+      if (results[3].status === 'fulfilled') {
+        setCategories(results[3].value);
+        console.log(`✅ Categorias carregadas: ${results[3].value.length}`);
+      } else {
+        console.error('❌ Erro ao carregar categorias:', results[3].reason);
+        setCategories([]);
+      }
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
+      console.error('❌ Erro geral ao carregar dados:', error);
       // Em caso de erro, garantir que os dados não fiquem em estado inconsistente
       // Não limpar dados existentes, apenas logar o erro
     } finally {

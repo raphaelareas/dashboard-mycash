@@ -233,9 +233,19 @@ export const categoryService = {
 
     const { data, error } = await query;
 
-    if (error) throw error;
+    if (error) {
+      console.error('Erro ao buscar categorias:', error);
+      throw error;
+    }
+    
+    if (!data) {
+      console.warn('Nenhuma categoria retornada do banco');
+      return createDefaultCategories(userId);
+    }
+    
+    console.log(`Categorias retornadas do banco: ${data.length}`);
 
-    const customCategories = (data || []).map(mapFullCategoryFromDb);
+    const customCategories = data.map(mapFullCategoryFromDb);
     
     // Obter nomes das categorias customizadas para evitar duplicatas
     const customCategoryNames = new Set(customCategories.map(c => c.name));

@@ -46,11 +46,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Erro ao obter sessão:', error);
         setSession(null);
         setUser(null);
+        setLoading(false);
+      } else if (session) {
+        // Sessão encontrada - atualizar estado
+        console.log('Sessão encontrada na inicialização:', session.user?.email);
+        setSession(session);
+        setUser(session.user);
+        setLoading(false);
       } else {
-        setSession(session || null);
-        setUser(session?.user ?? null);
+        // Sem sessão - usuário não autenticado
+        console.log('Nenhuma sessão encontrada na inicialização');
+        setSession(null);
+        setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     }).catch((error) => {
       if (!isMounted) return;
       initialSessionChecked = true;
@@ -99,8 +108,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Para SIGNED_IN, sempre atualizar
       if (event === 'SIGNED_IN') {
         if (session) {
+          console.log('SIGNED_IN detectado:', session.user?.email);
           setSession(session);
           setUser(session.user);
+        }
+        setLoading(false);
+        return;
+      }
+      
+      // Para INITIAL_SESSION, tratar como verificação inicial
+      if (event === 'INITIAL_SESSION') {
+        if (session) {
+          console.log('INITIAL_SESSION detectado:', session.user?.email);
+          setSession(session);
+          setUser(session.user);
+        } else {
+          console.log('INITIAL_SESSION: nenhuma sessão encontrada');
+          setSession(null);
+          setUser(null);
         }
         setLoading(false);
         return;

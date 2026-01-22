@@ -97,19 +97,54 @@ const mapTransactionFromDb = (row: any): Transaction => {
 export const transactionService = {
   // Buscar todas as transações do usuário
   async getAll(userId: string): Promise<Transaction[]> {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select(`
-        *,
-        category:categories(*),
-        account:accounts(*),
-        member:family_members(*)
-      `)
-      .eq('user_id', userId)
-      .order('date', { ascending: false });
+    try {
+      // Primeiro tentar com joins
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          category:categories(*),
+          account:accounts(*),
+          member:family_members(*)
+        `)
+        .eq('user_id', userId)
+        .order('date', { ascending: false });
 
-    if (error) throw error;
-    return (data || []).map(mapTransactionFromDb);
+      if (error) {
+        console.error('Erro ao buscar transações com joins:', error);
+        // Se falhar com joins, tentar sem joins
+        console.log('Tentando buscar transações sem joins...');
+        const { data: simpleData, error: simpleError } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date', { ascending: false });
+        
+        if (simpleError) {
+          console.error('Erro ao buscar transações sem joins:', simpleError);
+          throw simpleError;
+        }
+        
+        if (!simpleData) {
+          console.warn('Nenhuma transação retornada do banco');
+          return [];
+        }
+        
+        console.log(`Transações retornadas do banco (sem joins): ${simpleData.length}`);
+        return simpleData.map((row: any) => mapTransactionFromDb({ ...row, category: null, account: null, member: null }));
+      }
+      
+      if (!data) {
+        console.warn('Nenhuma transação retornada do banco');
+        return [];
+      }
+      
+      console.log(`Transações retornadas do banco: ${data.length}`);
+      return data.map(mapTransactionFromDb);
+    } catch (err: any) {
+      console.error('Erro geral ao buscar transações:', err);
+      throw err;
+    }
   },
 
   // Buscar transação por ID

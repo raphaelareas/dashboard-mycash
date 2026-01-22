@@ -50,7 +50,17 @@ export const accountService = {
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Erro ao buscar contas:', error);
+      throw error;
+    }
+    
+    if (!accountsData) {
+      console.warn('Nenhuma conta retornada do banco');
+      return { creditCards: [], bankAccounts: [] };
+    }
+    
+    console.log(`Contas retornadas do banco: ${accountsData.length}`);
 
     // Buscar holders para todas as contas
     const holderIds = [...new Set((accountsData || []).map((a: any) => a.holder_id).filter(Boolean))];
