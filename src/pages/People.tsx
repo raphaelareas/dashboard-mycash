@@ -48,6 +48,11 @@ export default function People() {
   };
 
   const handleEdit = (member: FamilyMember) => {
+    // Não permitir editar owner através do modal
+    if (member.role.toLowerCase() === 'owner') {
+      alert('Não é possível editar o dono da conta através deste modal. O owner é gerenciado automaticamente.');
+      return;
+    }
     setEditingMember(member);
     setIsAddMemberOpen(true);
   };

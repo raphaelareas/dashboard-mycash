@@ -143,6 +143,24 @@ export const familyMemberService = {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('User not authenticated');
 
+    // Validar que não está tentando criar owner manualmente
+    const roleLower = (customRole || member.role || '').toLowerCase().trim();
+    const ownerVariations = ['owner', 'proprietário', 'proprietaria', 'dono', 'dona'];
+    if (ownerVariations.includes(roleLower)) {
+      throw new Error('Não é permitido criar membros com role "Owner" manualmente. O owner é criado automaticamente ao cadastrar a conta.');
+    }
+
+    // Verificar se já existe um owner ativo para este usuário
+    const { data: existingOwners } = await supabase
+      .from('family_members')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .ilike('role', 'owner');
+    
+    // Se não existe owner, não permitir criar (deve ser criado automaticamente no signup)
+    // Mas se estiver tentando criar owner, já bloqueamos acima
+
     // Definir cor do avatar (pastel aleatória se não vier do front)
     const color = member.color || getRandomPastelColor();
 
@@ -189,6 +207,20 @@ export const familyMemberService = {
 
   // Atualizar membro
   async update(id: string, updates: Partial<FamilyMember>, customRole?: string): Promise<FamilyMember> {
+    // Verificar se está tentando editar um owner
+    const originalRole = originalRoles.get(id);
+    if (originalRole && originalRole.toLowerCase() === 'owner') {
+      // Não permitir editar owner através deste método
+      throw new Error('Não é permitido editar o owner através deste método. O owner é gerenciado automaticamente.');
+    }
+
+    // Validar que não está tentando mudar para owner
+    const roleLower = (customRole || updates.role || '').toLowerCase().trim();
+    const ownerVariations = ['owner', 'proprietário', 'proprietaria', 'dono', 'dona'];
+    if (ownerVariations.includes(roleLower)) {
+      throw new Error('Não é permitido alterar o role para "Owner". O owner é criado automaticamente ao cadastrar a conta.');
+    }
+
     const updateData: any = {};
 
     if (updates.name) updateData.name = updates.name;
@@ -219,8 +251,8 @@ export const familyMemberService = {
     const updatedMember = mapFamilyMemberFromDb(data as any);
     
     // Se for owner e o avatar foi atualizado, sincronizar com users.avatar_url
-    // Verificar se é owner pelo role original do banco
-    const originalRole = originalRoles.get(id);
+    // Nota: Esta verificação nunca será executada para owner porque já bloqueamos acima,
+    // mas mantemos por segurança caso a lógica mude no futuro
     if (originalRole && originalRole.toLowerCase() === 'owner' && updates.avatarUrl !== undefined) {
       const userId = (await supabase.auth.getUser()).data.user?.id;
       if (userId) {
@@ -242,6 +274,12 @@ export const familyMemberService = {
 
   // Deletar membro (soft delete - marca como inativo)
   async delete(id: string): Promise<void> {
+    // Verificar se está tentando deletar um owner
+    const member = await this.getById(id);
+    if (member && member.role.toLowerCase() === 'owner') {
+      throw new Error('Não é permitido deletar o owner. O owner é o dono da conta e não pode ser removido.');
+    }
+
     // @ts-ignore - Database types serão gerados depois das migrations
     const { error } = await supabase
       .from('family_members')

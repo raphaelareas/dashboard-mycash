@@ -65,6 +65,39 @@ export const userService = {
       .single();
 
     if (error) throw error;
+
+    // Se o nome foi atualizado, sincronizar com o owner
+    if (updates.name) {
+      try {
+        // Atualizar o nome do owner para corresponder ao nome do usuário
+        await supabase
+          .from('family_members')
+          .update({ name: updates.name })
+          .eq('user_id', userId)
+          .ilike('role', 'owner')
+          .eq('is_active', true);
+      } catch (ownerError) {
+        // Logar erro mas não bloquear a atualização do perfil
+        console.error('Erro ao sincronizar nome do owner:', ownerError);
+      }
+    }
+
+    // Se o avatar foi atualizado, sincronizar com o owner
+    if (updates.avatarUrl !== undefined) {
+      try {
+        // Atualizar o avatar do owner para corresponder ao avatar do usuário
+        await supabase
+          .from('family_members')
+          .update({ avatar_url: updates.avatarUrl })
+          .eq('user_id', userId)
+          .ilike('role', 'owner')
+          .eq('is_active', true);
+      } catch (ownerError) {
+        // Logar erro mas não bloquear a atualização do perfil
+        console.error('Erro ao sincronizar avatar do owner:', ownerError);
+      }
+    }
+
     return mapUserFromDb(data);
   },
 };

@@ -157,6 +157,24 @@ export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModa
       newErrors.role = 'Por favor, informe quem é na família';
     }
 
+    // Validar que não está tentando criar/editar owner
+    const roleLower = role.toLowerCase().trim();
+    const ownerVariations = ['owner', 'proprietário', 'proprietaria', 'dono', 'dona'];
+    if (ownerVariations.includes(roleLower)) {
+      newErrors.role = 'Não é permitido criar ou editar membros com role "Owner". O owner é criado automaticamente ao cadastrar a conta.';
+    }
+
+    // Se estiver editando um owner existente, não permitir mudar o role
+    if (editingMember) {
+      const originalRole = getOriginalRole(editingMember.id);
+      if (originalRole && originalRole.toLowerCase() === 'owner') {
+        // Não permitir editar owner - apenas o nome e avatar podem ser editados em outro lugar
+        if (roleLower !== 'owner' && ownerVariations.includes(roleLower)) {
+          newErrors.role = 'Não é permitido alterar o role do owner.';
+        }
+      }
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -164,13 +182,18 @@ export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModa
 
     try {
       if (editingMember) {
+        // Modo edição - verificar se não é owner
+        const originalRole = getOriginalRole(editingMember.id);
+        if (originalRole && originalRole.toLowerCase() === 'owner') {
+          newErrors.role = 'Não é permitido editar o owner através deste modal.';
+          setErrors(newErrors);
+          return;
+        }
+        
         // Modo edição - passar role customizado diretamente
-        const roleLower = role.toLowerCase();
         let roleToSave: 'owner' | 'member' | 'viewer' = 'member';
         
-        if (roleLower === 'owner') {
-          roleToSave = 'owner';
-        } else if (roleLower === 'viewer') {
+        if (roleLower === 'viewer') {
           roleToSave = 'viewer';
         } else {
           roleToSave = 'member';
@@ -183,13 +206,10 @@ export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModa
           avatarUrl: avatarUrl || undefined,
         }, role); // Passar role customizado
       } else {
-        // Modo criação - passar role customizado diretamente
-        const roleLower = role.toLowerCase();
+        // Modo criação - não permitir criar owner
         let roleToSave: 'owner' | 'member' | 'viewer' = 'member';
         
-        if (roleLower === 'owner') {
-          roleToSave = 'owner';
-        } else if (roleLower === 'viewer') {
+        if (roleLower === 'viewer') {
           roleToSave = 'viewer';
         } else {
           roleToSave = 'member';

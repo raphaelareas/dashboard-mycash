@@ -61,8 +61,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!isMounted) return;
       clearTimeout(timeoutId);
-      setSession(session || null);
-      setUser(session?.user ?? null);
+      
+      // Evitar atualizações desnecessárias se a sessão não mudou
+      const newUser = session?.user ?? null;
+      const newSession = session || null;
+      
+      // Só atualizar se realmente mudou
+      setSession((prevSession) => {
+        if (prevSession?.access_token === newSession?.access_token) {
+          return prevSession;
+        }
+        return newSession;
+      });
+      
+      setUser((prevUser) => {
+        if (prevUser?.id === newUser?.id) {
+          return prevUser;
+        }
+        return newUser;
+      });
+      
       setLoading(false);
     });
 
@@ -181,6 +199,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
             date_format: locale.dateFormat,
             language: locale.language || 'pt-BR',
           });
+
+          // Criar owner automaticamente com o nome do usuário
+          try {
+            const { error: ownerError } = await supabase
+              .from('family_members')
+              .insert({
+                user_id: data.user.id,
+                name: name, // Nome do usuário cadastrado
+                role: 'Owner',
+                is_active: true,
+                color: '#DBEAFE', // Cor pastel padrão para owner
+              });
+
+            if (ownerError) {
+              console.error('Erro ao criar owner automaticamente:', ownerError);
+              // Não bloquear o signup se falhar ao criar owner
+            }
+          } catch (ownerError: any) {
+            console.error('Erro ao criar owner automaticamente:', ownerError);
+            // Não bloquear o signup se falhar ao criar owner
+          }
         } catch (insertError: any) {
           // Se falhar ao inserir na tabela users, logar mas não bloquear o signup
           console.error('Erro ao criar perfil do usuário:', insertError);

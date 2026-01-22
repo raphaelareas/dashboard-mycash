@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import {
   Transaction,
   Goal,
@@ -122,7 +122,8 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Iniciar loading como false - só será true quando realmente estiver carregando dados
+  const [loading, setLoading] = useState(false);
 
   // Filtros
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -137,26 +138,36 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   // dateRange é calculado: se customDateRange existe, usa ele; senão, usa o mês atual
   const dateRange: DateRange = customDateRange || getMonthRange(currentMonth);
 
-  // Carregar dados do Supabase quando usuário estiver autenticado
-  useEffect(() => {
-    if (user?.id) {
-      loadAllData();
-    } else {
-      // Limpar dados quando usuário sair
-      setTransactions([]);
-      setCreditCards([]);
-      setBankAccounts([]);
-      setFamilyMembers([]);
-      setCategories([]);
-      setGoals([]);
+  // Flag para evitar múltiplas chamadas simultâneas
+  const isLoadingRef = useRef(false);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Memoizar loadAllData para evitar recriações desnecessárias
+  const loadAllData = useCallback(async () => {
+    if (!user?.id) {
       setLoading(false);
+      return;
     }
-  }, [user?.id]);
 
-  const loadAllData = async () => {
-    if (!user?.id) return;
+    // Evitar múltiplas chamadas simultâneas
+    if (isLoadingRef.current) {
+      console.log('loadAllData já está em execução, ignorando chamada duplicada');
+      return;
+    }
 
+    isLoadingRef.current = true;
     setLoading(true);
+
+    // Timeout de segurança: se após 30 segundos ainda estiver carregando, forçar loading = false
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+    }
+    loadingTimeoutRef.current = setTimeout(() => {
+      console.warn('Timeout ao carregar dados - forçando loading = false');
+      setLoading(false);
+      isLoadingRef.current = false;
+    }, 30000);
+
     try {
       // Carregar dados em paralelo
       const [transactionsData, accountsData, membersData, categoriesData] = await Promise.all([
@@ -173,10 +184,48 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
       setCategories(categoriesData);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
+      // Em caso de erro, garantir que os dados não fiquem em estado inconsistente
+      // Não limpar dados existentes, apenas logar o erro
     } finally {
+      // Limpar timeout e resetar flag
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+      isLoadingRef.current = false;
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  // Carregar dados do Supabase quando usuário estiver autenticado
+  useEffect(() => {
+    if (user?.id) {
+      loadAllData();
+    } else {
+      // Limpar dados quando usuário sair
+      setTransactions([]);
+      setCreditCards([]);
+      setBankAccounts([]);
+      setFamilyMembers([]);
+      setCategories([]);
+      setGoals([]);
+      setLoading(false);
+      isLoadingRef.current = false;
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    }
+
+    // Cleanup ao desmontar ou quando user.id mudar
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+      isLoadingRef.current = false;
+    };
+  }, [user?.id, loadAllData]);
 
   const refreshTransactions = async () => {
     if (!user?.id) return;
