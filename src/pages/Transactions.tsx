@@ -544,14 +544,16 @@ export default function Transactions() {
       </div>
 
       <NewTransactionModal isOpen={isNewTransactionOpen} onClose={() => setIsNewTransactionOpen(false)} />
-      <EditTransactionModal
-        isOpen={isEditTransactionOpen}
-        onClose={() => {
-          setIsEditTransactionOpen(false);
-          setSelectedTransaction(null);
-        }}
-        transaction={selectedTransaction}
-      />
+      {selectedTransaction && (
+        <EditTransactionModal
+          isOpen={isEditTransactionOpen}
+          onClose={() => {
+            setIsEditTransactionOpen(false);
+            setSelectedTransaction(null);
+          }}
+          transaction={selectedTransaction}
+        />
+      )}
     </>
   );
 }

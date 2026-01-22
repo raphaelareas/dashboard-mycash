@@ -5,6 +5,8 @@ import { useI18n } from '@/contexts/I18nContext';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { formatInstallmentDisplay } from '@/utils/installmentUtils';
+import { Transaction } from '@/types';
+import { EditTransactionModal } from '@/components/modals/EditTransactionModal';
 
 function hexToRgba(hex: string, alpha: number): string {
   const normalized = hex.trim().replace('#', '');
@@ -65,11 +67,19 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
+const EditIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.333 2.00001C11.5084 1.82465 11.7163 1.68606 11.9447 1.59229C12.1731 1.49852 12.4173 1.45166 12.6637 1.45468C12.9101 1.4577 13.1533 1.51054 13.3788 1.61001C13.6043 1.70948 13.8074 1.85358 13.9773 2.03368C14.1472 2.21378 14.2803 2.42601 14.3691 2.65812C14.4579 2.89023 14.5004 3.13748 14.494 3.38585C14.4876 3.63422 14.4324 3.87888 14.3317 4.10601C14.231 4.33314 14.0869 4.53819 13.9073 4.71001L13.333 5.28334L10.6667 2.61668L11.241 2.04134L11.333 2.00001ZM9.33333 4.00001L2.66667 10.6667V13.3333H5.33333L12 6.66668L9.33333 4.00001Z" fill="currentColor"/>
+  </svg>
+);
+
 export function TransactionsTable() {
   const { getFilteredTransactions, bankAccounts, creditCards, familyMembers, categories: customCategories } = useFinance();
   const { t } = useI18n();
   const navigate = useNavigate();
   const [localSearch, setLocalSearch] = useState('');
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   // Obter nomes de categorias via tradução
   const categoryNames: Record<string, string> = {
@@ -155,6 +165,16 @@ export function TransactionsTable() {
     return [1, 2, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages - 1, totalPages];
   };
 
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingTransaction(null);
+  };
+
   const StatementIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M4 4H16V16H4V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -214,37 +234,40 @@ export function TransactionsTable() {
 
       {/* Table - Desktop */}
       <div className="hidden md:flex md:flex-col border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-        {/* Table Header */}
-        <div className="bg-gray-50 dark:bg-gray-700 grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px] gap-x-3 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400">
-          <div>{t('transactions.avatar')}</div>
-          <div className="whitespace-nowrap">{t('transactions.date')}</div>
-          <div>{t('transactions.description')}</div>
-          <div>{t('transactions.category')}</div>
-          <div>{t('transactions.account')}</div>
-          <div className="pl-8">{t('transactions.installments')}</div>
-          <div className="text-right whitespace-nowrap">{t('transactions.value')}</div>
-        </div>
-
-        {/* Table Body */}
-        {paginatedTransactions.length === 0 ? (
-          <div className="py-24 text-center text-gray-500 dark:text-gray-400">
-            {t('dashboard.noTransactionsFound') || 'Nenhum lançamento encontrado.'}
+        {/* Scroll container */}
+        <div className="overflow-x-auto">
+          {/* Table Header */}
+          <div className="bg-gray-50 dark:bg-gray-700 grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px_80px] gap-x-3 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 min-w-max">
+            <div>{t('transactions.avatar')}</div>
+            <div className="whitespace-nowrap">{t('transactions.date')}</div>
+            <div>{t('transactions.description')}</div>
+            <div>{t('transactions.category')}</div>
+            <div>{t('transactions.account')}</div>
+            <div className="pl-8">{t('transactions.installments')}</div>
+            <div className="text-right whitespace-nowrap">{t('transactions.value')}</div>
+            <div className="text-center whitespace-nowrap">{t('transactions.actions') || 'Ações'}</div>
           </div>
-        ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700 min-h-[280px]">
-            {paginatedTransactions.map((transaction, index) => {
-              const isEven = index % 2 === 0;
-              const avatarUrl = getMemberAvatar(transaction.memberId);
 
-              return (
-                <div
-                  key={transaction.id}
-                  className={`
-                    grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px] gap-x-3 px-4 py-3
-                    ${isEven ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700/50'}
-                    hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150
-                  `}
-                >
+          {/* Table Body */}
+          {paginatedTransactions.length === 0 ? (
+            <div className="py-24 text-center text-gray-500 dark:text-gray-400">
+              {t('dashboard.noTransactionsFound') || 'Nenhum lançamento encontrado.'}
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100 dark:divide-gray-700 min-h-[280px]">
+              {paginatedTransactions.map((transaction, index) => {
+                const isEven = index % 2 === 0;
+                const avatarUrl = getMemberAvatar(transaction.memberId);
+
+                return (
+                  <div
+                    key={transaction.id}
+                    className={`
+                      grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px_80px] gap-x-3 px-4 py-3 min-w-max
+                      ${isEven ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700/50'}
+                      hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150
+                    `}
+                  >
                   {/* Avatar */}
                   <div className="flex items-center">
                     {avatarUrl ? (
@@ -342,11 +365,30 @@ export function TransactionsTable() {
                       {formatCurrency(transaction.amount)}
                     </span>
                   </div>
+
+                  {/* Actions - Edit Button */}
+                  <div className="flex items-center justify-center">
+                    <button
+                      onClick={() => handleEditTransaction(transaction)}
+                      className="
+                        w-8 h-8 rounded-full
+                        flex items-center justify-center
+                        hover:bg-gray-200 dark:hover:bg-gray-600
+                        transition-colors duration-150
+                        text-gray-600 dark:text-gray-400
+                        hover:text-gray-900 dark:hover:text-gray-100
+                      "
+                      title={t('transactions.edit') || 'Editar'}
+                    >
+                      <EditIcon />
+                    </button>
+                  </div>
                 </div>
               );
             })}
           </div>
         )}
+        </div>
       </div>
 
       {/* Mobile Cards */}
@@ -502,6 +544,15 @@ export function TransactionsTable() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Edit Transaction Modal */}
+      {editingTransaction && (
+        <EditTransactionModal
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          transaction={editingTransaction}
+        />
       )}
     </div>
   );
