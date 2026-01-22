@@ -306,6 +306,9 @@ export function Sidebar() {
       // Atualizar perfil no banco
       await userService.updateProfile(user.id, { avatarUrl: url });
       
+      // Atualizar estado local imediatamente
+      setUserProfile((prev) => prev ? { ...prev, avatarUrl: url } : null);
+      
       // Recarregar perfil completo para garantir sincronização
       await loadUserProfile();
       

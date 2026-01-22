@@ -106,11 +106,12 @@ export default function MyAccount() {
     }
 
     setIsUploading(true);
+    setErrors({}); // Limpar erros anteriores
     try {
       const url = await storageService.uploadAvatar(croppedFile, user.id);
+      
+      // Atualizar estado local imediatamente
       setAvatarUrl(url);
-      setIsUploading(false);
-      setSelectedImageFile(null);
       
       // Atualizar perfil no banco
       await userService.updateProfile(user.id, { avatarUrl: url });
@@ -121,6 +122,9 @@ export default function MyAccount() {
         setProfile(updated);
         setAvatarUrl(updated.avatarUrl || null);
       }
+      
+      setIsUploading(false);
+      setSelectedImageFile(null);
     } catch (error) {
       console.error('Erro ao fazer upload da imagem:', error);
       setErrors({ avatar: t('myAccount.uploadError') || 'Erro ao fazer upload da imagem. Tente novamente.' });

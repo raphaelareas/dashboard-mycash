@@ -20,8 +20,18 @@ const CloseIcon = () => (
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const image = new Image();
-    image.addEventListener('load', () => resolve(image));
-    image.addEventListener('error', (error) => reject(error));
+    image.crossOrigin = 'anonymous'; // Permitir CORS se necessário
+    image.addEventListener('load', () => {
+      if (image.naturalWidth === 0 || image.naturalHeight === 0) {
+        reject(new Error('Imagem inválida: dimensões zero'));
+        return;
+      }
+      resolve(image);
+    });
+    image.addEventListener('error', (error) => {
+      console.error('Erro ao carregar imagem:', error);
+      reject(new Error('Erro ao carregar imagem'));
+    });
     image.src = url;
   });
 
@@ -120,35 +130,74 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
 
   // Carregar imagem quando o modal abrir
   useEffect(() => {
-    if (imageFile && isOpen) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const src = e.target?.result as string;
-        setImageSrc(src);
-      };
-      reader.readAsDataURL(imageFile);
-    }
-  }, [imageFile, isOpen]);
-
-  // Resetar estado quando fechar
-  useEffect(() => {
     if (!isOpen) {
+      // Resetar estado quando fechar
       setImageSrc('');
       setCrop({ x: 0, y: 0 });
       setZoom(1);
       setCroppedAreaPixels(null);
+      return;
     }
-  }, [isOpen]);
+
+    if (imageFile && isOpen) {
+      // Resetar estado antes de carregar nova imagem
+      setImageSrc('');
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCroppedAreaPixels(null);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const src = e.target?.result as string;
+        if (src && src.startsWith('data:')) {
+          setImageSrc(src);
+        } else {
+          console.error('Erro ao carregar imagem: resultado inválido', src?.substring(0, 50));
+        }
+      };
+      reader.onerror = (error) => {
+        console.error('Erro ao ler arquivo:', error);
+        setImageSrc(''); // Garantir que imageSrc fica vazio em caso de erro
+      };
+      reader.onabort = () => {
+        console.warn('Leitura do arquivo abortada');
+        setImageSrc('');
+      };
+      try {
+        reader.readAsDataURL(imageFile);
+      } catch (error) {
+        console.error('Erro ao iniciar leitura do arquivo:', error);
+        setImageSrc('');
+      }
+    } else if (!imageFile && isOpen) {
+      console.warn('ImageCropModal aberto sem imageFile');
+    }
+  }, [imageFile, isOpen]);
 
   const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
   const handleSave = async () => {
-    if (!imageSrc || !croppedAreaPixels || !imageFile) return;
+    if (!imageSrc) {
+      console.error('handleSave: imageSrc está vazio');
+      return;
+    }
+    if (!croppedAreaPixels) {
+      console.error('handleSave: croppedAreaPixels está vazio');
+      return;
+    }
+    if (!imageFile) {
+      console.error('handleSave: imageFile está vazio');
+      return;
+    }
 
     try {
       const blob = await getCroppedImg(imageSrc, croppedAreaPixels);
+      if (!blob) {
+        console.error('handleSave: blob é null');
+        return;
+      }
       const croppedFile = new File([blob], imageFile.name.replace(/\.[^/.]+$/, '') + '.png', {
         type: 'image/png',
         lastModified: Date.now(),
@@ -157,10 +206,39 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
       onClose();
     } catch (error) {
       console.error('Erro ao cortar imagem:', error);
+      // Não fechar o modal em caso de erro para o usuário tentar novamente
     }
   };
 
-  if (!imageFile || !imageSrc) return null;
+  if (!imageFile) {
+    console.warn('ImageCropModal: imageFile não fornecido');
+    return null;
+  }
+
+  if (!imageSrc) {
+    // Mostrar loading enquanto a imagem está sendo carregada
+    return (
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <div className="flex flex-col max-w-2xl">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
+            <h2 className="text-xl font-bold text-gray-900">Cortar Imagem</h2>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
+            >
+              <CloseIcon />
+            </button>
+          </div>
+          <div className="p-6 flex items-center justify-center" style={{ height: '400px' }}>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p className="text-sm text-gray-600">Carregando imagem...</p>
+            </div>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -185,23 +263,32 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
             
             {/* Container do cropper */}
             <div className="relative w-full" style={{ height: '400px', background: '#f0f0f0' }}>
-              <Cropper
-                image={imageSrc}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                cropShape="round"
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-                style={{
-                  containerStyle: {
-                    width: '100%',
-                    height: '100%',
-                    position: 'relative',
-                  },
-                }}
-              />
+              {imageSrc ? (
+                <Cropper
+                  image={imageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  cropShape="round"
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                  style={{
+                    containerStyle: {
+                      width: '100%',
+                      height: '100%',
+                      position: 'relative',
+                    },
+                  }}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <p className="text-sm text-gray-600">Carregando imagem...</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Controles */}
