@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import Cropper, { Area } from 'react-easy-crop';
 import { Modal } from '@/components/ui/Modal';
 import { useI18n } from '@/contexts/I18nContext';
 
@@ -15,150 +16,151 @@ const CloseIcon = () => (
   </svg>
 );
 
+// Função para criar imagem a partir de canvas
+const createImage = (url: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener('load', () => resolve(image));
+    image.addEventListener('error', (error) => reject(error));
+    image.src = url;
+  });
+
+// Função para obter área cortada redonda
+const getRoundedCanvas = (sourceCanvas: HTMLCanvasElement): HTMLCanvasElement => {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
+
+  const size = Math.min(sourceCanvas.width, sourceCanvas.height);
+  canvas.width = size;
+  canvas.height = size;
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(sourceCanvas, 0, 0, size, size);
+
+  // Criar máscara circular
+  const maskCanvas = document.createElement('canvas');
+  maskCanvas.width = size;
+  maskCanvas.height = size;
+  const maskCtx = maskCanvas.getContext('2d');
+  if (!maskCtx) return canvas;
+
+  maskCtx.fillStyle = '#000';
+  maskCtx.fillRect(0, 0, size, size);
+  maskCtx.globalCompositeOperation = 'destination-in';
+  maskCtx.beginPath();
+  maskCtx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+  maskCtx.fill();
+
+  // Aplicar máscara
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.drawImage(maskCanvas, 0, 0);
+
+  return canvas;
+};
+
+// Função para cortar imagem
+const getCroppedImg = async (
+  imageSrc: string,
+  pixelCrop: Area,
+  rotation = 0
+): Promise<Blob> => {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('No 2d context');
+
+  const maxSize = Math.max(image.width, image.height);
+  const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
+
+  canvas.width = safeArea;
+  canvas.height = safeArea;
+
+  ctx.translate(safeArea / 2, safeArea / 2);
+  ctx.rotate((rotation * Math.PI) / 180);
+  ctx.translate(-safeArea / 2, -safeArea / 2);
+
+  ctx.drawImage(
+    image,
+    safeArea / 2 - image.width * 0.5,
+    safeArea / 2 - image.height * 0.5
+  );
+
+  const data = ctx.getImageData(0, 0, safeArea, safeArea);
+
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  ctx.putImageData(
+    data,
+    Math.round(0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x),
+    Math.round(0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y)
+  );
+
+  // Aplicar máscara circular
+  const roundedCanvas = getRoundedCanvas(canvas);
+
+  return new Promise((resolve, reject) => {
+    roundedCanvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error('Canvas is empty'));
+      }
+    }, 'image/png', 0.95);
+  });
+};
+
 export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCropModalProps) {
   const { t } = useI18n();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [imageSrc, setImageSrc] = useState<string>('');
-  const [scale, setScale] = useState(1);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const cropSize = 300; // Tamanho do crop quadrado
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
+  // Carregar imagem quando o modal abrir
   useEffect(() => {
     if (imageFile && isOpen) {
       const reader = new FileReader();
       reader.onload = (e) => {
         const src = e.target?.result as string;
         setImageSrc(src);
-        const img = new Image();
-        img.onload = () => {
-          imgRef.current = img;
-          // Calcular escala inicial para preencher o crop
-          const initialScale = Math.max(cropSize / img.width, cropSize / img.height) * 1.1;
-          setScale(initialScale);
-          setPosition({ x: 0, y: 0 });
-        };
-        img.src = src;
       };
       reader.readAsDataURL(imageFile);
     }
   }, [imageFile, isOpen]);
 
+  // Resetar estado quando fechar
   useEffect(() => {
     if (!isOpen) {
       setImageSrc('');
-      setScale(1);
-      setPosition({ x: 0, y: 0 });
-      imgRef.current = null;
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCroppedAreaPixels(null);
     }
   }, [isOpen]);
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.95 : 1.05;
-    setScale((prev) => Math.max(0.5, Math.min(3, prev * delta)));
-  };
+  const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
-  };
+  const handleSave = async () => {
+    if (!imageSrc || !croppedAreaPixels || !imageFile) return;
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      setPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
+    try {
+      const blob = await getCroppedImg(imageSrc, croppedAreaPixels);
+      const croppedFile = new File([blob], imageFile.name.replace(/\.[^/.]+$/, '') + '.png', {
+        type: 'image/png',
+        lastModified: Date.now(),
       });
+      onCrop(croppedFile);
+      onClose();
+    } catch (error) {
+      console.error('Erro ao cortar imagem:', error);
     }
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleSave = () => {
-    if (!canvasRef.current || !imgRef.current) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = cropSize;
-    canvas.height = cropSize;
-
-    const img = imgRef.current;
-    
-    // Calcular dimensões da imagem escalada
-    const scaledWidth = img.width * scale;
-    const scaledHeight = img.height * scale;
-    
-    // Posição do centro do container
-    const centerX = cropSize / 2;
-    const centerY = cropSize / 2;
-    
-    // Calcular posição da imagem no preview
-    const imgLeft = centerX - scaledWidth / 2 + position.x;
-    const imgTop = centerY - scaledHeight / 2 + position.y;
-    
-    // Calcular a área da imagem original que está visível dentro do crop
-    const sourceX = Math.max(0, -imgLeft / scale);
-    const sourceY = Math.max(0, -imgTop / scale);
-    const visibleWidth = Math.min(img.width - sourceX, cropSize / scale);
-    const visibleHeight = Math.min(img.height - sourceY, cropSize / scale);
-    
-    // Calcular posição de destino no canvas
-    const destX = Math.max(0, imgLeft);
-    const destY = Math.max(0, imgTop);
-    const destWidth = Math.min(cropSize - destX, scaledWidth);
-    const destHeight = Math.min(cropSize - destY, scaledHeight);
-
-    ctx.clearRect(0, 0, cropSize, cropSize);
-    
-    // Se a imagem cobre completamente o crop, fazer crop simples
-    if (imgLeft <= 0 && imgTop <= 0 && imgLeft + scaledWidth >= cropSize && imgTop + scaledHeight >= cropSize) {
-      ctx.drawImage(
-        img,
-        sourceX,
-        sourceY,
-        visibleWidth,
-        visibleHeight,
-        0,
-        0,
-        cropSize,
-        cropSize
-      );
-    } else {
-      // Caso contrário, desenhar a parte visível
-      ctx.drawImage(
-        img,
-        sourceX,
-        sourceY,
-        visibleWidth,
-        visibleHeight,
-        destX,
-        destY,
-        destWidth,
-        destHeight
-      );
-    }
-
-    canvas.toBlob((blob) => {
-      if (blob && imageFile) {
-        const croppedFile = new File([blob], imageFile.name.replace(/\.[^/.]+$/, '') + '.png', {
-          type: 'image/png',
-          lastModified: Date.now(),
-        });
-        onCrop(croppedFile);
-        onClose();
-      }
-    }, 'image/png', 0.9);
-  };
-
-  if (!imageFile) return null;
+  if (!imageFile || !imageSrc) return null;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -181,45 +183,32 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
               Arraste para mover e use a roda do mouse para ajustar o zoom
             </p>
             
-            {/* Preview do crop */}
-            <div className="flex justify-center">
-              <div
-                ref={containerRef}
-                className="relative border-2 border-gray-300 overflow-hidden bg-gray-100 cursor-move"
-                style={{ 
-                  height: `${cropSize}px`, 
-                  width: `${cropSize}px`
+            {/* Container do cropper */}
+            <div className="relative w-full" style={{ height: '400px', background: '#f0f0f0' }}>
+              <Cropper
+                image={imageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+                style={{
+                  containerStyle: {
+                    width: '100%',
+                    height: '100%',
+                    position: 'relative',
+                  },
                 }}
-                onWheel={handleWheel}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-              >
-                {imageSrc && imgRef.current && (
-                  <img
-                    src={imageSrc}
-                    alt="Crop preview"
-                    className="absolute select-none pointer-events-none"
-                    style={{
-                      transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-                      transformOrigin: 'center center',
-                      left: '50%',
-                      top: '50%',
-                      marginLeft: `-${imgRef.current.width / 2}px`,
-                      marginTop: `-${imgRef.current.height / 2}px`,
-                    }}
-                    draggable={false}
-                  />
-                )}
-              </div>
+              />
             </div>
 
             {/* Controles */}
             <div className="mt-4 flex items-center justify-center gap-4">
               <button
                 type="button"
-                onClick={() => setScale((prev) => Math.max(0.5, prev - 0.1))}
+                onClick={() => setZoom((prev) => Math.max(1, prev - 0.1))}
                 className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"
               >
                 −
@@ -227,16 +216,13 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
               <span className="text-sm text-gray-600">Zoom</span>
               <button
                 type="button"
-                onClick={() => setScale((prev) => Math.min(3, prev + 0.1))}
+                onClick={() => setZoom((prev) => Math.min(3, prev + 0.1))}
                 className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"
               >
                 +
               </button>
             </div>
           </div>
-
-          {/* Canvas oculto para processamento */}
-          <canvas ref={canvasRef} className="hidden" />
         </div>
 
         {/* Footer */}
