@@ -267,7 +267,7 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
             </p>
             
             {/* Container do cropper */}
-            <div className="relative w-full" style={{ height: '400px', background: '#f0f0f0' }}>
+            <div className="relative w-full" style={{ height: '400px', background: '#f0f0f0', borderRadius: '8px', overflow: 'hidden' }}>
               {imageSrc ? (
                 <Cropper
                   image={imageSrc}
@@ -283,6 +283,9 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
                       width: '100%',
                       height: '100%',
                       position: 'relative',
+                    },
+                    cropAreaStyle: {
+                      border: '2px solid #fff',
                     },
                   }}
                 />
