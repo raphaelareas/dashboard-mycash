@@ -40,7 +40,32 @@ export const userService = {
       throw error;
     }
 
-    return data ? mapUserFromDb(data) : null;
+    if (!data) return null;
+
+    // Se há avatar_url salvo, gerar nova URL assinada para garantir que não expirou
+    let avatarUrl = data.avatar_url;
+    if (avatarUrl && avatarUrl.includes('/storage/v1/object/sign/avatars/')) {
+      try {
+        // Extrair o path do avatar_url antigo ou usar o padrão
+        const fileExt = avatarUrl.split('.').pop()?.split('?')[0] || 'png';
+        const fileName = `avatar.${fileExt}`;
+        const fullPath = `${userId}/${fileName}`;
+        
+        // Gerar nova URL assinada
+        const { data: signedData, error: urlError } = await supabase.storage
+          .from('avatars')
+          .createSignedUrl(fullPath, 31536000); // 1 ano de validade
+        
+        if (!urlError && signedData) {
+          avatarUrl = signedData.signedUrl;
+        }
+      } catch (error) {
+        console.error('Erro ao gerar nova URL assinada:', error);
+        // Continuar com a URL antiga se houver erro
+      }
+    }
+
+    return mapUserFromDb({ ...data, avatar_url: avatarUrl });
   },
 
   // Atualizar perfil do usuário
