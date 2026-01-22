@@ -150,16 +150,8 @@ export const familyMemberService = {
       throw new Error('Não é permitido criar membros com role "Owner" manualmente. O owner é criado automaticamente ao cadastrar a conta.');
     }
 
-    // Verificar se já existe um owner ativo para este usuário
-    const { data: existingOwners } = await supabase
-      .from('family_members')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('is_active', true)
-      .ilike('role', 'owner');
-    
-    // Se não existe owner, não permitir criar (deve ser criado automaticamente no signup)
-    // Mas se estiver tentando criar owner, já bloqueamos acima
+    // Nota: O trigger no banco de dados garante que só existe um owner ativo por usuário
+    // Não precisamos verificar aqui, pois já bloqueamos a criação de owner acima
 
     // Definir cor do avatar (pastel aleatória se não vier do front)
     const color = member.color || getRandomPastelColor();
