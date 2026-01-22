@@ -241,7 +241,20 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   // Carregar dados do Supabase quando usuário estiver autenticado
   useEffect(() => {
     if (user?.id) {
-      loadAllData();
+      // Aguardar um momento para garantir que a sessão está estabelecida
+      // Isso evita problemas de carregamento antes da sessão estar pronta
+      const loadTimer = setTimeout(() => {
+        loadAllData();
+      }, 100);
+      
+      return () => {
+        clearTimeout(loadTimer);
+        if (loadingTimeoutRef.current) {
+          clearTimeout(loadingTimeoutRef.current);
+          loadingTimeoutRef.current = null;
+        }
+        isLoadingRef.current = false;
+      };
     } else {
       // Limpar dados quando usuário sair
       setTransactions([]);
@@ -257,15 +270,6 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
         loadingTimeoutRef.current = null;
       }
     }
-
-    // Cleanup ao desmontar ou quando user.id mudar
-    return () => {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-      isLoadingRef.current = false;
-    };
   }, [user?.id, loadAllData]);
 
   const refreshTransactions = async () => {
