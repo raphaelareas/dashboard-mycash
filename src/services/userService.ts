@@ -81,26 +81,50 @@ export const userService = {
     // if (updates.phone !== undefined) updateData.phone = updates.phone;
     // if (updates.address !== undefined) updateData.address = updates.address;
 
+    // Verificar se há algo para atualizar
+    if (Object.keys(updateData).length === 0) {
+      // Se não há nada para atualizar, apenas retornar o perfil atual
+      return await this.getProfile(userId) || { id: userId, email: '', name: '' } as UserProfile;
+    }
+
     // @ts-ignore - Database types serão gerados depois das migrations
     const { data, error } = await supabase
       .from('users')
       .update(updateData)
       .eq('id', userId)
-      .select()
+      .select('*')
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      throw error;
+    }
+
+    if (!data) {
+      // Se não retornou dados, tentar buscar o perfil atual
+      const currentProfile = await this.getProfile(userId);
+      if (currentProfile) {
+        return currentProfile;
+      }
+      throw new Error('Perfil não encontrado após atualização');
+    }
 
     // Se o nome foi atualizado, sincronizar com o owner
     if (updates.name) {
       try {
         // Atualizar o nome do owner para corresponder ao nome do usuário
-        await supabase
+        // Usar .limit(1) para garantir que apenas um owner seja atualizado
+        const { error: ownerError } = await supabase
           .from('family_members')
           .update({ name: updates.name })
           .eq('user_id', userId)
           .ilike('role', 'owner')
-          .eq('is_active', true);
+          .eq('is_active', true)
+          .limit(1);
+        
+        if (ownerError) {
+          console.error('Erro ao sincronizar nome do owner:', ownerError);
+        }
       } catch (ownerError) {
         // Logar erro mas não bloquear a atualização do perfil
         console.error('Erro ao sincronizar nome do owner:', ownerError);
@@ -111,12 +135,18 @@ export const userService = {
     if (updates.avatarUrl !== undefined) {
       try {
         // Atualizar o avatar do owner para corresponder ao avatar do usuário
-        await supabase
+        // Usar .limit(1) para garantir que apenas um owner seja atualizado
+        const { error: ownerError } = await supabase
           .from('family_members')
           .update({ avatar_url: updates.avatarUrl })
           .eq('user_id', userId)
           .ilike('role', 'owner')
-          .eq('is_active', true);
+          .eq('is_active', true)
+          .limit(1);
+        
+        if (ownerError) {
+          console.error('Erro ao sincronizar avatar do owner:', ownerError);
+        }
       } catch (ownerError) {
         // Logar erro mas não bloquear a atualização do perfil
         console.error('Erro ao sincronizar avatar do owner:', ownerError);

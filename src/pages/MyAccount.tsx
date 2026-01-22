@@ -116,22 +116,39 @@ export default function MyAccount() {
       }
       
       // Atualizar perfil no banco (isso também sincroniza com o owner)
-      const updatedProfile = await userService.updateProfile(user.id, { avatarUrl: url });
-      
-      // Atualizar estado local imediatamente
-      setProfile(updatedProfile);
-      setAvatarUrl(updatedProfile.avatarUrl || url);
-      
-      // Aguardar um pouco para garantir que o owner foi atualizado no banco
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Recarregar perfil novamente para pegar a URL atualizada
-      const finalProfile = await userService.getProfile(user.id);
-      if (finalProfile) {
-        setProfile(finalProfile);
-        setAvatarUrl(finalProfile.avatarUrl || url);
-      } else {
+      try {
+        const updatedProfile = await userService.updateProfile(user.id, { avatarUrl: url });
+        
+        // Atualizar estado local imediatamente
+        setProfile(updatedProfile);
+        setAvatarUrl(updatedProfile.avatarUrl || url);
+        
+        // Aguardar um pouco para garantir que o owner foi atualizado no banco
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Recarregar perfil novamente para pegar a URL atualizada
+        try {
+          const finalProfile = await userService.getProfile(user.id);
+          if (finalProfile) {
+            setProfile(finalProfile);
+            setAvatarUrl(finalProfile.avatarUrl || url);
+          } else {
+            setAvatarUrl(url);
+          }
+        } catch (reloadError) {
+          console.warn('Erro ao recarregar perfil após upload (não crítico):', reloadError);
+          // Continuar mesmo se não conseguir recarregar
+          setAvatarUrl(url);
+        }
+      } catch (updateError: any) {
+        console.error('Erro ao atualizar perfil:', updateError);
+        // Se o update falhar, ainda podemos usar a URL do upload
         setAvatarUrl(url);
+        // Mas ainda mostrar o erro se for crítico
+        if (updateError?.message?.includes('Cannot coerce')) {
+          throw new Error('Erro ao salvar avatar no perfil. A imagem foi enviada, mas pode não aparecer após atualizar a página.');
+        }
+        throw updateError;
       }
       
       setIsUploading(false);
