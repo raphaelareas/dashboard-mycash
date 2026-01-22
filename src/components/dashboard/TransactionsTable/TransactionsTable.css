@@ -1,0 +1,44 @@
+/* Estilos para scrollbar sempre visível */
+.transactions-table-scroll {
+  overflow-x: scroll !important;
+  overflow-y: hidden !important;
+  scrollbar-width: thin;
+  scrollbar-color: #9CA3AF #F3F4F6;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.transactions-table-scroll::-webkit-scrollbar {
+  height: 8px;
+  display: block;
+}
+
+.transactions-table-scroll::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 4px;
+}
+
+.transactions-table-scroll::-webkit-scrollbar-thumb {
+  background: #9CA3AF;
+  border-radius: 4px;
+}
+
+.transactions-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6B7280;
+}
+
+/* Dark mode */
+.dark .transactions-table-scroll {
+  scrollbar-color: #6B7280 #374151;
+}
+
+.dark .transactions-table-scroll::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.dark .transactions-table-scroll::-webkit-scrollbar-thumb {
+  background: #6B7280;
+}
+
+.dark .transactions-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}

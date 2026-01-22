@@ -128,7 +128,34 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
 
   // Filtros
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  
+  // Inicializar currentMonth do localStorage ou usar data atual
+  const [currentMonth, setCurrentMonthState] = useState<Date>(() => {
+    try {
+      const saved = localStorage.getItem('dashboard_currentMonth');
+      if (saved) {
+        const parsed = new Date(saved);
+        // Verificar se a data é válida
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar mês do localStorage:', error);
+    }
+    return new Date();
+  });
+  
+  // Wrapper para setCurrentMonth que também salva no localStorage
+  const setCurrentMonth = (month: Date) => {
+    setCurrentMonthState(month);
+    try {
+      localStorage.setItem('dashboard_currentMonth', month.toISOString());
+    } catch (error) {
+      console.error('Erro ao salvar mês no localStorage:', error);
+    }
+  };
+  
   const [customDateRange, setCustomDateRange] = useState<DateRange | null>(null);
   const [transactionType, setTransactionType] = useState<'all' | 'income' | 'expense'>('all');
   const [searchText, setSearchText] = useState('');

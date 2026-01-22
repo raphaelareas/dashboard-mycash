@@ -7,6 +7,7 @@ import { formatDateShort } from '@/utils/formatDateShort';
 import { formatInstallmentDisplay } from '@/utils/installmentUtils';
 import { Transaction } from '@/types';
 import { EditTransactionModal } from '@/components/modals/EditTransactionModal';
+import './TransactionsTable.css';
 
 function hexToRgba(hex: string, alpha: number): string {
   const normalized = hex.trim().replace('#', '');
@@ -234,8 +235,8 @@ export function TransactionsTable() {
 
       {/* Table - Desktop */}
       <div className="hidden md:flex md:flex-col border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-        {/* Scroll container */}
-        <div className="overflow-x-auto">
+        {/* Scroll container - sempre mostrar scrollbar */}
+        <div className="transactions-table-scroll">
           {/* Table Header */}
           <div className="bg-gray-50 dark:bg-gray-700 grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(150px,0.8fr)_80px_140px_80px] gap-x-3 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 min-w-max">
             <div>{t('transactions.avatar')}</div>
@@ -245,7 +246,7 @@ export function TransactionsTable() {
             <div>{t('transactions.account')}</div>
             <div>{t('transactions.installments')}</div>
             <div className="text-right whitespace-nowrap">{t('transactions.value')}</div>
-            <div className="text-center whitespace-nowrap">{t('transactions.edit') || 'Editar'}</div>
+            <div className="text-center whitespace-nowrap">Editar</div>
           </div>
 
           {/* Table Body */}
