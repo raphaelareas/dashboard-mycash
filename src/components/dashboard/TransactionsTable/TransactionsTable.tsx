@@ -237,15 +237,15 @@ export function TransactionsTable() {
         {/* Scroll container */}
         <div className="overflow-x-auto">
           {/* Table Header */}
-          <div className="bg-gray-50 dark:bg-gray-700 grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px_80px] gap-x-3 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 min-w-max">
+          <div className="bg-gray-50 dark:bg-gray-700 grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(150px,0.8fr)_80px_140px_80px] gap-x-3 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 min-w-max">
             <div>{t('transactions.avatar')}</div>
             <div className="whitespace-nowrap">{t('transactions.date')}</div>
             <div>{t('transactions.description')}</div>
             <div>{t('transactions.category')}</div>
             <div>{t('transactions.account')}</div>
-            <div className="pl-8">{t('transactions.installments')}</div>
+            <div>{t('transactions.installments')}</div>
             <div className="text-right whitespace-nowrap">{t('transactions.value')}</div>
-            <div className="text-center whitespace-nowrap">{t('transactions.actions') || 'Ações'}</div>
+            <div className="text-center whitespace-nowrap">{t('transactions.edit') || 'Editar'}</div>
           </div>
 
           {/* Table Body */}
@@ -263,7 +263,7 @@ export function TransactionsTable() {
                   <div
                     key={transaction.id}
                     className={`
-                      grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(220px,1fr)_96px_140px_80px] gap-x-3 px-4 py-3 min-w-max
+                      grid grid-cols-[48px_120px_minmax(320px,1.6fr)_minmax(200px,1fr)_minmax(150px,0.8fr)_80px_140px_80px] gap-x-3 px-4 py-3 min-w-max
                       ${isEven ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700/50'}
                       hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150
                     `}
@@ -345,7 +345,7 @@ export function TransactionsTable() {
                   </div>
 
                   {/* Installments */}
-                  <div className="pl-8 flex items-center justify-center text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                  <div className="flex items-center justify-center text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                     {(() => {
                       const installmentDisplay = formatInstallmentDisplay(
                         transaction.installmentNumber,
@@ -359,7 +359,9 @@ export function TransactionsTable() {
                   <div className="flex items-center justify-end">
                     <span className={`
                       font-bold whitespace-nowrap
-                      ${transaction.type === 'income' ? 'text-success-dark dark:text-success' : 'text-gray-900 dark:text-gray-100'}
+                      ${transaction.type === 'income' 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'}
                     `}>
                       {transaction.type === 'income' ? '+' : '-'}
                       {formatCurrency(transaction.amount)}

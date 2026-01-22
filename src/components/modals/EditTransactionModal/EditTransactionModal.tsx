@@ -88,10 +88,14 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       const date = new Date(transaction.date);
       setTransactionDate(date.toISOString().split('T')[0]);
       
-      // Formatar valor para exibição
-      const formatted = formatCurrencyInput(transaction.amount.toString());
+      // Formatar valor para exibição - transaction.amount já está em reais (ex: 70.00)
+      // Precisamos converter para centavos para o formatCurrencyInput funcionar corretamente
+      // Exemplo: 70.00 -> 7000 centavos -> "70,00"
+      const amountInCents = Math.round(transaction.amount * 100);
+      const formatted = formatCurrencyInput(amountInCents.toString());
       setAmountDisplay(formatted.display);
-      setAmount(formatted.numeric.toString());
+      // Manter o valor numérico original para não perder precisão
+      setAmount(transaction.amount.toString());
       setErrors({});
     }
   }, [isOpen, transaction]);
