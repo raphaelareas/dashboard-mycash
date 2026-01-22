@@ -181,14 +181,17 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
   const handleSave = async () => {
     if (!imageSrc) {
       console.error('handleSave: imageSrc está vazio');
+      alert('Erro: Imagem não carregada. Tente novamente.');
       return;
     }
     if (!croppedAreaPixels) {
       console.error('handleSave: croppedAreaPixels está vazio');
+      alert('Erro: Área de corte não definida. Tente mover ou ajustar a imagem.');
       return;
     }
     if (!imageFile) {
       console.error('handleSave: imageFile está vazio');
+      alert('Erro: Arquivo não encontrado. Tente selecionar a imagem novamente.');
       return;
     }
 
@@ -196,6 +199,7 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
       const blob = await getCroppedImg(imageSrc, croppedAreaPixels);
       if (!blob) {
         console.error('handleSave: blob é null');
+        alert('Erro ao processar imagem. Tente novamente.');
         return;
       }
       const croppedFile = new File([blob], imageFile.name.replace(/\.[^/.]+$/, '') + '.png', {
@@ -206,6 +210,7 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
       onClose();
     } catch (error) {
       console.error('Erro ao cortar imagem:', error);
+      alert('Erro ao processar imagem. Tente novamente.');
       // Não fechar o modal em caso de erro para o usuário tentar novamente
     }
   };
