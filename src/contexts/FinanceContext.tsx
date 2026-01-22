@@ -9,6 +9,7 @@ import {
 } from '@/types';
 import { TransactionType } from '@/types';
 import { useAuth } from './AuthContext';
+import { supabase } from '@/lib/supabase';
 import { transactionService } from '@/services/transactionService';
 import { accountService } from '@/services/accountService';
 import { familyMemberService } from '@/services/familyMemberService';
@@ -145,9 +146,20 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   // Memoizar loadAllData para evitar recriações desnecessárias
   const loadAllData = useCallback(async () => {
     if (!user?.id) {
+      console.warn('loadAllData: usuário não autenticado');
       setLoading(false);
       return;
     }
+
+    // Verificar se há sessão ativa antes de carregar
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.warn('loadAllData: nenhuma sessão ativa encontrada');
+      setLoading(false);
+      return;
+    }
+
+    console.log('loadAllData: iniciando carregamento para usuário:', user.id);
 
     // Evitar múltiplas chamadas simultâneas
     if (isLoadingRef.current) {
