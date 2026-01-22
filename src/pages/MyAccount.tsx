@@ -59,8 +59,8 @@ export default function MyAccount() {
           setEmail(userProfile.email || '');
           setPhone(userProfile.phone || '');
           setAddress(userProfile.address || '');
-          // Usar foto do owner se disponível, senão usar foto do perfil
-          setAvatarUrl(owner?.avatarUrl || userProfile.avatarUrl || null);
+          // Priorizar avatar do perfil do usuário, depois do owner
+          setAvatarUrl(userProfile.avatarUrl || owner?.avatarUrl || null);
         } else {
           // Se não existe perfil, usar dados do auth
           setName(user.email?.split('@')[0] || 'Usuário');
@@ -108,26 +108,40 @@ export default function MyAccount() {
     setIsUploading(true);
     setErrors({}); // Limpar erros anteriores
     try {
+      // Fazer upload
       const url = await storageService.uploadAvatar(croppedFile, user.id);
       
+      if (!url) {
+        throw new Error('URL não retornada do upload');
+      }
+      
+      // Atualizar perfil no banco (isso também sincroniza com o owner)
+      const updatedProfile = await userService.updateProfile(user.id, { avatarUrl: url });
+      
       // Atualizar estado local imediatamente
-      setAvatarUrl(url);
+      setProfile(updatedProfile);
+      setAvatarUrl(updatedProfile.avatarUrl || url);
       
-      // Atualizar perfil no banco
-      await userService.updateProfile(user.id, { avatarUrl: url });
+      // Aguardar um pouco para garantir que o owner foi atualizado no banco
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Recarregar perfil para garantir sincronização
-      const updated = await userService.getProfile(user.id);
-      if (updated) {
-        setProfile(updated);
-        setAvatarUrl(updated.avatarUrl || null);
+      // Recarregar perfil novamente para pegar a URL atualizada
+      const finalProfile = await userService.getProfile(user.id);
+      if (finalProfile) {
+        setProfile(finalProfile);
+        setAvatarUrl(finalProfile.avatarUrl || url);
+      } else {
+        setAvatarUrl(url);
       }
       
       setIsUploading(false);
       setSelectedImageFile(null);
-    } catch (error) {
+      setIsCropModalOpen(false);
+      setErrors({}); // Garantir que não há erros
+    } catch (error: any) {
       console.error('Erro ao fazer upload da imagem:', error);
-      setErrors({ avatar: t('myAccount.uploadError') || 'Erro ao fazer upload da imagem. Tente novamente.' });
+      const errorMessage = error?.message || t('myAccount.uploadError') || 'Erro ao fazer upload da imagem. Tente novamente.';
+      setErrors({ avatar: errorMessage });
       setIsUploading(false);
     }
   };

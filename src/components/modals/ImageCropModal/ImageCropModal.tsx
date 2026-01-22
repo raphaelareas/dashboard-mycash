@@ -247,7 +247,7 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="flex flex-col max-w-2xl">
+      <div className="flex flex-col max-w-xl mx-auto max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
           <h2 className="text-xl font-bold text-gray-900">Cortar Imagem</h2>
@@ -260,68 +260,66 @@ export function ImageCropModal({ isOpen, onClose, onCrop, imageFile }: ImageCrop
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-4 text-center">
-              Arraste para mover e use a roda do mouse para ajustar o zoom
-            </p>
-            
-            {/* Container do cropper */}
-            <div className="relative w-full" style={{ height: '400px', background: '#f0f0f0', borderRadius: '8px', overflow: 'hidden' }}>
-              {imageSrc ? (
-                <Cropper
-                  image={imageSrc}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={1}
-                  cropShape="round"
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={onCropComplete}
-                  style={{
-                    containerStyle: {
-                      width: '100%',
-                      height: '100%',
-                      position: 'relative',
-                    },
-                    cropAreaStyle: {
-                      border: '2px solid #fff',
-                    },
-                  }}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                    <p className="text-sm text-gray-600">Carregando imagem...</p>
-                  </div>
+        <div className="p-6 flex flex-col">
+          <p className="text-sm text-gray-600 mb-4 text-center">
+            Arraste para mover e use a roda do mouse para ajustar o zoom
+          </p>
+          
+          {/* Container do cropper - reduzido em 30% (de 400px para 280px) */}
+          <div className="relative w-full mx-auto" style={{ height: '280px', background: '#f0f0f0', borderRadius: '8px', overflow: 'hidden' }}>
+            {imageSrc ? (
+              <Cropper
+                image={imageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+                style={{
+                  containerStyle: {
+                    width: '100%',
+                    height: '100%',
+                    position: 'relative',
+                  },
+                  cropAreaStyle: {
+                    border: '2px solid #fff',
+                  },
+                }}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                  <p className="text-sm text-gray-600">Carregando imagem...</p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+          </div>
 
-            {/* Controles */}
-            <div className="mt-4 flex items-center justify-center gap-4">
-              <button
-                type="button"
-                onClick={() => setZoom((prev) => Math.max(1, prev - 0.1))}
-                className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"
-              >
-                −
-              </button>
-              <span className="text-sm text-gray-600">Zoom</span>
-              <button
-                type="button"
-                onClick={() => setZoom((prev) => Math.min(3, prev + 0.1))}
-                className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"
-              >
-                +
-              </button>
-            </div>
+          {/* Controles */}
+          <div className="mt-4 flex items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => setZoom((prev) => Math.max(1, prev - 0.1))}
+              className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"
+            >
+              −
+            </button>
+            <span className="text-sm text-gray-600">Zoom</span>
+            <button
+              type="button"
+              onClick={() => setZoom((prev) => Math.min(3, prev + 0.1))}
+              className="px-4 py-2 rounded-[40px] border border-gray-200 hover:bg-gray-50"
+            >
+              +
+            </button>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 rounded-b-[16px]">
+        {/* Footer - dentro do modal */}
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 rounded-b-[16px] bg-white">
           <button
             onClick={onClose}
             className="px-6 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 transition-colors"

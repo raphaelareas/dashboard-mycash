@@ -187,8 +187,8 @@ export function Sidebar() {
     try {
       const profile = await userService.getProfile(user.id);
       if (profile && profile.name) {
-        // Usar foto do owner se disponível, senão usar foto do perfil
-        const avatarUrl = owner?.avatarUrl || profile.avatarUrl;
+        // Priorizar avatar do perfil do usuário, depois do owner
+        const avatarUrl = profile.avatarUrl || owner?.avatarUrl;
         setUserProfile({
           name: profile.name,
           email: profile.email,
@@ -303,7 +303,11 @@ export function Sidebar() {
     try {
       const url = await storageService.uploadAvatar(croppedFile, user.id);
       
-      // Atualizar perfil no banco
+      if (!url) {
+        throw new Error('URL não retornada do upload');
+      }
+      
+      // Atualizar perfil no banco primeiro
       await userService.updateProfile(user.id, { avatarUrl: url });
       
       // Atualizar estado local imediatamente
@@ -315,9 +319,9 @@ export function Sidebar() {
       setIsUploading(false);
       setSelectedImageFile(null);
       setIsCropModalOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao fazer upload da imagem:', error);
-      alert('Erro ao fazer upload da imagem. Tente novamente.');
+      alert(error?.message || 'Erro ao fazer upload da imagem. Tente novamente.');
       setIsUploading(false);
     }
   };
