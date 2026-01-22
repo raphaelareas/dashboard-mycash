@@ -206,7 +206,7 @@
     "uploadPhoto": "Last opp Bilde",
     "changePhoto": "Endre Bilde",
     "photoUploadSuccess": "Bilde lastet opp med suksess!",
-    "imageSizeError": "Bildet må være maksimalt 1MB",
+    "imageSizeError": "Bildet må være maksimalt 5MB",
     "invalidImage": "Vennligst velg et gyldig bilde",
     "invalidName": "Vennligst skriv inn et gyldig navn",
     "uploadError": "Feil ved opplasting av bilde. Prøv igjen.",

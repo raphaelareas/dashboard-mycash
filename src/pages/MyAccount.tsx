@@ -217,6 +217,7 @@ export default function MyAccount() {
                   <span>{isUploading ? (t('myAccount.uploading') || 'Enviando...') : avatarUrl ? (t('myAccount.changePhoto') || 'Alterar Foto') : (t('myAccount.uploadPhoto') || 'Enviar Foto')}</span>
                 </button>
               </div>
+              <p className="mt-2 text-sm text-gray-500">O limite de upload é de 5MB</p>
               {errors.avatar && <p className="mt-2 text-sm text-red-600">{errors.avatar}</p>}
               {avatarUrl && !errors.avatar && (
                 <p className="mt-2 text-sm text-green-600">{t('myAccount.photoUploadSuccess') || 'Foto enviada com sucesso!'}</p>

@@ -277,9 +277,9 @@ export function Sidebar() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tamanho (máximo 1MB)
-    if (file.size > 1024 * 1024) {
-      alert('A imagem deve ter no máximo 1MB');
+    // Validar tamanho (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('A imagem deve ter no máximo 5MB');
       return;
     }
 

@@ -206,7 +206,7 @@
     "uploadPhoto": "Foto Hochladen",
     "changePhoto": "Foto Ändern",
     "photoUploadSuccess": "Foto erfolgreich hochgeladen!",
-    "imageSizeError": "Das Bild muss maximal 1MB groß sein",
+    "imageSizeError": "Das Bild muss maximal 5MB groß sein",
     "invalidImage": "Bitte wählen Sie ein gültiges Bild aus",
     "invalidName": "Bitte geben Sie einen gültigen Namen ein",
     "uploadError": "Fehler beim Hochladen des Bildes. Bitte versuchen Sie es erneut.",
