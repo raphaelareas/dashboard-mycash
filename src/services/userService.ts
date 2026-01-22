@@ -88,26 +88,36 @@ export const userService = {
     }
 
     // @ts-ignore - Database types serão gerados depois das migrations
-    const { data, error } = await supabase
+    // Fazer o update sem select para evitar problemas com .single()
+    const { error: updateError } = await supabase
       .from('users')
       .update(updateData)
-      .eq('id', userId)
-      .select('*')
-      .single();
+      .eq('id', userId);
 
-    if (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      throw error;
+    if (updateError) {
+      console.error('Erro ao atualizar perfil:', updateError);
+      throw updateError;
     }
 
-    if (!data) {
-      // Se não retornou dados, tentar buscar o perfil atual
-      const currentProfile = await this.getProfile(userId);
-      if (currentProfile) {
-        return currentProfile;
-      }
+    // Depois buscar o perfil atualizado para garantir que temos os dados corretos
+    // Isso evita problemas com .single() e garante que temos os dados mais recentes
+    const updatedProfile = await this.getProfile(userId);
+    if (!updatedProfile) {
       throw new Error('Perfil não encontrado após atualização');
     }
+
+    // Usar os dados do perfil atualizado
+    const data = {
+      id: updatedProfile.id,
+      email: updatedProfile.email,
+      name: updatedProfile.name,
+      avatar_url: updatedProfile.avatarUrl,
+      phone: updatedProfile.phone,
+      address: updatedProfile.address,
+      currency: updatedProfile.currency,
+      date_format: updatedProfile.dateFormat,
+      language: updatedProfile.language,
+    };
 
     // Se o nome foi atualizado, sincronizar com o owner
     if (updates.name) {
