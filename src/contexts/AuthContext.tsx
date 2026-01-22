@@ -27,10 +27,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     let isMounted = true;
+    let initialSessionChecked = false;
     
     // Timeout de segurança: se após 5 segundos ainda estiver carregando, forçar loading = false
     timeoutId = setTimeout(() => {
-      if (isMounted) {
+      if (isMounted && !initialSessionChecked) {
         console.warn('Timeout ao verificar autenticação - assumindo não autenticado');
         setLoading(false);
       }
@@ -39,15 +40,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Verificar sessão inicial
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!isMounted) return;
+      initialSessionChecked = true;
       clearTimeout(timeoutId);
       if (error) {
         console.error('Erro ao obter sessão:', error);
+        setSession(null);
+        setUser(null);
+      } else {
+        setSession(session || null);
+        setUser(session?.user ?? null);
       }
-      setSession(session || null);
-      setUser(session?.user ?? null);
       setLoading(false);
     }).catch((error) => {
       if (!isMounted) return;
+      initialSessionChecked = true;
       clearTimeout(timeoutId);
       console.error('Erro ao verificar sessão:', error);
       setSession(null);
@@ -58,27 +64,84 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Listener para mudanças de autenticação
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
       clearTimeout(timeoutId);
       
-      // Evitar atualizações desnecessárias se a sessão não mudou
+      // Tratar eventos específicos
+      if (event === 'SIGNED_OUT') {
+        // Logout explícito - limpar estado
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      
+      // Para TOKEN_REFRESHED, manter a sessão atual se o user.id for o mesmo
+      if (event === 'TOKEN_REFRESHED') {
+        setSession((prevSession) => {
+          if (prevSession?.user?.id === session?.user?.id && session) {
+            // Atualizar apenas o token, mantendo o resto
+            return session;
+          }
+          return session || null;
+        });
+        setUser((prevUser) => {
+          if (prevUser?.id === session?.user?.id && session?.user) {
+            return session.user;
+          }
+          return session?.user ?? null;
+        });
+        setLoading(false);
+        return;
+      }
+      
+      // Para SIGNED_IN, sempre atualizar
+      if (event === 'SIGNED_IN') {
+        if (session) {
+          setSession(session);
+          setUser(session.user);
+        }
+        setLoading(false);
+        return;
+      }
+      
+      // Para outros eventos, verificar se a sessão realmente mudou
       const newUser = session?.user ?? null;
       const newSession = session || null;
       
-      // Só atualizar se realmente mudou
+      // Comparar de forma mais robusta
       setSession((prevSession) => {
-        if (prevSession?.access_token === newSession?.access_token) {
+        // Se ambas são null, não mudou
+        if (!prevSession && !newSession) {
           return prevSession;
         }
-        return newSession;
+        // Se uma é null e outra não, mudou
+        if (!prevSession || !newSession) {
+          return newSession;
+        }
+        // Comparar access_token e user.id
+        if (prevSession.access_token === newSession.access_token && 
+            prevSession.user?.id === newSession.user?.id) {
+          return prevSession; // Não mudou
+        }
+        return newSession; // Mudou
       });
       
       setUser((prevUser) => {
-        if (prevUser?.id === newUser?.id) {
+        // Se ambas são null, não mudou
+        if (!prevUser && !newUser) {
           return prevUser;
         }
-        return newUser;
+        // Se uma é null e outra não, mudou
+        if (!prevUser || !newUser) {
+          return newUser;
+        }
+        // Comparar IDs
+        if (prevUser.id === newUser.id) {
+          return prevUser; // Não mudou
+        }
+        return newUser; // Mudou
       });
       
       setLoading(false);
@@ -110,13 +173,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { error };
       }
 
-      // Atualizar estado imediatamente após login bem-sucedido
-      // para evitar condições de corrida e garantir sincronização
-      if (data.session) {
-        setSession(data.session);
-        setUser(data.session.user);
-        setLoading(false);
-      }
+      // Não atualizar estado aqui - deixar o onAuthStateChange fazer isso
+      // Isso evita condições de corrida e garante sincronização
+      // O onAuthStateChange será disparado automaticamente após signIn
 
       if (data.user) {
         // Criar/atualizar registro na tabela users se necessário

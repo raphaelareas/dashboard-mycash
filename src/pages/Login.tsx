@@ -58,9 +58,13 @@ export default function Login() {
           setError(errorMessage);
           setLoading(false);
         } else {
-          // Login bem-sucedido - navegar para tela de sucesso
+          // Login bem-sucedido - aguardar um momento para garantir que a sessão está estabelecida
+          // antes de navegar (o onAuthStateChange vai atualizar o estado)
           setLoading(false);
-          navigate('/success', { state: { isSignUp: false } });
+          // Pequeno delay para garantir que o estado de autenticação foi atualizado
+          setTimeout(() => {
+            navigate('/success', { state: { isSignUp: false } });
+          }, 100);
         }
       }
     } catch (err: any) {

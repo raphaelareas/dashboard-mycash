@@ -45,7 +45,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutesInner() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Não renderizar rotas enquanto está carregando autenticação
+  if (loading) {
+    return null; // O ProtectedRoute já mostra loading
+  }
 
   return (
     <Routes>
