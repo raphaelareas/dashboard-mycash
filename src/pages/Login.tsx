@@ -82,7 +82,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 relative">
       {/* Logo - canto superior esquerdo (altura fixa de 24px) */}
-      <div className="absolute left-6 z-10 flex items-center" style={{ top: '16px' }}>
+      <div className="absolute left-6 z-10 flex items-center" style={{ top: '24px' }}>
         <div className="relative inline-block">
           <svg viewBox="0 0 188 29" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ height: '24px', width: 'auto' }}>
             <path d="M14.748 0.584961C14.9777 0.346015 15.4307 0.475343 15.4307 0.901367V11.5879L14.8086 12.2344H14.8096L14.1885 12.8809C12.8434 14.2804 13.7601 16.7324 15.7441 16.7324H32.1035L22.626 26.5928C22.0626 27.179 21.3008 27.5048 20.5117 27.5049H8.66406C1.40371 27.5047 -2.30879 18.3296 2.88281 12.9287L14.748 0.584961ZM28.5664 0.540039H40.4141C47.6744 0.540222 51.3869 9.71538 46.1953 15.1162L34.3301 27.46C34.1004 27.6989 33.6475 27.5696 33.6475 27.1436V16.4561L34.2686 15.8105L34.8896 15.1641C36.2347 13.7646 35.318 11.3125 33.334 11.3125H16.9736L26.4521 1.45215C27.0156 0.866024 27.7774 0.540167 28.5664 0.540039Z" fill="black" stroke="black" strokeWidth="0.922165"/>
@@ -102,7 +102,7 @@ export default function Login() {
       </div>
 
       {/* Seletor de idioma - canto superior direito (alinhado horizontalmente com logo) */}
-      <div className="absolute top-6 right-6 z-10 flex items-center">
+      <div className="absolute right-6 z-10 flex items-center" style={{ top: '24px' }}>
         <LanguageSelector />
       </div>
       
@@ -113,7 +113,7 @@ export default function Login() {
           <h1 className="text-2xl font-bold text-gray-900">
             {isSignUp ? t('login.createAccount') : t('login.welcomeBack')}
           </h1>
-          <p className="text-sm text-gray-600" style={{ marginTop: '4px' }}>
+          <p className="text-sm text-gray-600" style={{ marginTop: '2px' }}>
             {isSignUp 
               ? t('login.createAccountSubtitle')
               : t('login.welcomeSubtitle')}
