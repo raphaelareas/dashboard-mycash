@@ -40,27 +40,12 @@ export default function Login() {
           setError(error.message || t('login.errors.createAccountError'));
           setLoading(false);
         } else {
-          // Signup bem-sucedido - salvar flag para mostrar toast na dashboard
+          // Signup bem-sucedido - usar query parameter na URL
           setLoading(false);
-          console.log('✅ Login: Signup bem-sucedido, salvando flag para toast');
+          console.log('✅ Login: Signup bem-sucedido, navegando com query param');
           
-          // Salvar flags ANTES de navegar
-          sessionStorage.setItem('showSuccessToast', 'true');
-          sessionStorage.setItem('successToastType', 'signup');
-          
-          // Verificar se foram salvos corretamente
-          const savedShow = sessionStorage.getItem('showSuccessToast');
-          const savedType = sessionStorage.getItem('successToastType');
-          console.log('📝 Login: Flags salvos (verificação):', {
-            showSuccessToast: savedShow,
-            successToastType: savedType,
-            tipoCorreto: savedType === 'signup'
-          });
-          
-          // Pequeno delay para garantir que sessionStorage foi salvo antes de navegar
-          setTimeout(() => {
-            navigate('/', { replace: true });
-          }, 100);
+          // Navegar com query parameter na URL (mais confiável que sessionStorage)
+          navigate('/?success=signup', { replace: true });
         }
       } else {
         const { error } = await signIn(email, password);
@@ -79,27 +64,12 @@ export default function Login() {
           setError(errorMessage);
           setLoading(false);
         } else {
-          // Login bem-sucedido - salvar flag para mostrar toast na dashboard
+          // Login bem-sucedido - usar query parameter na URL
           setLoading(false);
-          console.log('✅ Login: Login bem-sucedido, salvando flag para toast');
+          console.log('✅ Login: Login bem-sucedido, navegando com query param');
           
-          // Salvar flags ANTES de navegar
-          sessionStorage.setItem('showSuccessToast', 'true');
-          sessionStorage.setItem('successToastType', 'login');
-          
-          // Verificar se foram salvos corretamente
-          const savedShow = sessionStorage.getItem('showSuccessToast');
-          const savedType = sessionStorage.getItem('successToastType');
-          console.log('📝 Login: Flags salvos (verificação):', {
-            showSuccessToast: savedShow,
-            successToastType: savedType,
-            tipoCorreto: savedType === 'login'
-          });
-          
-          // Pequeno delay para garantir que sessionStorage foi salvo antes de navegar
-          setTimeout(() => {
-            navigate('/', { replace: true });
-          }, 100);
+          // Navegar com query parameter na URL (mais confiável que sessionStorage)
+          navigate('/?success=login', { replace: true });
         }
       }
     } catch (err: any) {

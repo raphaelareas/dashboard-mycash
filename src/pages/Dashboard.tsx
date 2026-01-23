@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { BalanceCard } from '@/components/dashboard/BalanceCard';
 import { IncomeCard } from '@/components/dashboard/IncomeCard';
 import { ExpenseCard } from '@/components/dashboard/ExpenseCard';
@@ -21,9 +22,10 @@ export default function Dashboard() {
   const [successMessage, setSuccessMessage] = useState('');
   const { t } = useI18n();
   const { user, loading: authLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const toastShownRef = useRef(false);
   
-  // Verificar se deve mostrar toast de sucesso após login/signup
+  // Verificar query parameter na URL para mostrar toast de sucesso após login/signup
   useEffect(() => {
     // Só verificar se não está carregando autenticação e usuário está disponível
     if (authLoading) {
@@ -42,61 +44,51 @@ export default function Dashboard() {
       return;
     }
 
-    const shouldShowToast = sessionStorage.getItem('showSuccessToast');
-    const toastType = sessionStorage.getItem('successToastType');
+    // Ler query parameter da URL
+    const successType = searchParams.get('success');
     
-    console.log('🔍 Dashboard: Verificando toast:', { 
-      shouldShowToast, 
-      toastType, 
+    console.log('🔍 Dashboard: Verificando toast na URL:', { 
+      successType, 
       user: user?.email,
-      rawType: typeof toastType,
-      typeValue: toastType
+      urlParams: Object.fromEntries(searchParams.entries())
     });
     
-    if (shouldShowToast === 'true' && toastType) {
+    if (successType === 'signup' || successType === 'login') {
       // Marcar como mostrado imediatamente para evitar duplicação
       toastShownRef.current = true;
       
-      // Salvar o tipo antes de limpar (para debug)
-      const savedType = toastType;
+      // Limpar query parameter da URL imediatamente
+      searchParams.delete('success');
+      setSearchParams(searchParams, { replace: true });
       
-      // Limpar flags imediatamente
-      sessionStorage.removeItem('showSuccessToast');
-      sessionStorage.removeItem('successToastType');
-      
-      // Definir mensagem baseada no tipo - validar explicitamente
+      // Definir mensagem baseada no tipo
       let message = '';
-      if (savedType === 'signup' || savedType === 'SignUp' || savedType === 'SIGNUP') {
+      if (successType === 'signup') {
         message = t('auth.signupSuccess');
-        console.log('✅ Dashboard: Preparando toast de SIGNUP:', message, '| Tipo recebido:', savedType);
-      } else if (savedType === 'login' || savedType === 'Login' || savedType === 'LOGIN') {
+        console.log('✅ Dashboard: Preparando toast de SIGNUP:', message);
+      } else if (successType === 'login') {
         message = t('auth.loginSuccess');
-        console.log('✅ Dashboard: Preparando toast de LOGIN:', message, '| Tipo recebido:', savedType);
-      } else {
-        console.warn('⚠️ Dashboard: Tipo de toast inválido ou desconhecido:', savedType, '| Tipo original:', toastType);
-        // Fallback: se não conseguir identificar, não mostrar toast
-        return;
+        console.log('✅ Dashboard: Preparando toast de LOGIN:', message);
       }
       
       if (!message) {
-        console.warn('⚠️ Dashboard: Mensagem vazia após processar tipo:', savedType);
+        console.warn('⚠️ Dashboard: Mensagem vazia após processar tipo:', successType);
         return;
       }
       
       setSuccessMessage(message);
       
-      // Mostrar toast após delay maior para garantir que a página está completamente renderizada
-      // Usar requestAnimationFrame para garantir que o DOM está pronto
+      // Mostrar toast após delay para garantir que a página está completamente renderizada
       requestAnimationFrame(() => {
         setTimeout(() => {
-          console.log('🎉 Dashboard: Exibindo toast agora!');
+          console.log('🎉 Dashboard: Exibindo toast agora!', message);
           setShowSuccessToast(true);
-        }, 1000); // Aumentado para 1 segundo para garantir visibilidade
+        }, 800);
       });
     } else {
-      console.log('ℹ️ Dashboard: Nenhum toast pendente');
+      console.log('ℹ️ Dashboard: Nenhum toast pendente na URL');
     }
-  }, [t, user, authLoading]);
+  }, [t, user, authLoading, searchParams, setSearchParams]);
 
   return (
     <>
