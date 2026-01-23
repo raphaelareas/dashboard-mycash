@@ -94,8 +94,8 @@ export default function Login() {
             <path d="M88.8938 28.0453C88.328 28.0453 87.797 27.9999 87.301 27.9091C86.812 27.8252 86.4068 27.7169 86.0854 27.5842L87.0914 24.2518C87.6154 24.4125 88.087 24.4998 88.5061 24.5138C88.9323 24.5278 89.299 24.43 89.6064 24.2204C89.9208 24.0108 90.1758 23.6545 90.3714 23.1515L90.6334 22.4704L84.8594 5.91333H89.554L92.8864 17.7338H93.0541L96.4179 5.91333H101.144L94.8879 23.7488C94.5875 24.6151 94.1788 25.3696 93.6619 26.0123C93.1519 26.662 92.5057 27.1616 91.7232 27.5109C90.9408 27.8671 89.9977 28.0453 88.8938 28.0453Z" fill="#080B12"/>
             <path d="M59.2227 0.547852H64.8185L70.7288 14.9672H70.9803L76.8905 0.547852H82.4864V22.0091H78.0851V8.04044H77.907L72.353 21.9044H69.356L63.802 7.98805H63.6239V22.0091H59.2227V0.547852Z" fill="#080B12"/>
           </svg>
-          {/* Label ALPHA - posicionado no canto direito inferior da logo com gap de 4px */}
-          <span className="absolute bottom-0 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider rounded border transform translate-x-1/2 translate-y-1/2" style={{ right: '-4px', backgroundColor: '#E5E7EB', color: '#1F2937', borderColor: '#1F2937' }}>
+          {/* Label ALPHA - posicionado no canto direito inferior da logo com gap de 12px (4px horizontal + 8px vertical) */}
+          <span className="absolute px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider rounded border transform translate-x-1/2 translate-y-1/2" style={{ bottom: '-8px', right: '-4px', backgroundColor: '#E5E7EB', color: '#1F2937', borderColor: '#1F2937' }}>
             ALPHA
           </span>
         </div>
