@@ -316,9 +316,20 @@ export default function MyAccount() {
       // Mostrar toast de sucesso
       setToastMessage(t('myAccount.saveSuccess') || 'Perfil atualizado com sucesso!');
       setIsToastVisible(true);
-    } catch (error) {
-      console.error('Erro ao salvar perfil:', error);
-      setErrors({ general: t('myAccount.saveError') || 'Erro ao salvar perfil. Tente novamente.' });
+    } catch (error: any) {
+      console.error('❌ Erro ao salvar perfil:', error);
+      
+      // Mensagem de erro mais específica
+      let errorMessage = t('myAccount.saveError') || 'Erro ao salvar perfil. Tente novamente.';
+      
+      if (error?.code === '42703') {
+        // Erro de coluna não existe (migration não aplicada)
+        errorMessage = 'Erro: Campos de endereço não encontrados. Verifique se a migration 008 foi aplicada no banco de dados.';
+      } else if (error?.message) {
+        errorMessage = `Erro: ${error.message}`;
+      }
+      
+      setErrors({ general: errorMessage });
     } finally {
       setSaving(false);
     }

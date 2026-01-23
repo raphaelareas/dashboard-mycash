@@ -129,34 +129,89 @@ export const userService = {
       language: string;
     }>
   ): Promise<UserProfile> {
-    const updateData: any = {};
+    // Separar campos básicos (que sempre existem) dos campos de endereço (que podem não existir)
+    const basicUpdateData: any = {};
+    const addressUpdateData: any = {};
 
-    if (updates.name) updateData.name = updates.name;
-    if (updates.phone !== undefined) updateData.phone = updates.phone;
-    if (updates.address !== undefined) updateData.address = updates.address; // Mantido para compatibilidade
-    if (updates.cep !== undefined) updateData.cep = updates.cep;
-    if (updates.street !== undefined) updateData.street = updates.street;
-    if (updates.addressNumber !== undefined) updateData.address_number = updates.addressNumber;
-    if (updates.city !== undefined) updateData.city = updates.city;
-    if (updates.state !== undefined) updateData.state = updates.state;
-    if (updates.currency !== undefined) updateData.currency = updates.currency;
-    if (updates.dateFormat !== undefined) updateData.date_format = updates.dateFormat;
-    if (updates.language !== undefined) updateData.language = updates.language;
+    // Campos básicos (sempre existem)
+    if (updates.name) basicUpdateData.name = updates.name;
+    if (updates.phone !== undefined) basicUpdateData.phone = updates.phone;
+    if (updates.currency !== undefined) basicUpdateData.currency = updates.currency;
+    if (updates.dateFormat !== undefined) basicUpdateData.date_format = updates.dateFormat;
+    if (updates.language !== undefined) basicUpdateData.language = updates.language;
+    if (updates.address !== undefined) basicUpdateData.address = updates.address; // Mantido para compatibilidade
+
+    // Campos de endereço (podem não existir se migration não foi aplicada)
+    if (updates.cep !== undefined) addressUpdateData.cep = updates.cep;
+    if (updates.street !== undefined) addressUpdateData.street = updates.street;
+    if (updates.addressNumber !== undefined) addressUpdateData.address_number = updates.addressNumber;
+    if (updates.city !== undefined) addressUpdateData.city = updates.city;
+    if (updates.state !== undefined) addressUpdateData.state = updates.state;
 
     // Verificar se há algo para atualizar
-    if (Object.keys(updateData).length === 0) {
+    const hasBasicUpdates = Object.keys(basicUpdateData).length > 0;
+    const hasAddressUpdates = Object.keys(addressUpdateData).length > 0;
+
+    if (!hasBasicUpdates && !hasAddressUpdates) {
       return await this.getProfile(userId) || { id: userId, email: '', name: '' } as UserProfile;
     }
 
+    // Atualizar campos básicos primeiro
+    if (hasBasicUpdates) {
+      const { error: basicError } = await supabase
+        .from('users')
+        .update(basicUpdateData)
+        .eq('id', userId);
+
+      if (basicError) {
+        console.error('❌ Erro ao atualizar campos básicos do perfil:', {
+          error: basicError,
+          errorCode: basicError.code,
+          errorMessage: basicError.message,
+          errorDetails: basicError.details,
+          updateData: basicUpdateData,
+          userId,
+        });
+        throw basicError;
+      }
+    }
+
+    // Tentar atualizar campos de endereço (pode falhar se migration não foi aplicada)
+    if (hasAddressUpdates) {
+      const { error: addressError } = await supabase
+        .from('users')
+        .update(addressUpdateData)
+        .eq('id', userId);
+
+      if (addressError) {
+        // Se erro for de coluna não encontrada, apenas logar (não bloquear)
+        if (addressError.code === '42703' || addressError.message?.includes('column') || addressError.message?.includes('does not exist')) {
+          console.warn('⚠️ Campos de endereço não encontrados. Migration 008 pode não ter sido aplicada:', {
+            error: addressError,
+            addressUpdateData,
+          });
+          // Continuar sem lançar erro - campos básicos foram salvos
+        } else {
+          console.error('❌ Erro ao atualizar campos de endereço:', {
+            error: addressError,
+            errorCode: addressError.code,
+            errorMessage: addressError.message,
+            addressUpdateData,
+          });
+          throw addressError;
+        }
+      }
+    }
+
+    // Buscar perfil atualizado
     const { data, error } = await supabase
       .from('users')
-      .update(updateData)
-      .eq('id', userId)
       .select('*')
+      .eq('id', userId)
       .single();
 
     if (error) {
-      console.error('Erro ao atualizar perfil:', error);
+      console.error('❌ Erro ao buscar perfil após atualização:', error);
       throw error;
     }
 
