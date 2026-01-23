@@ -1,5 +1,5 @@
 import { useI18n } from '@/contexts/I18nContext';
-import { formatCurrency } from '@/utils/formatCurrency';
+import { useCurrencyFormat } from '@/hooks/useCurrencyFormat';
 
 interface CategoryDonutCardProps {
   category: string;
@@ -10,6 +10,7 @@ interface CategoryDonutCardProps {
 
 export function CategoryDonutCard({ category, amount, percentage, color }: CategoryDonutCardProps) {
   const { t } = useI18n();
+  const { formatCurrency } = useCurrencyFormat();
   
   // Obter nomes de categorias via tradução
   const categoryNames: Record<string, string> = {

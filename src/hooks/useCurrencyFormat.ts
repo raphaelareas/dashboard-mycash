@@ -21,7 +21,22 @@ const languageToLocale: Record<string, string> = {
 export function useCurrencyFormat() {
   const { user } = useAuth();
   const { language } = useI18n();
-  const [userCurrency, setUserCurrency] = useState<string>('BRL');
+  
+  // Calcular moeda padrão baseada no idioma
+  const getDefaultCurrency = (lang: string): string => {
+    return lang === 'no-NO' ? 'NOK' : 
+           lang === 'en-US' ? 'USD' :
+           lang === 'es-ES' ? 'EUR' :
+           lang === 'fr-FR' ? 'EUR' :
+           lang === 'de-DE' ? 'EUR' : 'BRL';
+  };
+  
+  // Inicializar com moeda baseada no idioma ou do localStorage
+  const [userCurrency, setUserCurrency] = useState<string>(() => {
+    const saved = localStorage.getItem('user_currency');
+    if (saved) return saved;
+    return getDefaultCurrency(language);
+  });
   const [loading, setLoading] = useState(true);
 
   // Carregar moeda do perfil do usuário
