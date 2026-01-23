@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { translations, LanguageCode, defaultLanguage } from '@/i18n';
 import { detectUserLocale } from '@/utils/localeDetection';
+import { detectCountryByIPWithFallback } from '@/services/ipLocationService';
 import { useAuth } from './AuthContext';
 import { userService } from '@/services/userService';
 
@@ -19,51 +20,81 @@ interface I18nProviderProps {
 export function I18nProvider({ children }: I18nProviderProps) {
   const { user } = useAuth();
   const [language, setLanguageState] = useState<LanguageCode>(() => {
-    // Sempre detectar do navegador primeiro
+    // Verificar se há mudança manual primeiro
+    const hasManualChange = localStorage.getItem('language_manually_set') === 'true';
+    const saved = localStorage.getItem('language') as LanguageCode;
+    
+    // Se foi mudança manual E o idioma salvo é válido, usar o salvo
+    if (hasManualChange && saved && translations[saved]) {
+      return saved;
+    }
+    
+    // Caso contrário, usar fallback do navegador (será atualizado por IP depois)
     try {
       const detected = detectUserLocale();
-      const detectedLang = (detected.language as LanguageCode) || defaultLanguage;
-      
-      // Verificar se há mudança manual
-      const hasManualChange = localStorage.getItem('language_manually_set') === 'true';
-      const saved = localStorage.getItem('language') as LanguageCode;
-      
-      // Se foi mudança manual E o idioma salvo é válido, usar o salvo
-      if (hasManualChange && saved && translations[saved]) {
-        return saved;
-      }
-      
-      // Caso contrário, sempre usar o detectado do navegador
-      // Limpar localStorage se tiver valor diferente (pode ser de teste anterior)
-      if (saved && saved !== detectedLang) {
-        localStorage.removeItem('language');
-        localStorage.removeItem('language_manually_set');
-      }
-      
-      return detectedLang;
+      return (detected.language as LanguageCode) || defaultLanguage;
     } catch (error) {
       console.error('Erro ao detectar locale:', error);
       return defaultLanguage;
     }
   });
 
-  // Carregar idioma do perfil do usuário quando disponível
+  // Detectar idioma por IP na inicialização (apenas uma vez, se não houver mudança manual)
   useEffect(() => {
-    const loadUserLanguage = async () => {
-      if (!user?.id) {
-        // Se não há usuário, sempre usar o detectado do navegador
-        const detected = detectUserLocale();
-        const detectedLang = (detected.language as LanguageCode) || defaultLanguage;
-        setLanguageState(detectedLang);
-        localStorage.setItem('language', detectedLang);
+    let isMounted = true;
+    
+    const detectLanguageByIP = async () => {
+      // Verificar se há mudança manual - se sim, não detectar por IP
+      const hasManualChange = localStorage.getItem('language_manually_set') === 'true';
+      if (hasManualChange) {
+        console.log('✅ Idioma já foi definido manualmente, mantendo escolha do usuário');
         return;
       }
 
       try {
-        // Sempre detectar o idioma do navegador primeiro
-        const detected = detectUserLocale();
-        const detectedLang = (detected.language as LanguageCode) || defaultLanguage;
+        console.log('🌍 Detectando idioma por IP no I18nContext...');
+        const country = await detectCountryByIPWithFallback();
+        const locale = detectUserLocale(country);
+        const detectedLang = (locale.language as LanguageCode) || defaultLanguage;
         
+        if (!isMounted) return;
+        
+        console.log('✅ Idioma detectado por IP:', detectedLang, 'País:', country || 'não detectado');
+        
+        // Atualizar idioma se ainda não foi definido manualmente
+        if (!localStorage.getItem('language_manually_set')) {
+          setLanguageState(detectedLang);
+          localStorage.setItem('language', detectedLang);
+        }
+      } catch (error) {
+        if (!isMounted) return;
+        console.warn('⚠️ Erro ao detectar idioma por IP, usando fallback do navegador:', error);
+        // Usar fallback do navegador
+        const locale = detectUserLocale();
+        const fallbackLang = (locale.language as LanguageCode) || defaultLanguage;
+        if (!localStorage.getItem('language_manually_set')) {
+          setLanguageState(fallbackLang);
+          localStorage.setItem('language', fallbackLang);
+        }
+      }
+    };
+
+    detectLanguageByIP();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Executar apenas uma vez na montagem
+
+  // Carregar idioma do perfil do usuário quando disponível (após login)
+  useEffect(() => {
+    const loadUserLanguage = async () => {
+      if (!user?.id) {
+        // Se não há usuário, não fazer nada (já foi detectado por IP na inicialização)
+        return;
+      }
+
+      try {
         const profile = await userService.getProfile(user.id);
         
         // Verificar se foi mudança manual
@@ -73,32 +104,15 @@ export function I18nProvider({ children }: I18nProviderProps) {
           // Se o usuário mudou manualmente nas configurações, respeitar a escolha
           setLanguageState(profile.language as LanguageCode);
           localStorage.setItem('language', profile.language);
-        } else {
-          // Sempre priorizar o idioma detectado do navegador
-          setLanguageState(detectedLang);
-          localStorage.setItem('language', detectedLang);
-          // Limpar flag de mudança manual se estiver usando o detectado
-          if (hasManualLanguageChange && profile?.language !== detectedLang) {
-            localStorage.removeItem('language_manually_set');
-          }
-          // Atualizar no perfil do usuário para manter sincronizado
-          if (!profile?.language || profile.language !== detectedLang) {
-            try {
-              await userService.updateProfile(user.id, {
-                language: detectedLang,
-              });
-            } catch (updateError) {
-              console.error('Erro ao atualizar idioma no perfil:', updateError);
-            }
-          }
+        } else if (profile?.language && translations[profile.language as LanguageCode]) {
+          // Se o perfil tem idioma mas não foi mudança manual, usar o do perfil
+          setLanguageState(profile.language as LanguageCode);
+          localStorage.setItem('language', profile.language);
         }
+        // Caso contrário, manter o idioma já detectado por IP
       } catch (error) {
         console.error('Erro ao carregar idioma do perfil:', error);
-        // Em caso de erro, detectar do navegador
-        const detected = detectUserLocale();
-        const detectedLang = (detected.language as LanguageCode) || defaultLanguage;
-        setLanguageState(detectedLang);
-        localStorage.setItem('language', detectedLang);
+        // Em caso de erro, manter o idioma atual
       }
     };
 

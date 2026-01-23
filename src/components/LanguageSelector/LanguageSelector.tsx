@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { availableLanguages, detectUserLocale } from '@/utils/localeDetection';
-import { detectCountryByIPWithFallback } from '@/services/ipLocationService';
+import { availableLanguages } from '@/utils/localeDetection';
 import type { LanguageCode } from '@/i18n';
 
 // Mapeamento de códigos de idioma para bandeiras e nomes nativos
@@ -39,52 +38,10 @@ interface LanguageSelectorProps {
 export function LanguageSelector({ onLanguageDetected }: LanguageSelectorProps) {
   const { language, setLanguage } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
-  const [detectedLanguage, setDetectedLanguage] = useState<LanguageCode | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Detectar idioma por IP ao montar o componente (apenas uma vez)
-  useEffect(() => {
-    let isMounted = true;
-    
-    const detectLanguageByIP = async () => {
-      try {
-        console.log('🌍 Detectando idioma por IP no seletor de idioma...');
-        const country = await detectCountryByIPWithFallback();
-        const locale = detectUserLocale(country);
-        const detectedLang = (locale.language as LanguageCode) || 'pt-BR';
-        
-        if (!isMounted) return;
-        
-        console.log('✅ Idioma detectado por IP:', detectedLang);
-        setDetectedLanguage(detectedLang);
-        
-        // Aplicar idioma detectado se ainda não foi definido manualmente
-        const hasManualChange = localStorage.getItem('language_manually_set') === 'true';
-        if (!hasManualChange) {
-          setLanguage(detectedLang);
-          localStorage.setItem('language', detectedLang);
-          onLanguageDetected?.(detectedLang);
-        }
-      } catch (error) {
-        if (!isMounted) return;
-        console.warn('⚠️ Erro ao detectar idioma por IP:', error);
-        // Usar fallback do navegador
-        const locale = detectUserLocale();
-        const fallbackLang = (locale.language as LanguageCode) || 'pt-BR';
-        setDetectedLanguage(fallbackLang);
-        if (!localStorage.getItem('language_manually_set')) {
-          setLanguage(fallbackLang);
-          localStorage.setItem('language', fallbackLang);
-        }
-      }
-    };
-
-    detectLanguageByIP();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [setLanguage, onLanguageDetected]);
+  // O idioma já é detectado pelo I18nContext, não precisamos fazer detecção aqui
+  // Apenas usar o idioma do contexto
 
   // Fechar dropdown ao clicar fora
   useEffect(() => {
@@ -111,7 +68,8 @@ export function LanguageSelector({ onLanguageDetected }: LanguageSelectorProps) 
     onLanguageDetected?.(lang);
   };
 
-  const currentLanguage = language || detectedLanguage || 'pt-BR';
+  // Sempre usar o idioma do contexto (já detectado por IP no I18nContext)
+  const currentLanguage = language || 'pt-BR';
 
   return (
     <div className="relative" ref={dropdownRef}>
