@@ -3,6 +3,7 @@ import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { detectUserLocale } from '@/utils/localeDetection';
 import { detectCountryByIPWithFallback } from '@/services/ipLocationService';
+import type { LanguageCode } from '@/i18n';
 
 interface AuthContextType {
   user: User | null;
