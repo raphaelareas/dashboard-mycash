@@ -242,6 +242,7 @@ export default function Settings() {
       setLanguage(localLanguage);
       // Marcar que o idioma foi mudado manualmente
       localStorage.setItem('language_manually_set', 'true');
+      localStorage.setItem('user_date_format', localDateFormat);
       
       // Mostrar toast de sucesso
       setToastMessage(t('settings.preferencesSaved'));

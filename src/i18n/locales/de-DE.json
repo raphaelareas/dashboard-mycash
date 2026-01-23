@@ -17,6 +17,7 @@
     "to": "bis",
     "undo": "Rückgängig",
     "clear": "Löschen",
+    "ok": "OK",
     "months": {
       "january": "Januar",
       "february": "Februar",
@@ -46,6 +47,12 @@
   },
   "sidebar": {
     "feedbackButton": "Tipps/Fehler oder Verbesserungen"
+  },
+  "datePicker": {
+    "selectDate": "Datum auswählen",
+    "selectedDate": "Ausgewähltes Datum",
+    "month": "Monat",
+    "year": "Jahr"
   },
   "auth": {
     "loginSuccess": "Anmeldung erfolgreich!",
@@ -257,6 +264,7 @@
       "descriptionError": "Beschreibung muss mindestens 3 Zeichen lang sein",
       "categoryError": "Wählen Sie eine Kategorie",
       "accountError": "Wählen Sie ein Konto oder eine Karte",
+      "dateError": "Wählen Sie das Transaktionsdatum",
       "installmentsError": "Gesamtzahl der Raten muss zwischen 1 und 360 liegen",
       "installmentNumberError": "Aktuelle Rate muss zwischen 1 und 360 liegen",
       "customCategoryError": "Geben Sie den Kategorienamen ein",

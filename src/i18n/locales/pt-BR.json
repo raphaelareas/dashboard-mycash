@@ -17,6 +17,7 @@
     "to": "a",
     "undo": "Desfazer",
     "clear": "Limpar",
+    "ok": "OK",
     "months": {
       "january": "Janeiro",
       "february": "Fevereiro",
@@ -46,6 +47,12 @@
   },
   "sidebar": {
     "feedbackButton": "Dicas/Bugs ou Melhorias"
+  },
+  "datePicker": {
+    "selectDate": "Selecione a data",
+    "selectedDate": "Data selecionada",
+    "month": "Mês",
+    "year": "Ano"
   },
   "auth": {
     "loginSuccess": "Login realizado com sucesso!",
@@ -293,6 +300,7 @@
       "descriptionError": "Descrição deve ter pelo menos 3 caracteres",
       "categoryError": "Selecione uma categoria",
       "accountError": "Selecione uma conta ou cartão",
+      "dateError": "Selecione a data da transação",
       "installmentsError": "Total de parcelas deve ser entre 1 e 360",
       "installmentNumberError": "Parcela atual deve ser entre 1 e 360",
       "customCategoryError": "Informe o nome da categoria",

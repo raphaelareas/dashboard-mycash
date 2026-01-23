@@ -17,6 +17,7 @@
     "to": "til",
     "undo": "Angre",
     "clear": "Tøm",
+    "ok": "OK",
     "months": {
       "january": "Januar",
       "february": "Februar",
@@ -46,6 +47,12 @@
   },
   "sidebar": {
     "feedbackButton": "Tips/Feil eller Forbedringer"
+  },
+  "datePicker": {
+    "selectDate": "Velg dato",
+    "selectedDate": "Valgt dato",
+    "month": "Måned",
+    "year": "År"
   },
   "auth": {
     "loginSuccess": "Innlogging vellykket!",
@@ -257,6 +264,7 @@
       "descriptionError": "Beskrivelsen må være minst 3 tegn",
       "categoryError": "Velg en kategori",
       "accountError": "Velg en konto eller kort",
+      "dateError": "Velg transaksjonsdatoen",
       "installmentsError": "Totalt antall avdrag må være mellom 1 og 360",
       "installmentNumberError": "Gjeldende avdrag må være mellom 1 og 360",
       "customCategoryError": "Skriv inn kategorinavnet",

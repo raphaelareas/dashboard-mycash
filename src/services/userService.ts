@@ -6,7 +6,12 @@ export interface UserProfile {
   name: string;
   avatarUrl?: string | null;
   phone?: string | null;
-  address?: string | null;
+  address?: string | null; // Mantido para compatibilidade
+  cep?: string | null;
+  street?: string | null;
+  addressNumber?: string | null;
+  city?: string | null;
+  state?: string | null;
   currency?: string | null;
   dateFormat?: string | null;
   language?: string | null;
@@ -19,7 +24,12 @@ const mapUserFromDb = (row: any): UserProfile => {
     name: row.name,
     avatarUrl: row.avatar_url || null,
     phone: row.phone || null,
-    address: row.address || null,
+    address: row.address || null, // Mantido para compatibilidade
+    cep: row.cep || null,
+    street: row.street || null,
+    addressNumber: row.address_number || null,
+    city: row.city || null,
+    state: row.state || null,
     currency: row.currency || 'BRL',
     dateFormat: row.date_format || 'DD/MM/YYYY',
     language: row.language || 'pt-BR',
@@ -103,10 +113,32 @@ export const userService = {
   },
 
   // Atualizar perfil do usuário (para outros campos)
-  async updateProfile(userId: string, updates: Partial<{ name: string; phone: string | null; address: string | null; currency: string; dateFormat: string; language: string }>): Promise<UserProfile> {
+  async updateProfile(
+    userId: string, 
+    updates: Partial<{ 
+      name: string; 
+      phone: string | null; 
+      address: string | null; 
+      cep: string | null;
+      street: string | null;
+      addressNumber: string | null;
+      city: string | null;
+      state: string | null;
+      currency: string; 
+      dateFormat: string; 
+      language: string;
+    }>
+  ): Promise<UserProfile> {
     const updateData: any = {};
 
     if (updates.name) updateData.name = updates.name;
+    if (updates.phone !== undefined) updateData.phone = updates.phone;
+    if (updates.address !== undefined) updateData.address = updates.address; // Mantido para compatibilidade
+    if (updates.cep !== undefined) updateData.cep = updates.cep;
+    if (updates.street !== undefined) updateData.street = updates.street;
+    if (updates.addressNumber !== undefined) updateData.address_number = updates.addressNumber;
+    if (updates.city !== undefined) updateData.city = updates.city;
+    if (updates.state !== undefined) updateData.state = updates.state;
     if (updates.currency !== undefined) updateData.currency = updates.currency;
     if (updates.dateFormat !== undefined) updateData.date_format = updates.dateFormat;
     if (updates.language !== undefined) updateData.language = updates.language;

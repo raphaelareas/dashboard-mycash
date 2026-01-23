@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
+import { useCurrencyFormat } from '@/hooks/useCurrencyFormat';
 import { Modal } from '@/components/ui/Modal';
 import { CustomSelect } from '@/components/ui/CustomSelect';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { CreateCategoryModal } from '@/components/modals/CreateCategoryModal';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { CreateMethodModal } from '@/components/modals/CreateMethodModal';
@@ -38,6 +40,36 @@ const defaultCategories: TransactionCategory[] = ['rent', 'food', 'shopping', 'h
 export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProps) {
   const { addTransaction, bankAccounts, creditCards, familyMembers, categories: customCategories, addCategory } = useFinance();
   const { t } = useI18n();
+  const { currency } = useCurrencyFormat();
+  
+  // Obter símbolo da moeda
+  const getCurrencySymbol = (currencyCode: string): string => {
+    try {
+      const formatter = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: currencyCode,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+      const formatted = formatter.format(0);
+      // Extrair apenas o símbolo (remove números e espaços)
+      return formatted.replace(/[\d\s,.-]/g, '').trim();
+    } catch {
+      // Fallback para moedas comuns
+      const symbols: Record<string, string> = {
+        'BRL': 'R$',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'NOK': 'kr',
+        'SEK': 'kr',
+        'DKK': 'kr',
+      };
+      return symbols[currencyCode] || currencyCode;
+    }
+  };
+  
+  const currencySymbol = getCurrencySymbol(currency);
   const [type, setType] = useState<'income' | 'expense'>('expense');
   
   // Obter nomes de categorias via tradução
@@ -64,10 +96,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   const [totalInstallments, setTotalInstallments] = useState<string>('1');
   const [installmentNumber, setInstallmentNumber] = useState<string>('1');
   const [installmentRecurrence, setInstallmentRecurrence] = useState<'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed'>('monthly');
-  const [transactionDate, setTransactionDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  const [transactionDate, setTransactionDate] = useState<Date | null>(() => new Date());
   const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [isCreateMethodModalOpen, setIsCreateMethodModalOpen] = useState(false);
@@ -80,7 +109,6 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
   useEffect(() => {
     if (!isOpen) {
       // Reset form
-      const today = new Date();
       setType('expense');
       setAmount('');
       setAmountDisplay('');
@@ -93,7 +121,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       setTotalInstallments('1');
       setInstallmentNumber('1');
       setInstallmentRecurrence('monthly');
-      setTransactionDate(today.toISOString().split('T')[0]);
+      setTransactionDate(new Date());
       setIsCreateCategoryModalOpen(false);
       setIsAddMemberModalOpen(false);
       setIsCreateMethodModalOpen(false);
@@ -141,16 +169,21 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       newErrors.accountId = t('modals.newTransaction.accountError') || 'Selecione uma conta ou cartão';
     }
 
+    if (!transactionDate) {
+      newErrors.date = t('modals.newTransaction.dateError') ?? 'Selecione a data da transação';
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
+
     addTransaction({
       type,
       category: category as TransactionCategory | string,
       amount: numericAmount,
       description,
-      date: new Date(transactionDate),
+      date: transactionDate,
       accountId,
       memberId,
       installments: isInstallment ? parseInt(totalInstallments) : 1,
@@ -223,7 +256,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           {/* Description and Date (same line) */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('modals.newTransaction.description')}
               </label>
               <input
@@ -232,7 +265,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Ex: Supermercado Semanal"
                 className={`
-                  w-full h-14 px-4 rounded-[40px] border
+                  w-full h-14 px-4 rounded-[40px] border bg-white
                   ${errors.description ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
@@ -240,44 +273,47 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('modals.newTransaction.date')}
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={transactionDate}
-                onChange={(e) => setTransactionDate(e.target.value)}
-                className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(d) => {
+                  setTransactionDate(d);
+                  if (errors.date) setErrors((prev) => ({ ...prev, date: '' }));
+                }}
+                placeholder={t('datePicker.selectDate')}
+                error={!!errors.date}
               />
+              {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
             </div>
           </div>
 
           {/* Amount and Installment Toggle (same line) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="mt-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('modals.newTransaction.amount')}
             </label>
             <div className="flex items-center gap-3">
-              <span className="text-gray-600 font-medium">R$</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={amountDisplay}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                className={`
-                  flex-1 h-14 px-4 rounded-[40px] border
-                  ${errors.amount ? 'border-red-500' : 'border-gray-200'}
-                  focus:outline-none focus:ring-2 focus:ring-primary
-                `}
-                placeholder="0,00"
-              />
+              <div className={`flex-1 flex items-center gap-2 h-14 px-4 rounded-[40px] border bg-white ${errors.amount ? 'border-red-500' : 'border-gray-200'} focus-within:ring-2 focus-within:ring-primary`}>
+                <span className="text-gray-600 font-medium whitespace-nowrap">{currencySymbol}</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={amountDisplay}
+                  onChange={(e) => handleAmountChange(e.target.value)}
+                  className="flex-1 h-full border-0 outline-none bg-transparent p-0 focus:ring-0 focus:border-0"
+                  style={{ border: 'none', boxShadow: 'none' }}
+                  placeholder="0,00"
+                />
+              </div>
               {/* Toggle Total/Parcela */}
-              <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px]">
+              <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px] h-14 items-center">
                 <button
                   type="button"
                   onClick={() => setIsInstallment(false)}
                   className={`
-                    px-4 py-2 rounded-[40px] font-medium transition-all text-sm
+                    h-full px-4 rounded-[40px] font-medium transition-all text-sm flex items-center
                     ${!isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
                   `}
                 >
@@ -287,7 +323,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                   type="button"
                   onClick={() => setIsInstallment(true)}
                   className={`
-                    px-4 py-2 rounded-[40px] font-medium transition-all text-sm
+                    h-full px-4 rounded-[40px] font-medium transition-all text-sm flex items-center
                     ${isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
                   `}
                 >
@@ -302,7 +338,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               <div className="mt-4 space-y-4 animate-fade-in">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('modals.newTransaction.currentInstallment') || 'Parcela Atual'}
                     </label>
                     <input
@@ -324,13 +360,13 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                           setInstallmentNumber('360');
                         }
                       }}
-                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="Ex: 7"
                     />
                     {errors.installmentNumber && <p className="mt-1 text-sm text-red-600">{errors.installmentNumber}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('modals.newTransaction.totalInstallments') || 'Total de Parcelas'}
                     </label>
                     <input
@@ -356,20 +392,20 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                           }
                         }
                       }}
-                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="Ex: 48"
                     />
                     {errors.installments && <p className="mt-1 text-sm text-red-600">{errors.installments}</p>}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t('modals.newTransaction.recurrence') || 'Recorrência'}
                   </label>
                   <select
                     value={installmentRecurrence}
                     onChange={(e) => setInstallmentRecurrence(e.target.value as 'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed')}
-                    className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-14 px-4 rounded-[40px] border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="weekly">{t('modals.newTransaction.weekly') || 'Semanal'}</option>
                     <option value="biweekly">{t('modals.newTransaction.biweekly') || 'Quinzenal'}</option>
@@ -384,8 +420,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           </div>
 
           {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="mt-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('modals.newTransaction.category')}
             </label>
             <div className="flex gap-3 items-center">
@@ -427,8 +463,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           </div>
 
           {/* Account */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="mt-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('modals.newTransaction.account')}
             </label>
             {/* Sempre mostrar dropdown + botão adicionar método */}
@@ -476,8 +512,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
           </div>
 
           {/* Member */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="mt-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('modals.newTransaction.member')} ({t('common.optional')})
             </label>
             <div className="flex gap-3">

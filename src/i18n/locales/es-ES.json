@@ -17,6 +17,7 @@
     "to": "a",
     "undo": "Deshacer",
     "clear": "Limpiar",
+    "ok": "OK",
     "months": {
       "january": "Enero",
       "february": "Febrero",
@@ -46,6 +47,12 @@
   },
   "sidebar": {
     "feedbackButton": "Consejos/Errores o Mejoras"
+  },
+  "datePicker": {
+    "selectDate": "Seleccionar fecha",
+    "selectedDate": "Fecha seleccionada",
+    "month": "Mes",
+    "year": "Año"
   },
   "auth": {
     "loginSuccess": "¡Inicio de sesión exitoso!",
@@ -258,6 +265,7 @@
       "descriptionError": "La descripción debe tener al menos 3 caracteres",
       "categoryError": "Seleccione una categoría",
       "accountError": "Seleccione una cuenta o tarjeta",
+      "dateError": "Seleccione la fecha de la transacción",
       "installmentsError": "El total de cuotas debe estar entre 1 y 360",
       "installmentNumberError": "La cuota actual debe estar entre 1 y 360",
       "customCategoryError": "Ingrese el nombre de la categoría",

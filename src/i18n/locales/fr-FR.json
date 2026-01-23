@@ -17,6 +17,7 @@
     "to": "à",
     "undo": "Annuler",
     "clear": "Effacer",
+    "ok": "OK",
     "months": {
       "january": "Janvier",
       "february": "Février",
@@ -46,6 +47,12 @@
   },
   "sidebar": {
     "feedbackButton": "Conseils/Bugs ou Améliorations"
+  },
+  "datePicker": {
+    "selectDate": "Sélectionner la date",
+    "selectedDate": "Date sélectionnée",
+    "month": "Mois",
+    "year": "Année"
   },
   "auth": {
     "loginSuccess": "Connexion réussie !",
@@ -257,6 +264,7 @@
       "descriptionError": "La description doit contenir au moins 3 caractères",
       "categoryError": "Sélectionnez une catégorie",
       "accountError": "Sélectionnez un compte ou une carte",
+      "dateError": "Sélectionnez la date de la transaction",
       "installmentsError": "Le total des versements doit être entre 1 et 360",
       "installmentNumberError": "L'échéance actuelle doit être entre 1 et 360",
       "customCategoryError": "Entrez le nom de la catégorie",

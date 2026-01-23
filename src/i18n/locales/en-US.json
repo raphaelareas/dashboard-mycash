@@ -17,6 +17,7 @@
     "to": "to",
     "undo": "Undo",
     "clear": "Clear",
+    "ok": "OK",
     "months": {
       "january": "January",
       "february": "February",
@@ -46,6 +47,12 @@
   },
   "sidebar": {
     "feedbackButton": "Tips/Bugs or Improvements"
+  },
+  "datePicker": {
+    "selectDate": "Select date",
+    "selectedDate": "Selected date",
+    "month": "Month",
+    "year": "Year"
   },
   "auth": {
     "loginSuccess": "Login successful!",
@@ -262,6 +269,7 @@
       "descriptionError": "Description must be at least 3 characters",
       "categoryError": "Select a category",
       "accountError": "Select an account or card",
+      "dateError": "Select the transaction date",
       "installmentsError": "Total installments must be between 1 and 360",
       "installmentNumberError": "Current installment must be between 1 and 360",
       "customCategoryError": "Enter the category name",

@@ -63,7 +63,7 @@ export function CustomSelect({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`
-          w-full h-14 px-4 rounded-[40px] border text-left flex items-center gap-3
+          w-full h-14 px-4 rounded-[40px] border text-left flex items-center gap-3 bg-white
           ${error ? 'border-red-500' : 'border-gray-200'}
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           focus:outline-none focus:ring-2 focus:ring-primary

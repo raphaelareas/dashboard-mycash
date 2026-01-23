@@ -38,8 +38,14 @@ export default function MyAccount() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [cep, setCep] = useState('');
+  const [street, setStreet] = useState('');
+  const [number, setNumber] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [loadingCep, setLoadingCep] = useState(false);
+  const [cepValid, setCepValid] = useState(false);
   
   // Upload states
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
@@ -68,13 +74,30 @@ export default function MyAccount() {
           setName(userProfile.name || '');
           setEmail(userProfile.email || '');
           setPhone(userProfile.phone || '');
-          setAddress(userProfile.address || '');
+          
+          // Carregar campos de endereço separados do banco
+          setCep(userProfile.cep || '');
+          setStreet(userProfile.street || '');
+          setNumber(userProfile.addressNumber || '');
+          setCity(userProfile.city || '');
+          setState(userProfile.state || '');
+          
+          // Se tem CEP, considerar válido para mostrar campos
+          setCepValid(!!userProfile.cep);
           // Usar avatar do perfil do usuário (que é sincronizado com owner via trigger)
           setAvatarUrl(userProfile.avatarUrl || null);
         } else {
-          // Se não existe perfil, usar dados do auth
-          setName(user.email?.split('@')[0] || 'Usuário');
+          // Se não existe perfil, usar dados do auth (nome do sign-up)
+          const fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário';
+          setName(fullName);
           setEmail(user.email || '');
+          setPhone('');
+          setCep('');
+          setStreet('');
+          setNumber('');
+          setCity('');
+          setState('');
+          setCepValid(false);
           setAvatarUrl(null);
         }
       } catch (error) {
@@ -203,6 +226,48 @@ export default function MyAccount() {
     }
   };
 
+  // Buscar endereço por CEP
+  const handleCepChange = async (value: string) => {
+    // Remove caracteres não numéricos
+    const cleanCep = value.replace(/\D/g, '');
+    setCep(cleanCep);
+
+    // Se tiver 8 dígitos, buscar endereço
+    if (cleanCep.length === 8) {
+      setLoadingCep(true);
+      setCepValid(false);
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        const data = await response.json();
+
+        if (data.erro) {
+          setErrors({ cep: 'CEP não encontrado' });
+          setCepValid(false);
+          setLoadingCep(false);
+          return;
+        }
+
+        // Preencher campos separados
+        setStreet(data.logradouro || '');
+        setCity(data.localidade || '');
+        setState(data.uf || '');
+        // Número não vem da API, deixar vazio para o usuário preencher
+        setNumber('');
+        setErrors({ ...errors, cep: '' });
+        setCepValid(true); // CEP válido, mostrar outros campos
+      } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        setErrors({ cep: 'Erro ao buscar CEP. Tente novamente.' });
+        setCepValid(false);
+      } finally {
+        setLoadingCep(false);
+      }
+    } else {
+      setErrors({ ...errors, cep: '' });
+      setCepValid(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!user?.id) return;
 
@@ -219,15 +284,38 @@ export default function MyAccount() {
 
     setSaving(true);
     try {
+      // Salvar campos separados de endereço
       await userService.updateProfile(user.id, {
         name,
         phone: phone || null,
-        address: address || null,
+        cep: cep && cep.length === 8 ? cep : null,
+        street: street || null,
+        addressNumber: number || null,
+        city: city || null,
+        state: state || null,
+        // Manter address para compatibilidade (montado a partir dos campos)
+        address: (() => {
+          const addressParts = [];
+          if (street) addressParts.push(street);
+          if (number) addressParts.push(`nº ${number}`);
+          if (city) addressParts.push(city);
+          if (state) addressParts.push(state);
+          let finalAddress = addressParts.length > 0 ? addressParts.join(', ') : null;
+          if (cep && cep.length === 8) {
+            const formattedCep = cep.replace(/(\d{5})(\d{3})/, '$1-$2');
+            finalAddress = finalAddress ? `${formattedCep} - ${finalAddress}` : formattedCep;
+          }
+          return finalAddress;
+        })(),
       });
       setErrors({});
       // Recarregar perfil
       const updated = await userService.getProfile(user.id);
       if (updated) setProfile(updated);
+      
+      // Mostrar toast de sucesso
+      setToastMessage(t('myAccount.saveSuccess') || 'Perfil atualizado com sucesso!');
+      setIsToastVisible(true);
     } catch (error) {
       console.error('Erro ao salvar perfil:', error);
       setErrors({ general: t('myAccount.saveError') || 'Erro ao salvar perfil. Tente novamente.' });
@@ -398,16 +486,104 @@ export default function MyAccount() {
 
             {/* Endereço */}
             <div className="p-6 bg-white rounded-lg border border-gray-200">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-4">
                 {t('myAccount.address')} ({t('common.optional') || 'opcional'})
               </label>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Rua, número, bairro, cidade - UF"
-                className="w-full h-12 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+              
+              {/* CEP */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-500 mb-2">
+                  CEP
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={cep}
+                    onChange={(e) => handleCepChange(e.target.value)}
+                    placeholder="00000-000"
+                    maxLength={8}
+                    className={`w-full h-12 px-4 rounded-[40px] border focus:outline-none focus:ring-2 focus:ring-primary ${
+                      errors.cep ? 'border-red-500' : 'border-gray-200'
+                    }`}
+                  />
+                  {loadingCep && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
+                    </div>
+                  )}
+                </div>
+                {errors.cep && <p className="mt-1 text-sm text-red-600">{errors.cep}</p>}
+                <a
+                  href="https://buscacepinter.correios.com.br/app/endereco/index.php?t"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  Não sei meu CEP
+                </a>
+              </div>
+
+              {/* Campos de endereço - só aparecem quando CEP é válido */}
+              {cepValid && (
+                <>
+                  {/* Logradouro/Rua e Número na mesma linha */}
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium text-gray-500 mb-2">
+                        Logradouro/Rua
+                      </label>
+                      <input
+                        type="text"
+                        value={street}
+                        onChange={(e) => setStreet(e.target.value)}
+                        placeholder="Rua, Avenida, etc."
+                        className="w-full h-12 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <label className="block text-xs font-medium text-gray-500 mb-2">
+                        Número ({t('common.optional') || 'opcional'})
+                      </label>
+                      <input
+                        type="text"
+                        value={number}
+                        onChange={(e) => setNumber(e.target.value)}
+                        placeholder="123"
+                        className="w-full h-12 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Cidade e UF na mesma linha */}
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium text-gray-500 mb-2">
+                        Cidade
+                      </label>
+                      <input
+                        type="text"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="Cidade"
+                        className="w-full h-12 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <label className="block text-xs font-medium text-gray-500 mb-2">
+                        UF
+                      </label>
+                      <input
+                        type="text"
+                        value={state}
+                        onChange={(e) => setState(e.target.value.toUpperCase())}
+                        placeholder="RJ"
+                        maxLength={2}
+                        className="w-full h-12 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {errors.general && <p className="text-sm text-red-600">{errors.general}</p>}

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
+import { useCurrencyFormat } from '@/hooks/useCurrencyFormat';
 import { Modal } from '@/components/ui/Modal';
 import { CustomSelect } from '@/components/ui/CustomSelect';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { CreateCategoryModal } from '@/components/modals/CreateCategoryModal';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { CreateMethodModal } from '@/components/modals/CreateMethodModal';
@@ -39,6 +41,36 @@ const defaultCategories: TransactionCategory[] = ['rent', 'food', 'shopping', 'h
 export function EditTransactionModal({ isOpen, onClose, transaction }: EditTransactionModalProps) {
   const { updateTransaction, bankAccounts, creditCards, familyMembers, categories: customCategories, addCategory } = useFinance();
   const { t } = useI18n();
+  const { currency } = useCurrencyFormat();
+  
+  // Obter símbolo da moeda
+  const getCurrencySymbol = (currencyCode: string): string => {
+    try {
+      const formatter = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: currencyCode,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+      const formatted = formatter.format(0);
+      // Extrair apenas o símbolo (remove números e espaços)
+      return formatted.replace(/[\d\s,.-]/g, '').trim();
+    } catch {
+      // Fallback para moedas comuns
+      const symbols: Record<string, string> = {
+        'BRL': 'R$',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'NOK': 'kr',
+        'SEK': 'kr',
+        'DKK': 'kr',
+      };
+      return symbols[currencyCode] || currencyCode;
+    }
+  };
+  
+  const currencySymbol = getCurrencySymbol(currency);
   const [type, setType] = useState<'income' | 'expense'>(transaction.type);
   
   // Obter nomes de categorias via tradução
@@ -64,10 +96,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
   const [totalInstallments, setTotalInstallments] = useState<string>((transaction.installments || 1).toString());
   const [installmentNumber, setInstallmentNumber] = useState<string>((transaction.installmentNumber || 1).toString());
   const [installmentRecurrence, setInstallmentRecurrence] = useState<'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed'>('monthly');
-  const [transactionDate, setTransactionDate] = useState(() => {
-    const date = new Date(transaction.date);
-    return date.toISOString().split('T')[0];
-  });
+  const [transactionDate, setTransactionDate] = useState<Date | null>(() => new Date(transaction.date));
   const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [isCreateMethodModalOpen, setIsCreateMethodModalOpen] = useState(false);
@@ -85,8 +114,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       setIsInstallment((transaction.installments || 1) > 1);
       setTotalInstallments((transaction.installments || 1).toString());
       setInstallmentNumber((transaction.installmentNumber || 1).toString());
-      const date = new Date(transaction.date);
-      setTransactionDate(date.toISOString().split('T')[0]);
+      setTransactionDate(new Date(transaction.date));
       
       // Formatar valor para exibição - transaction.amount já está em reais (ex: 70.00)
       // Precisamos converter para centavos para o formatCurrencyInput funcionar corretamente
@@ -140,17 +168,20 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       newErrors.accountId = t('modals.newTransaction.accountError') || 'Selecione uma conta ou cartão';
     }
 
+    if (!transactionDate) {
+      newErrors.date = t('modals.newTransaction.dateError') ?? 'Selecione a data da transação';
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-
     updateTransaction(transaction.id, {
       type,
       category: category as TransactionCategory | string,
       amount: numericAmount,
       description,
-      date: new Date(transactionDate),
+      date: transactionDate,
       accountId,
       memberId,
       installments: isInstallment ? parseInt(totalInstallments) : 1,
@@ -231,7 +262,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Ex: Supermercado Semanal"
                 className={`
-                  w-full h-14 px-4 rounded-[40px] border
+                  w-full h-14 px-4 rounded-[40px] border bg-white
                   ${errors.description ? 'border-red-500' : 'border-gray-200'}
                   focus:outline-none focus:ring-2 focus:ring-primary
                 `}
@@ -242,12 +273,16 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('modals.newTransaction.date')}
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={transactionDate}
-                onChange={(e) => setTransactionDate(e.target.value)}
-                className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(d) => {
+                  setTransactionDate(d);
+                  if (errors.date) setErrors((prev) => ({ ...prev, date: '' }));
+                }}
+                placeholder={t('datePicker.selectDate')}
+                error={!!errors.date}
               />
+              {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
             </div>
           </div>
 
@@ -257,19 +292,18 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
               {t('modals.newTransaction.amount')}
             </label>
             <div className="flex items-center gap-3">
-              <span className="text-gray-600 font-medium">R$</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={amountDisplay}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                className={`
-                  flex-1 h-14 px-4 rounded-[40px] border
-                  ${errors.amount ? 'border-red-500' : 'border-gray-200'}
-                  focus:outline-none focus:ring-2 focus:ring-primary
-                `}
-                placeholder="0,00"
-              />
+              <div className={`flex-1 flex items-center gap-2 h-14 px-4 rounded-[40px] border bg-white ${errors.amount ? 'border-red-500' : 'border-gray-200'} focus-within:ring-2 focus-within:ring-primary`}>
+                <span className="text-gray-600 font-medium whitespace-nowrap">{currencySymbol}</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={amountDisplay}
+                  onChange={(e) => handleAmountChange(e.target.value)}
+                  className="flex-1 h-full border-0 outline-none bg-transparent p-0 focus:ring-0 focus:border-0"
+                  style={{ border: 'none', boxShadow: 'none' }}
+                  placeholder="0,00"
+                />
+              </div>
               {/* Toggle Total/Parcela */}
               <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px]">
                 <button
@@ -323,7 +357,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                           setInstallmentNumber('360');
                         }
                       }}
-                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="Ex: 7"
                     />
                     {errors.installmentNumber && <p className="mt-1 text-sm text-red-600">{errors.installmentNumber}</p>}
@@ -355,7 +389,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                           }
                         }
                       }}
-                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full h-14 px-4 rounded-[40px] border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="Ex: 48"
                     />
                     {errors.installments && <p className="mt-1 text-sm text-red-600">{errors.installments}</p>}
@@ -368,7 +402,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                   <select
                     value={installmentRecurrence}
                     onChange={(e) => setInstallmentRecurrence(e.target.value as 'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed')}
-                    className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-14 px-4 rounded-[40px] border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="weekly">{t('modals.newTransaction.weekly') || 'Semanal'}</option>
                     <option value="biweekly">{t('modals.newTransaction.biweekly') || 'Quinzenal'}</option>
