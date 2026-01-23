@@ -88,19 +88,43 @@ export const userService = {
     }
 
     // @ts-ignore - Database types serão gerados depois das migrations
-    // Fazer o update sem select para evitar problemas com .single()
-    const { error: updateError } = await supabase
+    // Fazer o update e verificar se alguma linha foi afetada
+    console.log('🔄 Atualizando perfil:', { userId, updateData });
+    
+    const { data: updateResult, error: updateError, count } = await supabase
       .from('users')
       .update(updateData)
-      .eq('id', userId);
+      .eq('id', userId)
+      .select('id, avatar_url', { count: 'exact' });
 
     if (updateError) {
-      console.error('Erro ao atualizar perfil:', updateError);
+      console.error('❌ Erro ao atualizar perfil:', updateError);
       throw updateError;
     }
 
-    // Depois buscar o perfil atualizado para garantir que temos os dados corretos
-    // Isso evita problemas com .single() e garante que temos os dados mais recentes
+    // Verificar se alguma linha foi atualizada
+    if (!updateResult || updateResult.length === 0) {
+      console.error('❌ Nenhuma linha foi atualizada. Possíveis causas:');
+      console.error('   - RLS policy bloqueando o update');
+      console.error('   - userId não corresponde ao auth.uid()');
+      console.error('   - Usuário não encontrado');
+      
+      // Tentar buscar o perfil atual para verificar se existe
+      const currentProfile = await this.getProfile(userId);
+      if (!currentProfile) {
+        throw new Error('Perfil não encontrado. Verifique se o usuário está autenticado corretamente.');
+      }
+      
+      // Se o perfil existe mas não foi atualizado, pode ser problema de RLS
+      throw new Error('Falha ao atualizar perfil. Verifique as políticas RLS e a autenticação.');
+    }
+
+    console.log('✅ Perfil atualizado com sucesso:', { 
+      rowsAffected: updateResult.length,
+      newAvatarUrl: updateResult[0]?.avatar_url 
+    });
+
+    // Depois buscar o perfil atualizado completo para garantir que temos os dados corretos
     const updatedProfile = await this.getProfile(userId);
     if (!updatedProfile) {
       throw new Error('Perfil não encontrado após atualização');
