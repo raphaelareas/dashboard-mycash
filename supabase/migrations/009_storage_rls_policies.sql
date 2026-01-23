@@ -3,12 +3,28 @@
 -- Políticas de segurança para buckets de storage
 -- ============================================
 
+-- Remover políticas antigas se existirem (para evitar conflitos)
+DROP POLICY IF EXISTS "Users can upload own avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Users can read own avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update own avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete own avatars" ON storage.objects;
+
+DROP POLICY IF EXISTS "Users can upload own media" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can read media" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update own media" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete own media" ON storage.objects;
+
+DROP POLICY IF EXISTS "Users can upload own receipts" ON storage.objects;
+DROP POLICY IF EXISTS "Users can read own receipts" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update own receipts" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete own receipts" ON storage.objects;
+
 -- ============================================
 -- BUCKET: avatars
 -- ============================================
 
 -- Policy: Usuários podem fazer upload de seus próprios avatares
-CREATE POLICY IF NOT EXISTS "Users can upload own avatars"
+CREATE POLICY "Users can upload own avatars"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'avatars' AND
@@ -16,7 +32,7 @@ WITH CHECK (
 );
 
 -- Policy: Usuários podem ler seus próprios avatares
-CREATE POLICY IF NOT EXISTS "Users can read own avatars"
+CREATE POLICY "Users can read own avatars"
 ON storage.objects FOR SELECT
 USING (
   bucket_id = 'avatars' AND
@@ -24,7 +40,7 @@ USING (
 );
 
 -- Policy: Usuários podem atualizar seus próprios avatares
-CREATE POLICY IF NOT EXISTS "Users can update own avatars"
+CREATE POLICY "Users can update own avatars"
 ON storage.objects FOR UPDATE
 USING (
   bucket_id = 'avatars' AND
@@ -36,7 +52,7 @@ WITH CHECK (
 );
 
 -- Policy: Usuários podem deletar seus próprios avatares
-CREATE POLICY IF NOT EXISTS "Users can delete own avatars"
+CREATE POLICY "Users can delete own avatars"
 ON storage.objects FOR DELETE
 USING (
   bucket_id = 'avatars' AND
@@ -48,7 +64,7 @@ USING (
 -- ============================================
 
 -- Policy: Usuários podem fazer upload de suas próprias mídias
-CREATE POLICY IF NOT EXISTS "Users can upload own media"
+CREATE POLICY "Users can upload own media"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'media' AND
@@ -56,12 +72,12 @@ WITH CHECK (
 );
 
 -- Policy: Qualquer um pode ler mídias (público)
-CREATE POLICY IF NOT EXISTS "Anyone can read media"
+CREATE POLICY "Anyone can read media"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'media');
 
 -- Policy: Usuários podem atualizar suas próprias mídias
-CREATE POLICY IF NOT EXISTS "Users can update own media"
+CREATE POLICY "Users can update own media"
 ON storage.objects FOR UPDATE
 USING (
   bucket_id = 'media' AND
@@ -73,7 +89,7 @@ WITH CHECK (
 );
 
 -- Policy: Usuários podem deletar suas próprias mídias
-CREATE POLICY IF NOT EXISTS "Users can delete own media"
+CREATE POLICY "Users can delete own media"
 ON storage.objects FOR DELETE
 USING (
   bucket_id = 'media' AND
@@ -85,7 +101,7 @@ USING (
 -- ============================================
 
 -- Policy: Usuários podem fazer upload de seus próprios recibos
-CREATE POLICY IF NOT EXISTS "Users can upload own receipts"
+CREATE POLICY "Users can upload own receipts"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'receipts' AND
@@ -93,7 +109,7 @@ WITH CHECK (
 );
 
 -- Policy: Usuários podem ler seus próprios recibos
-CREATE POLICY IF NOT EXISTS "Users can read own receipts"
+CREATE POLICY "Users can read own receipts"
 ON storage.objects FOR SELECT
 USING (
   bucket_id = 'receipts' AND
@@ -101,7 +117,7 @@ USING (
 );
 
 -- Policy: Usuários podem atualizar seus próprios recibos
-CREATE POLICY IF NOT EXISTS "Users can update own receipts"
+CREATE POLICY "Users can update own receipts"
 ON storage.objects FOR UPDATE
 USING (
   bucket_id = 'receipts' AND
@@ -113,7 +129,7 @@ WITH CHECK (
 );
 
 -- Policy: Usuários podem deletar seus próprios recibos
-CREATE POLICY IF NOT EXISTS "Users can delete own receipts"
+CREATE POLICY "Users can delete own receipts"
 ON storage.objects FOR DELETE
 USING (
   bucket_id = 'receipts' AND
