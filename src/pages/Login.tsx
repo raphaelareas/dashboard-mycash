@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { LanguageSelector } from '@/components/LanguageSelector/LanguageSelector';
 
 export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -75,8 +76,13 @@ export default function Login() {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 relative">
+      {/* Seletor de idioma - canto inferior esquerdo */}
+      <div className="absolute bottom-6 left-6 z-10">
+        <LanguageSelector />
+      </div>
+      
+      <div className="max-w-md w-full relative z-0">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="relative inline-block mb-4">

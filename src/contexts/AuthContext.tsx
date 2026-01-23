@@ -201,12 +201,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Verificar se o usuário já tem preferências definidas (não são valores padrão genéricos)
+      // Verificar se o usuário já tem preferências personalizadas (não são valores padrão genéricos)
       // Se já tem valores personalizados, não atualizar
+      // Atualizar apenas se TODOS os valores forem padrão (pt-BR, BRL, DD/MM/YYYY)
       const hasCustomPreferences = 
-        profile.language && profile.language !== 'pt-BR' ||
-        profile.currency && profile.currency !== 'BRL' ||
-        profile.date_format && profile.date_format !== 'DD/MM/YYYY';
+        (profile.language && profile.language !== 'pt-BR') ||
+        (profile.currency && profile.currency !== 'BRL') ||
+        (profile.date_format && profile.date_format !== 'DD/MM/YYYY');
 
       if (hasCustomPreferences) {
         console.log('✅ Usuário já tem preferências personalizadas, mantendo:', profile);
