@@ -61,14 +61,16 @@ export default function Dashboard() {
       searchParams.delete('success');
       setSearchParams(searchParams, { replace: true });
       
-      // Definir mensagem baseada no tipo
+      // Definir mensagem baseada no tipo - IMPORTANTE: verificar signup PRIMEIRO
       let message = '';
       if (successType === 'signup') {
         message = t('auth.signupSuccess');
-        console.log('✅ Dashboard: Preparando toast de SIGNUP:', message);
+        console.log('✅ Dashboard: Preparando toast de SIGNUP:', message, '| Tipo na URL:', successType);
       } else if (successType === 'login') {
         message = t('auth.loginSuccess');
-        console.log('✅ Dashboard: Preparando toast de LOGIN:', message);
+        console.log('✅ Dashboard: Preparando toast de LOGIN:', message, '| Tipo na URL:', successType);
+      } else {
+        console.warn('⚠️ Dashboard: Tipo de sucesso desconhecido:', successType);
       }
       
       if (!message) {
@@ -150,7 +152,7 @@ export default function Dashboard() {
         message={successMessage}
         isVisible={showSuccessToast}
         onClose={() => setShowSuccessToast(false)}
-        duration={5000}
+        duration={4000}
       />
     </>
   );

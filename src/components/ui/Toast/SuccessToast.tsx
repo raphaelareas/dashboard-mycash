@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface SuccessToastProps {
   message: string;
@@ -11,29 +11,54 @@ export function SuccessToast({
   message, 
   isVisible, 
   onClose, 
-  duration = 5000
+  duration = 4000
 }: SuccessToastProps) {
+  const [isFadingOut, setIsFadingOut] = useState(false);
+
   useEffect(() => {
-    if (isVisible) {
-      const timer = setTimeout(() => {
+    if (isVisible && !isFadingOut) {
+      // Iniciar fade out antes de fechar
+      const fadeOutTimer = setTimeout(() => {
+        setIsFadingOut(true);
+      }, duration - 600); // Começar fade out 600ms antes do fim
+
+      // Fechar completamente após fade out
+      const closeTimer = setTimeout(() => {
         onClose();
+        setIsFadingOut(false);
       }, duration);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(fadeOutTimer);
+        clearTimeout(closeTimer);
+      };
     }
-  }, [isVisible, duration, onClose]);
+  }, [isVisible, duration, onClose, isFadingOut]);
+
+  // Reset fade out quando toast é mostrado novamente
+  useEffect(() => {
+    if (isVisible) {
+      setIsFadingOut(false);
+    }
+  }, [isVisible]);
 
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] animate-fade-in" style={{ animationDuration: '300ms' }}>
+    <div 
+      className={`fixed top-4 left-1/2 -translate-x-1/2 z-[9999] ${
+        isFadingOut ? 'animate-fade-out' : 'animate-fade-in'
+      }`}
+      style={{ 
+        animationDuration: '600ms'
+      }}
+    >
       <div className="
         px-6 py-4 rounded-lg
         bg-green-50 border border-green-200
         shadow-lg
         flex items-center gap-3
         min-w-[300px] max-w-[500px]
-        transition-opacity duration-300
       ">
         <svg
           width="20"
