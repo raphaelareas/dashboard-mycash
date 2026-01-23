@@ -10,18 +10,39 @@ import { TransactionsTable } from '@/components/dashboard/TransactionsTable';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { AddCardModal } from '@/components/modals/AddCardModal';
+import { SuccessToast } from '@/components/ui/Toast/SuccessToast';
+import { useI18n } from '@/contexts/I18nContext';
 
 export default function Dashboard() {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isAddCardOpen, setIsAddCardOpen] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const { t } = useI18n();
   
-  // Limpar flag de sucesso se existir (não usamos mais delay artificial)
+  // Verificar se deve mostrar toast de sucesso após login/signup
   useEffect(() => {
-    const cameFromSuccess = sessionStorage.getItem('fromSuccess');
-    if (cameFromSuccess === 'true') {
-      sessionStorage.removeItem('fromSuccess');
+    const shouldShowToast = sessionStorage.getItem('showSuccessToast');
+    const toastType = sessionStorage.getItem('successToastType');
+    
+    if (shouldShowToast === 'true') {
+      // Limpar flags imediatamente
+      sessionStorage.removeItem('showSuccessToast');
+      sessionStorage.removeItem('successToastType');
+      
+      // Definir mensagem baseada no tipo
+      if (toastType === 'signup') {
+        setSuccessMessage(t('auth.signupSuccess'));
+      } else if (toastType === 'login') {
+        setSuccessMessage(t('auth.loginSuccess'));
+      }
+      
+      // Mostrar toast após um pequeno delay para garantir que a página carregou
+      setTimeout(() => {
+        setShowSuccessToast(true);
+      }, 300);
     }
-  }, []);
+  }, [t]);
 
   return (
     <>
@@ -77,6 +98,14 @@ export default function Dashboard() {
       {/* Modals */}
       <AddMemberModal isOpen={isAddMemberOpen} onClose={() => setIsAddMemberOpen(false)} />
       <AddCardModal isOpen={isAddCardOpen} onClose={() => setIsAddCardOpen(false)} />
+
+      {/* Toast de sucesso após login/signup */}
+      <SuccessToast
+        message={successMessage}
+        isVisible={showSuccessToast}
+        onClose={() => setShowSuccessToast(false)}
+        duration={3000}
+      />
     </>
   );
 }
