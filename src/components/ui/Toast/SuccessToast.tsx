@@ -13,19 +13,40 @@ export function SuccessToast({
   onClose, 
   duration = 4000
 }: SuccessToastProps) {
-  const [isFadingOut, setIsFadingOut] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+  const [opacity, setOpacity] = useState(0);
 
+  // Controlar renderização e animação de entrada
   useEffect(() => {
-    if (isVisible && !isFadingOut) {
-      // Iniciar fade out antes de fechar
+    if (isVisible) {
+      setShouldRender(true);
+      // Pequeno delay para garantir que o DOM está pronto antes de animar
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setOpacity(1);
+        });
+      });
+    } else {
+      setOpacity(0);
+      // Aguardar animação de saída antes de remover do DOM
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
+
+  // Timer para fechar automaticamente
+  useEffect(() => {
+    if (isVisible && opacity === 1) {
+      // Iniciar fade out 600ms antes do fim
       const fadeOutTimer = setTimeout(() => {
-        setIsFadingOut(true);
-      }, duration - 600); // Começar fade out 600ms antes do fim
+        setOpacity(0);
+      }, duration - 600);
 
       // Fechar completamente após fade out
       const closeTimer = setTimeout(() => {
         onClose();
-        setIsFadingOut(false);
       }, duration);
 
       return () => {
@@ -33,24 +54,18 @@ export function SuccessToast({
         clearTimeout(closeTimer);
       };
     }
-  }, [isVisible, duration, onClose, isFadingOut]);
+  }, [isVisible, opacity, duration, onClose]);
 
-  // Reset fade out quando toast é mostrado novamente
-  useEffect(() => {
-    if (isVisible) {
-      setIsFadingOut(false);
-    }
-  }, [isVisible]);
-
-  if (!isVisible) return null;
+  if (!shouldRender) return null;
 
   return (
     <div 
-      className={`fixed top-4 left-1/2 -translate-x-1/2 z-[9999] ${
-        isFadingOut ? 'animate-fade-out' : 'animate-fade-in'
-      }`}
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999]"
       style={{ 
-        animationDuration: '600ms'
+        opacity,
+        transform: `translateX(-50%) translateY(${opacity === 1 ? '0' : '-10px'})`,
+        transition: 'opacity 600ms ease-in-out, transform 600ms ease-in-out',
+        pointerEvents: opacity > 0 ? 'auto' : 'none'
       }}
     >
       <div className="

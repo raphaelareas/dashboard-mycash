@@ -89,13 +89,10 @@ export default function Dashboard() {
       console.log('💾 Dashboard: Definindo mensagem final:', message);
       setSuccessMessage(message);
       
-      // Mostrar toast após delay para garantir que a página está completamente renderizada
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          console.log('🎉 Dashboard: Exibindo toast agora!', { message, tipo: savedType });
-          setShowSuccessToast(true);
-        }, 800);
-      });
+      // Mostrar toast imediatamente (sem delay para evitar "pulos")
+      // O componente do toast já tem delay interno para animação
+      console.log('🎉 Dashboard: Exibindo toast agora!', { message, tipo: savedType });
+      setShowSuccessToast(true);
     } else {
       console.log('ℹ️ Dashboard: Nenhum toast pendente na URL ou tipo inválido:', successType);
     }
