@@ -86,7 +86,15 @@
     "description": "Family financial management system",
     "termsOfUse": "Terms of Use",
     "privacyPolicy": "Privacy Policy",
-    "clearDataComingSoon": "Clear data functionality will be implemented soon."
+    "clearDataComingSoon": "Clear data functionality will be implemented soon.",
+    "preferencesSaved": "Preferences saved successfully!",
+    "preferencesError": "Error saving preferences. Please try again.",
+    "languageChanged": "Language changed successfully!",
+    "languageError": "Error changing language. Please try again.",
+    "currencyChanged": "Currency changed successfully!",
+    "currencyError": "Error changing currency. Please try again.",
+    "dateFormatChanged": "Date format changed successfully!",
+    "dateFormatError": "Error changing date format. Please try again."
   },
   "deleteModal": {
     "title": "Confirm Data Deletion",

@@ -86,7 +86,15 @@
     "description": "Sistema de gestión financiera familiar",
     "termsOfUse": "Términos de Uso",
     "privacyPolicy": "Política de Privacidad",
-    "clearDataComingSoon": "La funcionalidad de limpiar datos se implementará pronto."
+    "clearDataComingSoon": "La funcionalidad de limpiar datos se implementará pronto.",
+    "preferencesSaved": "¡Preferencias guardadas con éxito!",
+    "preferencesError": "Error al guardar preferencias. Intente nuevamente.",
+    "languageChanged": "¡Idioma cambiado con éxito!",
+    "languageError": "Error al cambiar idioma. Intente nuevamente.",
+    "currencyChanged": "¡Moneda cambiada con éxito!",
+    "currencyError": "Error al cambiar moneda. Intente nuevamente.",
+    "dateFormatChanged": "¡Formato de fecha cambiado con éxito!",
+    "dateFormatError": "Error al cambiar formato de fecha. Intente nuevamente."
   },
   "deleteModal": {
     "title": "Confirmar Eliminación de Datos",

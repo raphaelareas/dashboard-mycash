@@ -86,7 +86,15 @@
     "description": "Système de gestion financière familiale",
     "termsOfUse": "Conditions d'Utilisation",
     "privacyPolicy": "Politique de Confidentialité",
-    "clearDataComingSoon": "La fonctionnalité de suppression des données sera implémentée prochainement."
+    "clearDataComingSoon": "La fonctionnalité de suppression des données sera implémentée prochainement.",
+    "preferencesSaved": "Préférences enregistrées avec succès !",
+    "preferencesError": "Erreur lors de l'enregistrement des préférences. Veuillez réessayer.",
+    "languageChanged": "Langue modifiée avec succès !",
+    "languageError": "Erreur lors du changement de langue. Veuillez réessayer.",
+    "currencyChanged": "Devise modifiée avec succès !",
+    "currencyError": "Erreur lors du changement de devise. Veuillez réessayer.",
+    "dateFormatChanged": "Format de date modifié avec succès !",
+    "dateFormatError": "Erreur lors du changement de format de date. Veuillez réessayer."
   },
   "deleteModal": {
     "title": "Confirmer la Suppression des Données",

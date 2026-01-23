@@ -86,7 +86,15 @@
     "description": "Familien-Finanzverwaltungssystem",
     "termsOfUse": "Nutzungsbedingungen",
     "privacyPolicy": "Datenschutzrichtlinie",
-    "clearDataComingSoon": "Die Funktion zum Löschen von Daten wird bald implementiert."
+    "clearDataComingSoon": "Die Funktion zum Löschen von Daten wird bald implementiert.",
+    "preferencesSaved": "Einstellungen erfolgreich gespeichert!",
+    "preferencesError": "Fehler beim Speichern der Einstellungen. Bitte versuchen Sie es erneut.",
+    "languageChanged": "Sprache erfolgreich geändert!",
+    "languageError": "Fehler beim Ändern der Sprache. Bitte versuchen Sie es erneut.",
+    "currencyChanged": "Währung erfolgreich geändert!",
+    "currencyError": "Fehler beim Ändern der Währung. Bitte versuchen Sie es erneut.",
+    "dateFormatChanged": "Datumsformat erfolgreich geändert!",
+    "dateFormatError": "Fehler beim Ändern des Datumsformats. Bitte versuchen Sie es erneut."
   },
   "deleteModal": {
     "title": "Löschung von Daten Bestätigen",

@@ -4,7 +4,8 @@ import { useI18n } from '@/contexts/I18nContext';
 import { userService } from '@/services/userService';
 import { availableCurrencies, availableDateFormats, availableLanguages, detectUserLocale } from '@/utils/localeDetection';
 import { Modal } from '@/components/ui/Modal';
-import { Toast } from '@/components/ui/Toast';
+import { SuccessToast } from '@/components/ui/Toast/SuccessToast';
+import { ErrorToast } from '@/components/ui/Toast/ErrorToast';
 import { LanguageCode } from '@/i18n';
 
 // Ícones SVG
@@ -75,6 +76,7 @@ export default function Settings() {
   // Estado do toast
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
   
   // Texto de confirmação baseado no idioma atual (não o local)
   const getRequiredConfirmationText = (): string => {
@@ -240,10 +242,18 @@ export default function Settings() {
       setLanguage(localLanguage);
       // Marcar que o idioma foi mudado manualmente
       localStorage.setItem('language_manually_set', 'true');
-      alert(t('common.success') + ': ' + t('settings.savePreferences'));
+      
+      // Mostrar toast de sucesso
+      setToastMessage(t('settings.preferencesSaved'));
+      setToastType('success');
+      setToastVisible(true);
     } catch (error) {
       console.error('Erro ao salvar preferências:', error);
-      alert(t('common.error') + ': ' + t('settings.savePreferences'));
+      
+      // Mostrar toast de erro
+      setToastMessage(t('settings.preferencesError'));
+      setToastType('error');
+      setToastVisible(true);
     } finally {
       setIsSaving(false);
     }
@@ -544,12 +554,21 @@ export default function Settings() {
       </Modal>
 
       {/* Toast de feedback */}
-      <Toast
-        message={toastMessage}
-        isVisible={toastVisible}
-        onClose={() => setToastVisible(false)}
-        duration={5000}
-      />
+      {toastType === 'success' ? (
+        <SuccessToast
+          message={toastMessage}
+          isVisible={toastVisible}
+          onClose={() => setToastVisible(false)}
+          duration={4000}
+        />
+      ) : (
+        <ErrorToast
+          message={toastMessage}
+          isVisible={toastVisible}
+          onClose={() => setToastVisible(false)}
+          duration={4000}
+        />
+      )}
     </div>
   );
 }

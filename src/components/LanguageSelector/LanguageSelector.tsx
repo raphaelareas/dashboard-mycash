@@ -3,6 +3,8 @@ import { useI18n } from '@/contexts/I18nContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { userService } from '@/services/userService';
 import { availableLanguages } from '@/utils/localeDetection';
+import { SuccessToast } from '@/components/ui/Toast/SuccessToast';
+import { ErrorToast } from '@/components/ui/Toast/ErrorToast';
 import type { LanguageCode } from '@/i18n';
 
 // Mapeamento de códigos de idioma para bandeiras e nomes nativos
@@ -38,10 +40,12 @@ interface LanguageSelectorProps {
 }
 
 export function LanguageSelector({ onLanguageDetected }: LanguageSelectorProps) {
-  const { language, setLanguage } = useI18n();
+  const { language, setLanguage, t } = useI18n();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showErrorToast, setShowErrorToast] = useState(false);
 
   // O idioma já é detectado pelo I18nContext, não precisamos fazer detecção aqui
   // Apenas usar o idioma do contexto
@@ -81,17 +85,25 @@ export function LanguageSelector({ onLanguageDetected }: LanguageSelectorProps) 
           language: lang,
         });
         console.log('✅ Idioma salvo no banco de dados com sucesso');
+        
+        // Mostrar toast de sucesso
+        setShowSuccessToast(true);
       } catch (error) {
         console.error('❌ Erro ao salvar idioma no banco:', error);
-        // Não bloquear o fluxo se falhar ao salvar no banco
+        
+        // Mostrar toast de erro
+        setShowErrorToast(true);
       }
+    } else {
+      // Se não está logado, apenas mostrar toast de sucesso
+      setShowSuccessToast(true);
     }
     
     // Recarregar página para aplicar o idioma em todo o fluxo
-    // Pequeno delay para garantir que o localStorage foi salvo
+    // Pequeno delay para garantir que o toast seja visível antes do reload
     setTimeout(() => {
       window.location.reload();
-    }, 100);
+    }, 500);
   };
 
   // Sempre usar o idioma do contexto (já detectado por IP no I18nContext)
@@ -153,6 +165,22 @@ export function LanguageSelector({ onLanguageDetected }: LanguageSelectorProps) 
           })}
         </div>
       )}
+
+      {/* Toast de sucesso */}
+      <SuccessToast
+        message={t('settings.languageChanged')}
+        isVisible={showSuccessToast}
+        onClose={() => setShowSuccessToast(false)}
+        duration={4000}
+      />
+
+      {/* Toast de erro */}
+      <ErrorToast
+        message={t('settings.languageError')}
+        isVisible={showErrorToast}
+        onClose={() => setShowErrorToast(false)}
+        duration={4000}
+      />
     </div>
   );
 }

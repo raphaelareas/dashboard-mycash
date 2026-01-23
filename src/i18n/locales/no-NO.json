@@ -86,7 +86,15 @@
     "description": "Familie finansforvaltningssystem",
     "termsOfUse": "Bruksvilkår",
     "privacyPolicy": "Personvernpolicy",
-    "clearDataComingSoon": "Funksjonen for å slette data vil bli implementert snart."
+    "clearDataComingSoon": "Funksjonen for å slette data vil bli implementert snart.",
+    "preferencesSaved": "Innstillinger lagret med suksess!",
+    "preferencesError": "Feil ved lagring av innstillinger. Vennligst prøv igjen.",
+    "languageChanged": "Språk endret med suksess!",
+    "languageError": "Feil ved endring av språk. Vennligst prøv igjen.",
+    "currencyChanged": "Valuta endret med suksess!",
+    "currencyError": "Feil ved endring av valuta. Vennligst prøv igjen.",
+    "dateFormatChanged": "Datoformat endret med suksess!",
+    "dateFormatError": "Feil ved endring av datoformat. Vennligst prøv igjen."
   },
   "deleteModal": {
     "title": "Bekreft Sletting av Data",
