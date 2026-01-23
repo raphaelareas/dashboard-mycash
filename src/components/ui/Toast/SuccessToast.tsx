@@ -11,7 +11,7 @@ export function SuccessToast({
   message, 
   isVisible, 
   onClose, 
-  duration = 3000
+  duration = 5000
 }: SuccessToastProps) {
   useEffect(() => {
     if (isVisible) {
@@ -26,13 +26,14 @@ export function SuccessToast({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] animate-fade-in">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] animate-fade-in" style={{ animationDuration: '300ms' }}>
       <div className="
         px-6 py-4 rounded-lg
         bg-green-50 border border-green-200
         shadow-lg
         flex items-center gap-3
         min-w-[300px] max-w-[500px]
+        transition-opacity duration-300
       ">
         <svg
           width="20"

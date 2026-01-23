@@ -45,28 +45,41 @@ export default function Dashboard() {
     const shouldShowToast = sessionStorage.getItem('showSuccessToast');
     const toastType = sessionStorage.getItem('successToastType');
     
-    console.log('🔍 Dashboard: Verificando toast:', { shouldShowToast, toastType, user: user?.email });
+    console.log('🔍 Dashboard: Verificando toast:', { 
+      shouldShowToast, 
+      toastType, 
+      user: user?.email,
+      rawType: typeof toastType,
+      typeValue: toastType
+    });
     
-    if (shouldShowToast === 'true') {
+    if (shouldShowToast === 'true' && toastType) {
       // Marcar como mostrado imediatamente para evitar duplicação
       toastShownRef.current = true;
+      
+      // Salvar o tipo antes de limpar (para debug)
+      const savedType = toastType;
       
       // Limpar flags imediatamente
       sessionStorage.removeItem('showSuccessToast');
       sessionStorage.removeItem('successToastType');
       
-      // Definir mensagem baseada no tipo
+      // Definir mensagem baseada no tipo - validar explicitamente
       let message = '';
-      if (toastType === 'signup') {
+      if (savedType === 'signup' || savedType === 'SignUp' || savedType === 'SIGNUP') {
         message = t('auth.signupSuccess');
-        console.log('✅ Dashboard: Preparando toast de signup:', message);
-      } else if (toastType === 'login') {
+        console.log('✅ Dashboard: Preparando toast de SIGNUP:', message, '| Tipo recebido:', savedType);
+      } else if (savedType === 'login' || savedType === 'Login' || savedType === 'LOGIN') {
         message = t('auth.loginSuccess');
-        console.log('✅ Dashboard: Preparando toast de login:', message);
+        console.log('✅ Dashboard: Preparando toast de LOGIN:', message, '| Tipo recebido:', savedType);
+      } else {
+        console.warn('⚠️ Dashboard: Tipo de toast inválido ou desconhecido:', savedType, '| Tipo original:', toastType);
+        // Fallback: se não conseguir identificar, não mostrar toast
+        return;
       }
       
       if (!message) {
-        console.warn('⚠️ Dashboard: Tipo de toast inválido:', toastType);
+        console.warn('⚠️ Dashboard: Mensagem vazia após processar tipo:', savedType);
         return;
       }
       
@@ -145,7 +158,7 @@ export default function Dashboard() {
         message={successMessage}
         isVisible={showSuccessToast}
         onClose={() => setShowSuccessToast(false)}
-        duration={3000}
+        duration={5000}
       />
     </>
   );

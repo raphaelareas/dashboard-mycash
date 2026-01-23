@@ -202,34 +202,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Verificar se o usuário já tem preferências personalizadas (não são valores padrão genéricos)
-      // Se já tem valores personalizados, não atualizar
-      // Atualizar apenas se TODOS os valores forem padrão (pt-BR, BRL, DD/MM/YYYY)
-      const hasCustomPreferences = 
-        (profile.language && profile.language !== 'pt-BR') ||
-        (profile.currency && profile.currency !== 'BRL') ||
-        (profile.date_format && profile.date_format !== 'DD/MM/YYYY');
+      // IMPORTANTE: Se o usuário JÁ TEM uma moeda definida (não null), NÃO mudar
+      // Só atualizar se os valores forem null (nunca foram definidos)
+      // Isso garante que se o usuário criou a conta com BRL, mesmo usando VPN, a moeda não muda
+      const hasCurrencyDefined = profile.currency !== null && profile.currency !== undefined;
+      const hasLanguageDefined = profile.language !== null && profile.language !== undefined;
+      const hasDateFormatDefined = profile.date_format !== null && profile.date_format !== undefined;
 
-      if (hasCustomPreferences) {
-        console.log('✅ Usuário já tem preferências personalizadas, mantendo:', profile);
+      if (hasCurrencyDefined || hasLanguageDefined || hasDateFormatDefined) {
+        console.log('✅ Usuário já tem preferências definidas, mantendo (não atualizar automaticamente):', {
+          currency: profile.currency,
+          language: profile.language,
+          date_format: profile.date_format
+        });
         return;
       }
 
-      // Se não tem preferências personalizadas, detectar por IP e atualizar
-      console.log('🌍 Detectando país por IP para atualizar preferências do usuário existente...');
+      // Se NÃO tem preferências definidas (todos são null), detectar por IP e atualizar
+      console.log('🌍 Usuário não tem preferências definidas, detectando país por IP...');
       const detectedCountry = await detectCountryByIPWithFallback();
       const locale = detectUserLocale(detectedCountry);
 
-      // Atualizar apenas se os valores forem diferentes dos padrões atuais
+      // Atualizar apenas os valores que são null
       const updates: any = {};
       
-      if (!profile.language || profile.language === 'pt-BR') {
+      if (!hasLanguageDefined) {
         updates.language = locale.language || 'pt-BR';
       }
-      if (!profile.currency || profile.currency === 'BRL') {
+      if (!hasCurrencyDefined) {
         updates.currency = locale.currency || 'BRL';
       }
-      if (!profile.date_format || profile.date_format === 'DD/MM/YYYY') {
+      if (!hasDateFormatDefined) {
         updates.date_format = locale.dateFormat || 'DD/MM/YYYY';
       }
 
