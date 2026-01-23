@@ -117,7 +117,7 @@ export function LanguageSelector({ onLanguageDetected }: LanguageSelectorProps) 
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+        <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
           {availableLanguages.map((lang) => {
             const langCode = lang.code as LanguageCode;
             const isSelected = currentLanguage === langCode;
