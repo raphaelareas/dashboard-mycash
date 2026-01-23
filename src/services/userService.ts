@@ -91,11 +91,11 @@ export const userService = {
     // Fazer o update e verificar se alguma linha foi afetada
     console.log('🔄 Atualizando perfil:', { userId, updateData });
     
-    const { data: updateResult, error: updateError, count } = await supabase
+    const { data: updateResult, error: updateError } = await supabase
       .from('users')
       .update(updateData)
       .eq('id', userId)
-      .select('id, avatar_url', { count: 'exact' });
+      .select('id, avatar_url');
 
     if (updateError) {
       console.error('❌ Erro ao atualizar perfil:', updateError);
