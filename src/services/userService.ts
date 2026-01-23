@@ -156,51 +156,78 @@ export const userService = {
       return await this.getProfile(userId) || { id: userId, email: '', name: '' } as UserProfile;
     }
 
-    // Atualizar campos básicos primeiro
-    if (hasBasicUpdates) {
-      const { error: basicError } = await supabase
-        .from('users')
-        .update(basicUpdateData)
-        .eq('id', userId);
+    // Combinar todos os updates em uma única operação
+    const allUpdateData = { ...basicUpdateData, ...addressUpdateData };
 
-      if (basicError) {
-        console.error('❌ Erro ao atualizar campos básicos do perfil:', {
-          error: basicError,
-          errorCode: basicError.code,
-          errorMessage: basicError.message,
-          errorDetails: basicError.details,
-          updateData: basicUpdateData,
+    // Atualizar todos os campos de uma vez
+    const { data: updatedData, error: updateError } = await supabase
+      .from('users')
+      .update(allUpdateData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (updateError) {
+      // Se erro for de coluna não encontrada (campos de endereço), tentar apenas campos básicos
+      if (updateError.code === '42703' || updateError.message?.includes('column') || updateError.message?.includes('does not exist')) {
+        console.warn('⚠️ Alguns campos não encontrados. Tentando atualizar apenas campos básicos:', {
+          error: updateError,
+          allUpdateData,
+        });
+        
+        // Tentar apenas campos básicos
+        const { data: basicUpdatedData, error: basicError } = await supabase
+          .from('users')
+          .update(basicUpdateData)
+          .eq('id', userId)
+          .select()
+          .single();
+
+        if (basicError) {
+          console.error('❌ Erro ao atualizar campos básicos do perfil:', {
+            error: basicError,
+            errorCode: basicError.code,
+            errorMessage: basicError.message,
+            updateData: basicUpdateData,
+            userId,
+          });
+          throw basicError;
+        }
+
+        if (!basicUpdatedData) {
+          throw new Error('Perfil não encontrado após atualização');
+        }
+
+        // Se o nome foi atualizado, sincronizar com o owner
+        if (updates.name) {
+          try {
+            await supabase
+              .from('family_members')
+              .update({ name: updates.name })
+              .eq('user_id', userId)
+              .ilike('role', 'owner')
+              .eq('is_active', true);
+          } catch (ownerError) {
+            console.error('Erro ao sincronizar nome do owner:', ownerError);
+          }
+        }
+
+        return mapUserFromDb(basicUpdatedData);
+      } else {
+        console.error('❌ Erro ao atualizar perfil:', {
+          error: updateError,
+          errorCode: updateError.code,
+          errorMessage: updateError.message,
+          errorDetails: updateError.details,
+          updateData: allUpdateData,
           userId,
         });
-        throw basicError;
+        throw updateError;
       }
     }
 
-    // Tentar atualizar campos de endereço (pode falhar se migration não foi aplicada)
-    if (hasAddressUpdates) {
-      const { error: addressError } = await supabase
-        .from('users')
-        .update(addressUpdateData)
-        .eq('id', userId);
-
-      if (addressError) {
-        // Se erro for de coluna não encontrada, apenas logar (não bloquear)
-        if (addressError.code === '42703' || addressError.message?.includes('column') || addressError.message?.includes('does not exist')) {
-          console.warn('⚠️ Campos de endereço não encontrados. Migration 008 pode não ter sido aplicada:', {
-            error: addressError,
-            addressUpdateData,
-          });
-          // Continuar sem lançar erro - campos básicos foram salvos
-        } else {
-          console.error('❌ Erro ao atualizar campos de endereço:', {
-            error: addressError,
-            errorCode: addressError.code,
-            errorMessage: addressError.message,
-            addressUpdateData,
-          });
-          throw addressError;
-        }
-      }
+    if (!updatedData) {
+      throw new Error('Perfil não encontrado após atualização');
     }
 
     // Se o nome foi atualizado, sincronizar com o owner
@@ -217,13 +244,6 @@ export const userService = {
       }
     }
 
-    // Buscar perfil atualizado (usar getProfile para garantir consistência)
-    const updatedProfile = await this.getProfile(userId);
-    
-    if (!updatedProfile) {
-      throw new Error('Perfil não encontrado após atualização');
-    }
-
-    return updatedProfile;
+    return mapUserFromDb(updatedData);
   },
 };
