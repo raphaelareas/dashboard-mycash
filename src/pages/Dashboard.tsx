@@ -50,10 +50,17 @@ export default function Dashboard() {
     console.log('🔍 Dashboard: Verificando toast na URL:', { 
       successType, 
       user: user?.email,
-      urlParams: Object.fromEntries(searchParams.entries())
+      urlParams: Object.fromEntries(searchParams.entries()),
+      urlCompleta: window.location.href
     });
     
-    if (successType === 'signup' || successType === 'login') {
+    // Validar se o tipo é válido
+    if (successType && (successType === 'signup' || successType === 'login')) {
+      // Salvar o tipo ANTES de limpar (para garantir que não perdemos)
+      const savedType = successType.trim().toLowerCase();
+      
+      console.log('📝 Dashboard: Tipo salvo antes de processar:', savedType);
+      
       // Marcar como mostrado imediatamente para evitar duplicação
       toastShownRef.current = true;
       
@@ -63,32 +70,34 @@ export default function Dashboard() {
       
       // Definir mensagem baseada no tipo - IMPORTANTE: verificar signup PRIMEIRO
       let message = '';
-      if (successType === 'signup') {
+      if (savedType === 'signup') {
         message = t('auth.signupSuccess');
-        console.log('✅ Dashboard: Preparando toast de SIGNUP:', message, '| Tipo na URL:', successType);
-      } else if (successType === 'login') {
+        console.log('✅ Dashboard: Preparando toast de SIGNUP:', message, '| Tipo salvo:', savedType);
+      } else if (savedType === 'login') {
         message = t('auth.loginSuccess');
-        console.log('✅ Dashboard: Preparando toast de LOGIN:', message, '| Tipo na URL:', successType);
+        console.log('✅ Dashboard: Preparando toast de LOGIN:', message, '| Tipo salvo:', savedType);
       } else {
-        console.warn('⚠️ Dashboard: Tipo de sucesso desconhecido:', successType);
-      }
-      
-      if (!message) {
-        console.warn('⚠️ Dashboard: Mensagem vazia após processar tipo:', successType);
+        console.warn('⚠️ Dashboard: Tipo de sucesso desconhecido após trim:', savedType);
         return;
       }
       
+      if (!message) {
+        console.warn('⚠️ Dashboard: Mensagem vazia após processar tipo:', savedType);
+        return;
+      }
+      
+      console.log('💾 Dashboard: Definindo mensagem final:', message);
       setSuccessMessage(message);
       
       // Mostrar toast após delay para garantir que a página está completamente renderizada
       requestAnimationFrame(() => {
         setTimeout(() => {
-          console.log('🎉 Dashboard: Exibindo toast agora!', message);
+          console.log('🎉 Dashboard: Exibindo toast agora!', { message, tipo: savedType });
           setShowSuccessToast(true);
         }, 800);
       });
     } else {
-      console.log('ℹ️ Dashboard: Nenhum toast pendente na URL');
+      console.log('ℹ️ Dashboard: Nenhum toast pendente na URL ou tipo inválido:', successType);
     }
   }, [t, user, authLoading, searchParams, setSearchParams]);
 
