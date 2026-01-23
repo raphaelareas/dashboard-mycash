@@ -59,14 +59,13 @@ export default function MyAccount() {
           setEmail(userProfile.email || '');
           setPhone(userProfile.phone || '');
           setAddress(userProfile.address || '');
-          // Priorizar avatar do perfil do usuário, depois do owner
-          setAvatarUrl(userProfile.avatarUrl || owner?.avatarUrl || null);
+          // Usar avatar do perfil do usuário (que é sincronizado com owner via trigger)
+          setAvatarUrl(userProfile.avatarUrl || null);
         } else {
           // Se não existe perfil, usar dados do auth
           setName(user.email?.split('@')[0] || 'Usuário');
           setEmail(user.email || '');
-          // Usar foto do owner se disponível
-          setAvatarUrl(owner?.avatarUrl || null);
+          setAvatarUrl(null);
         }
       } catch (error) {
         console.error('Erro ao carregar perfil:', error);
@@ -82,9 +81,9 @@ export default function MyAccount() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tamanho (máximo 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors({ avatar: t('myAccount.imageSizeError') || 'A imagem deve ter no máximo 5MB' });
+    // Validar tamanho (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setErrors({ avatar: 'A imagem deve ter no máximo 10MB' });
       return;
     }
 
@@ -106,57 +105,40 @@ export default function MyAccount() {
     }
 
     setIsUploading(true);
-    setErrors({}); // Limpar erros anteriores
+    setErrors({});
+
     try {
-      // Fazer upload
+      // 1. Fazer upload da imagem
+      console.log('📤 Fazendo upload do avatar...');
       const url = await storageService.uploadAvatar(croppedFile, user.id);
       
       if (!url) {
         throw new Error('URL não retornada do upload');
       }
+
+      console.log('✅ Upload concluído, atualizando perfil...');
+
+      // 2. Atualizar avatar no banco (o trigger vai sincronizar com owner automaticamente)
+      const updatedProfile = await userService.updateAvatar(user.id, url);
       
-      // Atualizar perfil no banco (isso também sincroniza com o owner)
-      try {
-        const updatedProfile = await userService.updateProfile(user.id, { avatarUrl: url });
-        
-        // Atualizar estado local imediatamente
-        setProfile(updatedProfile);
-        setAvatarUrl(updatedProfile.avatarUrl || url);
-        
-        // Aguardar um pouco para garantir que o owner foi atualizado no banco
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Recarregar perfil novamente para pegar a URL atualizada
-        try {
-          const finalProfile = await userService.getProfile(user.id);
-          if (finalProfile) {
-            setProfile(finalProfile);
-            setAvatarUrl(finalProfile.avatarUrl || url);
-          } else {
-            setAvatarUrl(url);
-          }
-        } catch (reloadError) {
-          console.warn('Erro ao recarregar perfil após upload (não crítico):', reloadError);
-          // Continuar mesmo se não conseguir recarregar
-          setAvatarUrl(url);
-        }
-      } catch (updateError: any) {
-        console.error('Erro ao atualizar perfil:', updateError);
-        // Se o update falhar, ainda podemos usar a URL do upload
-        setAvatarUrl(url);
-        // Mas ainda mostrar o erro se for crítico
-        if (updateError?.message?.includes('Cannot coerce')) {
-          throw new Error('Erro ao salvar avatar no perfil. A imagem foi enviada, mas pode não aparecer após atualizar a página.');
-        }
-        throw updateError;
-      }
+      // 3. Atualizar estado local
+      setProfile(updatedProfile);
+      setAvatarUrl(updatedProfile.avatarUrl || url);
+
+      console.log('✅ Avatar atualizado com sucesso!');
       
       setIsUploading(false);
       setSelectedImageFile(null);
       setIsCropModalOpen(false);
-      setErrors({}); // Garantir que não há erros
+      setErrors({});
+
+      // 4. Recarregar dados do finance context para atualizar owner na sidebar
+      // O owner será atualizado automaticamente pelo trigger, mas precisamos recarregar
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error: any) {
-      console.error('Erro ao fazer upload da imagem:', error);
+      console.error('❌ Erro ao fazer upload da imagem:', error);
       const errorMessage = error?.message || t('myAccount.uploadError') || 'Erro ao fazer upload da imagem. Tente novamente.';
       setErrors({ avatar: errorMessage });
       setIsUploading(false);
@@ -183,7 +165,6 @@ export default function MyAccount() {
         name,
         phone: phone || null,
         address: address || null,
-        avatarUrl,
       });
       setErrors({});
       // Recarregar perfil
@@ -252,7 +233,7 @@ export default function MyAccount() {
                   <span>{isUploading ? (t('myAccount.uploading') || 'Enviando...') : avatarUrl ? (t('myAccount.changePhoto') || 'Alterar Foto') : (t('myAccount.uploadPhoto') || 'Enviar Foto')}</span>
                 </button>
               </div>
-              <p className="mt-2 text-sm text-gray-500">O limite de upload é de 5MB</p>
+              <p className="mt-2 text-sm text-gray-500">O limite de upload é de 10MB</p>
               {errors.avatar && <p className="mt-2 text-sm text-red-600">{errors.avatar}</p>}
               {avatarUrl && !errors.avatar && (
                 <p className="mt-2 text-sm text-green-600">{t('myAccount.photoUploadSuccess') || 'Foto enviada com sucesso!'}</p>

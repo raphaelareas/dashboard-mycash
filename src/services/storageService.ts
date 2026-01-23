@@ -36,33 +36,55 @@ export const storageService = {
     return { path: fullPath, url };
   },
 
-  // Upload de avatar (usa nome fixo para substituir)
+  // Upload de avatar - versão simplificada e robusta
   async uploadAvatar(file: File, userId: string): Promise<string> {
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split('.').pop() || 'png';
     const fileName = `avatar.${fileExt}`;
     const fullPath = `${userId}/${fileName}`;
+
+    console.log('📤 Iniciando upload de avatar:', { userId, fileName, size: file.size });
 
     // Fazer upload
     const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(fullPath, file, {
-        cacheControl: '3600',
+        cacheControl: '31536000', // 1 ano
         upsert: true,
       });
 
     if (uploadError) {
-      console.error('Erro no upload:', uploadError);
+      console.error('❌ Erro no upload:', uploadError);
       throw uploadError;
     }
 
+    console.log('✅ Upload concluído, gerando URL assinada...');
+
     // Obter URL assinada (avatars é privado)
+    // Usar validade de 1 ano para evitar expiração
     const { data: signedData, error: urlError } = await supabase.storage
       .from('avatars')
       .createSignedUrl(fullPath, 31536000); // 1 ano de validade
 
     if (urlError || !signedData) {
-      console.error('Erro ao obter URL:', urlError);
+      console.error('❌ Erro ao obter URL:', urlError);
       throw urlError || new Error('Não foi possível obter URL do arquivo');
+    }
+
+    console.log('✅ URL assinada gerada com sucesso');
+    return signedData.signedUrl;
+  },
+
+  // Obter URL assinada do avatar (para recarregar quando necessário)
+  async getAvatarUrl(userId: string, fileExt: string = 'png'): Promise<string | null> {
+    const fileName = `avatar.${fileExt}`;
+    const fullPath = `${userId}/${fileName}`;
+
+    const { data: signedData, error } = await supabase.storage
+      .from('avatars')
+      .createSignedUrl(fullPath, 31536000);
+
+    if (error || !signedData) {
+      return null;
     }
 
     return signedData.signedUrl;

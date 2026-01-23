@@ -206,7 +206,7 @@
     "uploadPhoto": "Télécharger Photo",
     "changePhoto": "Changer Photo",
     "photoUploadSuccess": "Photo téléchargée avec succès !",
-    "imageSizeError": "L'image doit faire maximum 5MB",
+    "imageSizeError": "L'image doit faire maximum 10MB",
     "invalidImage": "Veuillez sélectionner une image valide",
     "invalidName": "Veuillez entrer un nom valide",
     "uploadError": "Erreur lors du téléchargement de l'image. Veuillez réessayer.",

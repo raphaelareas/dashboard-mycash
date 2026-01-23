@@ -104,9 +104,9 @@ export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModa
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tamanho (máximo 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors({ avatar: 'A imagem deve ter no máximo 5MB' });
+    // Validar tamanho (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setErrors({ avatar: 'A imagem deve ter no máximo 10MB' });
       return;
     }
 
@@ -364,7 +364,7 @@ export function AddMemberModal({ isOpen, onClose, editingMember }: AddMemberModa
               <span>{isUploading ? 'Enviando...' : 'Enviar foto'}</span>
             </button>
           )}
-          <p className="mt-2 text-sm text-gray-500">O limite de upload é de 5MB</p>
+          <p className="mt-2 text-sm text-gray-500">O limite de upload é de 10MB</p>
           {errors.avatar && <p className="mt-1 text-sm text-red-600">{errors.avatar}</p>}
         </div>
       </div>

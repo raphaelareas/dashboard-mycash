@@ -207,7 +207,7 @@
     "uploadPhoto": "Enviar Foto",
     "changePhoto": "Alterar Foto",
     "photoUploadSuccess": "Foto enviada com sucesso!",
-    "imageSizeError": "A imagem deve ter no máximo 5MB",
+    "imageSizeError": "A imagem deve ter no máximo 10MB",
     "invalidImage": "Por favor, selecione uma imagem válida",
     "invalidName": "Por favor, insira um nome válido",
     "uploadError": "Erro ao fazer upload da imagem. Tente novamente.",

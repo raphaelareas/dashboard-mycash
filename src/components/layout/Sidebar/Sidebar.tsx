@@ -187,12 +187,11 @@ export function Sidebar() {
     try {
       const profile = await userService.getProfile(user.id);
       if (profile && profile.name) {
-        // Priorizar avatar do perfil do usuário, depois do owner
-        const avatarUrl = profile.avatarUrl || owner?.avatarUrl;
+        // Usar avatar do perfil do usuário (sincronizado com owner via trigger)
         setUserProfile({
           name: profile.name,
           email: profile.email,
-          avatarUrl,
+          avatarUrl: profile.avatarUrl || null,
         });
         return;
       }
@@ -201,24 +200,20 @@ export function Sidebar() {
     }
 
     // Se não há perfil na tabela users, tentar buscar do metadata do auth
-    const authName = user.user_metadata?.name || user.user_metadata?.full_name;
-    if (authName) {
-      // Usar foto do owner se disponível
-      const avatarUrl = owner?.avatarUrl || null;
-      setUserProfile({
-        name: authName,
-        email: user.email || '',
-        avatarUrl,
-      });
-    } else {
-      // Último fallback: usar "Usuário" (não usar email como fallback)
-      const avatarUrl = owner?.avatarUrl || null;
-      setUserProfile({
-        name: 'Usuário',
-        email: user.email || '',
-        avatarUrl,
-      });
-    }
+      const authName = user.user_metadata?.name || user.user_metadata?.full_name;
+      if (authName) {
+        setUserProfile({
+          name: authName,
+          email: user.email || '',
+          avatarUrl: null,
+        });
+      } else {
+        setUserProfile({
+          name: 'Usuário',
+          email: user.email || '',
+          avatarUrl: null,
+        });
+      }
   };
 
   // Carregar perfil do usuário
@@ -277,9 +272,9 @@ export function Sidebar() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tamanho (máximo 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('A imagem deve ter no máximo 5MB');
+    // Validar tamanho (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('A imagem deve ter no máximo 10MB');
       return;
     }
 
@@ -301,19 +296,20 @@ export function Sidebar() {
 
     setIsUploading(true);
     try {
+      // 1. Fazer upload
       const url = await storageService.uploadAvatar(croppedFile, user.id);
       
       if (!url) {
         throw new Error('URL não retornada do upload');
       }
       
-      // Atualizar perfil no banco primeiro
-      await userService.updateProfile(user.id, { avatarUrl: url });
+      // 2. Atualizar avatar no banco (trigger sincroniza com owner)
+      await userService.updateAvatar(user.id, url);
       
-      // Atualizar estado local imediatamente
+      // 3. Atualizar estado local
       setUserProfile((prev) => prev ? { ...prev, avatarUrl: url } : null);
       
-      // Recarregar perfil completo para garantir sincronização
+      // 4. Recarregar perfil
       await loadUserProfile();
       
       setIsUploading(false);
