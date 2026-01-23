@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BalanceCard } from '@/components/dashboard/BalanceCard';
 import { IncomeCard } from '@/components/dashboard/IncomeCard';
 import { ExpenseCard } from '@/components/dashboard/ExpenseCard';
@@ -12,6 +12,7 @@ import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { AddCardModal } from '@/components/modals/AddCardModal';
 import { SuccessToast } from '@/components/ui/Toast/SuccessToast';
 import { useI18n } from '@/contexts/I18nContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Dashboard() {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
@@ -19,30 +20,70 @@ export default function Dashboard() {
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const { t } = useI18n();
+  const { user, loading: authLoading } = useAuth();
+  const toastShownRef = useRef(false);
   
   // Verificar se deve mostrar toast de sucesso após login/signup
   useEffect(() => {
+    // Só verificar se não está carregando autenticação e usuário está disponível
+    if (authLoading) {
+      console.log('⏳ Dashboard: Aguardando autenticação...');
+      return;
+    }
+
+    if (!user) {
+      console.log('❌ Dashboard: Usuário não autenticado');
+      return;
+    }
+
+    // Evitar mostrar toast múltiplas vezes
+    if (toastShownRef.current) {
+      console.log('⚠️ Dashboard: Toast já foi mostrado anteriormente');
+      return;
+    }
+
     const shouldShowToast = sessionStorage.getItem('showSuccessToast');
     const toastType = sessionStorage.getItem('successToastType');
     
+    console.log('🔍 Dashboard: Verificando toast:', { shouldShowToast, toastType, user: user?.email });
+    
     if (shouldShowToast === 'true') {
+      // Marcar como mostrado imediatamente para evitar duplicação
+      toastShownRef.current = true;
+      
       // Limpar flags imediatamente
       sessionStorage.removeItem('showSuccessToast');
       sessionStorage.removeItem('successToastType');
       
       // Definir mensagem baseada no tipo
+      let message = '';
       if (toastType === 'signup') {
-        setSuccessMessage(t('auth.signupSuccess'));
+        message = t('auth.signupSuccess');
+        console.log('✅ Dashboard: Preparando toast de signup:', message);
       } else if (toastType === 'login') {
-        setSuccessMessage(t('auth.loginSuccess'));
+        message = t('auth.loginSuccess');
+        console.log('✅ Dashboard: Preparando toast de login:', message);
       }
       
-      // Mostrar toast após um pequeno delay para garantir que a página carregou
-      setTimeout(() => {
-        setShowSuccessToast(true);
-      }, 300);
+      if (!message) {
+        console.warn('⚠️ Dashboard: Tipo de toast inválido:', toastType);
+        return;
+      }
+      
+      setSuccessMessage(message);
+      
+      // Mostrar toast após delay maior para garantir que a página está completamente renderizada
+      // Usar requestAnimationFrame para garantir que o DOM está pronto
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          console.log('🎉 Dashboard: Exibindo toast agora!');
+          setShowSuccessToast(true);
+        }, 1000); // Aumentado para 1 segundo para garantir visibilidade
+      });
+    } else {
+      console.log('ℹ️ Dashboard: Nenhum toast pendente');
     }
-  }, [t]);
+  }, [t, user, authLoading]);
 
   return (
     <>

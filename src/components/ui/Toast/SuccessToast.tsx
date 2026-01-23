@@ -26,7 +26,7 @@ export function SuccessToast({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] animate-fade-in">
       <div className="
         px-6 py-4 rounded-lg
         bg-green-50 border border-green-200

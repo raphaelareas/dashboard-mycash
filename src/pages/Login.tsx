@@ -42,8 +42,13 @@ export default function Login() {
         } else {
           // Signup bem-sucedido - salvar flag para mostrar toast na dashboard
           setLoading(false);
+          console.log('✅ Login: Signup bem-sucedido, salvando flag para toast');
           sessionStorage.setItem('showSuccessToast', 'true');
           sessionStorage.setItem('successToastType', 'signup');
+          console.log('📝 Login: Flags salvos:', {
+            showSuccessToast: sessionStorage.getItem('showSuccessToast'),
+            successToastType: sessionStorage.getItem('successToastType')
+          });
           navigate('/', { replace: true });
         }
       } else {
@@ -65,8 +70,13 @@ export default function Login() {
         } else {
           // Login bem-sucedido - salvar flag para mostrar toast na dashboard
           setLoading(false);
+          console.log('✅ Login: Login bem-sucedido, salvando flag para toast');
           sessionStorage.setItem('showSuccessToast', 'true');
           sessionStorage.setItem('successToastType', 'login');
+          console.log('📝 Login: Flags salvos:', {
+            showSuccessToast: sessionStorage.getItem('showSuccessToast'),
+            successToastType: sessionStorage.getItem('successToastType')
+          });
           navigate('/', { replace: true });
         }
       }
