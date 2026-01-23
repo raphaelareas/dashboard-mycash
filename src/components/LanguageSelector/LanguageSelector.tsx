@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { userService } from '@/services/userService';
 import { availableLanguages } from '@/utils/localeDetection';
 import type { LanguageCode } from '@/i18n';
 
@@ -37,6 +39,7 @@ interface LanguageSelectorProps {
 
 export function LanguageSelector({ onLanguageDetected }: LanguageSelectorProps) {
   const { language, setLanguage } = useI18n();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -60,7 +63,7 @@ export function LanguageSelector({ onLanguageDetected }: LanguageSelectorProps) 
     };
   }, [isOpen]);
 
-  const handleLanguageChange = (lang: LanguageCode) => {
+  const handleLanguageChange = async (lang: LanguageCode) => {
     // Salvar idioma no localStorage
     localStorage.setItem('language', lang);
     localStorage.setItem('language_manually_set', 'true');
@@ -69,6 +72,20 @@ export function LanguageSelector({ onLanguageDetected }: LanguageSelectorProps) 
     setLanguage(lang);
     setIsOpen(false);
     onLanguageDetected?.(lang);
+    
+    // Se usuário está logado, salvar no banco de dados também
+    if (user?.id) {
+      try {
+        console.log('💾 Salvando idioma no perfil do usuário:', lang);
+        await userService.updateProfile(user.id, {
+          language: lang,
+        });
+        console.log('✅ Idioma salvo no banco de dados com sucesso');
+      } catch (error) {
+        console.error('❌ Erro ao salvar idioma no banco:', error);
+        // Não bloquear o fluxo se falhar ao salvar no banco
+      }
+    }
     
     // Recarregar página para aplicar o idioma em todo o fluxo
     // Pequeno delay para garantir que o localStorage foi salvo
