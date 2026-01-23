@@ -81,17 +81,11 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 relative">
-      {/* Seletor de idioma - canto inferior esquerdo */}
-      <div className="absolute bottom-6 left-6 z-10">
-        <LanguageSelector />
-      </div>
-      
-      <div className="max-w-md w-full relative z-0">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="relative inline-block mb-4">
-            <div className="flex items-center justify-center">
-              <svg width="198" height="60" viewBox="0 0 188 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Logo - canto superior esquerdo (reduzido em 20%) */}
+      <div className="absolute top-6 left-6 z-10">
+        <div className="relative inline-block">
+          <div className="flex items-center">
+            <svg width="158" height="48" viewBox="0 0 188 29" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '80%', height: '80%' }}>
                 <path d="M14.748 0.584961C14.9777 0.346015 15.4307 0.475343 15.4307 0.901367V11.5879L14.8086 12.2344H14.8096L14.1885 12.8809C12.8434 14.2804 13.7601 16.7324 15.7441 16.7324H32.1035L22.626 26.5928C22.0626 27.179 21.3008 27.5048 20.5117 27.5049H8.66406C1.40371 27.5047 -2.30879 18.3296 2.88281 12.9287L14.748 0.584961ZM28.5664 0.540039H40.4141C47.6744 0.540222 51.3869 9.71538 46.1953 15.1162L34.3301 27.46C34.1004 27.6989 33.6475 27.5696 33.6475 27.1436V16.4561L34.2686 15.8105L34.8896 15.1641C36.2347 13.7646 35.318 11.3125 33.334 11.3125H16.9736L26.4521 1.45215C27.0156 0.866024 27.7774 0.540167 28.5664 0.540039Z" fill="black" stroke="black" strokeWidth="0.922165"/>
                 <path d="M178.704 20.8463V6.00781H182.455V20.8463H178.704ZM173.16 15.3028V11.5513H187.999V15.3028H173.16Z" fill="#080B12"/>
                 <path d="M158.382 12.7037V22.0091H153.918V0.547852H158.256V8.75303H158.445C158.808 7.80292 159.395 7.0589 160.205 6.52097C161.016 5.97605 162.032 5.70359 163.255 5.70359C164.373 5.70359 165.347 5.94811 166.179 6.43713C167.017 6.91917 167.667 7.61429 168.128 8.52248C168.596 9.42369 168.826 10.503 168.819 11.7605V22.0091H164.355V12.557C164.362 11.5649 164.111 10.793 163.601 10.2411C163.098 9.68916 162.392 9.41321 161.484 9.41321C160.876 9.41321 160.338 9.54245 159.87 9.80094C159.409 10.0594 159.046 10.4367 158.78 10.9327C158.522 11.4217 158.389 12.012 158.382 12.7037Z" fill="#080B12"/>
@@ -103,14 +97,24 @@ export default function Login() {
               </svg>
             </div>
             {/* Label ALPHA - posicionado fixo à direita e ao topo */}
-            <span className="absolute top-0 right-0 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded border transform translate-x-1/2 -translate-y-1/2" style={{ backgroundColor: '#E5E7EB', color: '#1F2937', borderColor: '#1F2937' }}>
+            <span className="absolute top-0 right-0 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider rounded border transform translate-x-1/2 -translate-y-1/2" style={{ backgroundColor: '#E5E7EB', color: '#1F2937', borderColor: '#1F2937' }}>
               ALPHA
             </span>
           </div>
+        </div>
+
+      {/* Seletor de idioma - canto superior direito */}
+      <div className="absolute top-6 right-6 z-10">
+        <LanguageSelector />
+      </div>
+      
+      <div className="max-w-md w-full relative z-0">
+        {/* Título e subtítulo */}
+        <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">
             {isSignUp ? t('login.createAccount') : t('login.welcomeBack')}
           </h1>
-          <p className="text-sm text-gray-600" style={{ marginTop: '2px' }}>
+          <p className="text-sm text-gray-600" style={{ marginTop: '4px' }}>
             {isSignUp 
               ? t('login.createAccountSubtitle')
               : t('login.welcomeSubtitle')}
@@ -119,7 +123,7 @@ export default function Login() {
 
         {/* Card do formulário */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-2">
             {isSignUp && (
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -137,7 +141,7 @@ export default function Login() {
               </div>
             )}
 
-            <div>
+            <div style={{ marginTop: isSignUp ? '8px' : '0' }}>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 {t('login.email')}
               </label>
@@ -152,7 +156,7 @@ export default function Login() {
               />
             </div>
 
-            <div>
+            <div style={{ marginTop: '8px' }}>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 {t('login.password')}
               </label>
