@@ -203,22 +203,6 @@ export const userService = {
       }
     }
 
-    // Buscar perfil atualizado
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error('❌ Erro ao buscar perfil após atualização:', error);
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Perfil não encontrado após atualização');
-    }
-
     // Se o nome foi atualizado, sincronizar com o owner
     if (updates.name) {
       try {
@@ -233,6 +217,13 @@ export const userService = {
       }
     }
 
-    return mapUserFromDb(data);
+    // Buscar perfil atualizado (usar getProfile para garantir consistência)
+    const updatedProfile = await this.getProfile(userId);
+    
+    if (!updatedProfile) {
+      throw new Error('Perfil não encontrado após atualização');
+    }
+
+    return updatedProfile;
   },
 };
