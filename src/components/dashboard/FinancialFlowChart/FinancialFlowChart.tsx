@@ -227,7 +227,7 @@ function CustomTooltip({ active, payload, label, transactions, dateRange }: Cust
 export function FinancialFlowChart() {
   const { t } = useI18n();
   const { getFilteredTransactions, dateRange } = useFinance();
-  const { formatCurrency, formatCompactCurrency } = useCurrencyFormat();
+  const { formatCompactCurrency } = useCurrencyFormat();
 
   const transactions = getFilteredTransactions();
   const chartData: FinancialFlowPoint[] = buildFinancialFlowData(transactions, dateRange);

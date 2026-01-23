@@ -7,7 +7,6 @@ import { I18nProvider, useI18n } from './contexts/I18nContext';
 import { Layout } from './components/layout/Layout';
 import { NotificationChecker } from './components/NotificationChecker';
 import Login from './pages/Login';
-import Success from './pages/Success';
 import Dashboard from './pages/Dashboard';
 import Cards from './pages/Cards';
 import CardDetails from './pages/CardDetails';
