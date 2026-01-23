@@ -43,13 +43,24 @@ export default function Login() {
           // Signup bem-sucedido - salvar flag para mostrar toast na dashboard
           setLoading(false);
           console.log('✅ Login: Signup bem-sucedido, salvando flag para toast');
+          
+          // Salvar flags ANTES de navegar
           sessionStorage.setItem('showSuccessToast', 'true');
           sessionStorage.setItem('successToastType', 'signup');
-          console.log('📝 Login: Flags salvos:', {
-            showSuccessToast: sessionStorage.getItem('showSuccessToast'),
-            successToastType: sessionStorage.getItem('successToastType')
+          
+          // Verificar se foram salvos corretamente
+          const savedShow = sessionStorage.getItem('showSuccessToast');
+          const savedType = sessionStorage.getItem('successToastType');
+          console.log('📝 Login: Flags salvos (verificação):', {
+            showSuccessToast: savedShow,
+            successToastType: savedType,
+            tipoCorreto: savedType === 'signup'
           });
-          navigate('/', { replace: true });
+          
+          // Pequeno delay para garantir que sessionStorage foi salvo antes de navegar
+          setTimeout(() => {
+            navigate('/', { replace: true });
+          }, 100);
         }
       } else {
         const { error } = await signIn(email, password);
@@ -71,13 +82,24 @@ export default function Login() {
           // Login bem-sucedido - salvar flag para mostrar toast na dashboard
           setLoading(false);
           console.log('✅ Login: Login bem-sucedido, salvando flag para toast');
+          
+          // Salvar flags ANTES de navegar
           sessionStorage.setItem('showSuccessToast', 'true');
           sessionStorage.setItem('successToastType', 'login');
-          console.log('📝 Login: Flags salvos:', {
-            showSuccessToast: sessionStorage.getItem('showSuccessToast'),
-            successToastType: sessionStorage.getItem('successToastType')
+          
+          // Verificar se foram salvos corretamente
+          const savedShow = sessionStorage.getItem('showSuccessToast');
+          const savedType = sessionStorage.getItem('successToastType');
+          console.log('📝 Login: Flags salvos (verificação):', {
+            showSuccessToast: savedShow,
+            successToastType: savedType,
+            tipoCorreto: savedType === 'login'
           });
-          navigate('/', { replace: true });
+          
+          // Pequeno delay para garantir que sessionStorage foi salvo antes de navegar
+          setTimeout(() => {
+            navigate('/', { replace: true });
+          }, 100);
         }
       }
     } catch (err: any) {

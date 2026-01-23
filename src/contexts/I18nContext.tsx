@@ -42,11 +42,18 @@ export function I18nProvider({ children }: I18nProviderProps) {
     }
   });
 
-  // Detectar idioma por IP na inicialização (apenas uma vez, se não houver mudança manual)
+  // Detectar idioma por IP na inicialização (apenas se não houver usuário logado)
   useEffect(() => {
     let isMounted = true;
     
     const detectLanguageByIP = async () => {
+      // IMPORTANTE: Se o usuário já está logado, NÃO detectar por IP
+      // O idioma será carregado do perfil do usuário no useEffect seguinte
+      if (user?.id) {
+        console.log('✅ Usuário já está logado, aguardando carregar idioma do perfil');
+        return;
+      }
+
       // Verificar se há mudança manual - se sim, não detectar por IP
       const hasManualChange = localStorage.getItem('language_manually_set') === 'true';
       if (hasManualChange) {
@@ -55,7 +62,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
       }
 
       try {
-        console.log('🌍 Detectando idioma por IP no I18nContext...');
+        console.log('🌍 Detectando idioma por IP no I18nContext (usuário não logado)...');
         const country = await detectCountryByIPWithFallback();
         const locale = detectUserLocale(country);
         const detectedLang = (locale.language as LanguageCode) || defaultLanguage;
@@ -102,7 +109,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
     return () => {
       isMounted = false;
     };
-  }, []); // Executar apenas uma vez na montagem
+  }, [user?.id]); // Re-executar se o usuário mudar (login/logout)
 
   // Carregar idioma do perfil do usuário quando disponível (após login)
   useEffect(() => {
@@ -136,16 +143,18 @@ export function I18nProvider({ children }: I18nProviderProps) {
             }
           }
         }
-        // Prioridade 2: Idioma do perfil do usuário (salvo no banco)
+        // Prioridade 2: Idioma do perfil do usuário (salvo no banco) - SEMPRE usar se existir
         else if (profile?.language && translations[profile.language as LanguageCode]) {
-          console.log('✅ Usando idioma do perfil do usuário:', profile.language);
+          console.log('✅ Usando idioma do perfil do usuário (ignorando IP):', profile.language);
           setLanguageState(profile.language as LanguageCode);
           localStorage.setItem('language', profile.language);
+          // Limpar flag de detecção por IP para não sobrescrever
+          localStorage.removeItem('language_manually_set');
           // Não marcar como manual se veio do perfil
         }
-        // Prioridade 3: Manter o idioma atual (já detectado por IP)
+        // Prioridade 3: Manter o idioma atual (já detectado por IP) - apenas se não houver perfil
         else {
-          console.log('✅ Mantendo idioma atual detectado por IP');
+          console.log('✅ Mantendo idioma atual detectado por IP (usuário não tem idioma no perfil)');
         }
       } catch (error) {
         console.error('Erro ao carregar idioma do perfil:', error);
