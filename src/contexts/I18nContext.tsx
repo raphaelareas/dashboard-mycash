@@ -61,6 +61,14 @@ export function I18nProvider({ children }: I18nProviderProps) {
         
         console.log('✅ Idioma detectado por IP:', detectedLang, 'País:', country || 'não detectado');
         
+        // Limpar localStorage se tiver valor diferente (pode ser de teste anterior)
+        const saved = localStorage.getItem('language') as LanguageCode;
+        if (saved && saved !== detectedLang) {
+          console.log('🔄 Limpando idioma salvo antigo:', saved, '→ usando:', detectedLang);
+          localStorage.removeItem('language');
+          localStorage.removeItem('language_manually_set');
+        }
+        
         // Atualizar idioma se ainda não foi definido manualmente
         if (!localStorage.getItem('language_manually_set')) {
           setLanguageState(detectedLang);
@@ -73,6 +81,13 @@ export function I18nProvider({ children }: I18nProviderProps) {
         const locale = detectUserLocale();
         const fallbackLang = (locale.language as LanguageCode) || defaultLanguage;
         if (!localStorage.getItem('language_manually_set')) {
+          // Limpar localStorage se tiver valor diferente
+          const saved = localStorage.getItem('language') as LanguageCode;
+          if (saved && saved !== fallbackLang) {
+            console.log('🔄 Limpando idioma salvo antigo:', saved, '→ usando fallback:', fallbackLang);
+            localStorage.removeItem('language');
+            localStorage.removeItem('language_manually_set');
+          }
           setLanguageState(fallbackLang);
           localStorage.setItem('language', fallbackLang);
         }
