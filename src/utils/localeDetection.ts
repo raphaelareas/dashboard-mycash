@@ -147,12 +147,24 @@ export interface UserPreferences {
 
 /**
  * Detecta a localização do usuário e retorna moeda, formato de data e idioma padrão
+ * @param countryCode - Código do país (ex: 'BR', 'US'). Se fornecido, usa este país ao invés do navegador
  */
-export function detectUserLocale(): UserPreferences {
-  // Tentar obter do navegador
-  const locale = navigator.language || navigator.languages?.[0] || 'pt-BR';
-  const countryCode = locale.split('-')[1]?.toUpperCase() || 'BR';
-  const languageCode = locale.split('-')[0]?.toLowerCase() || 'pt';
+export function detectUserLocale(countryCode?: string | null): UserPreferences {
+  // Se um país foi fornecido (ex: detectado por IP), usar ele
+  let finalCountryCode: string;
+  let languageCode: string;
+
+  if (countryCode) {
+    finalCountryCode = countryCode.toUpperCase();
+    // Tentar inferir idioma do país
+    const inferredLanguage = countryToLanguage[finalCountryCode];
+    languageCode = inferredLanguage ? inferredLanguage.split('-')[0] : 'pt';
+  } else {
+    // Tentar obter do navegador (fallback)
+    const locale = navigator.language || navigator.languages?.[0] || 'pt-BR';
+    finalCountryCode = locale.split('-')[1]?.toUpperCase() || 'BR';
+    languageCode = locale.split('-')[0]?.toLowerCase() || 'pt';
+  }
 
   // Mapeamento direto de idioma do navegador para nosso código de idioma
   const languageMap: Record<string, string> = {
@@ -166,22 +178,30 @@ export function detectUserLocale(): UserPreferences {
     'de': 'de-DE', // Alemão -> Alemão Alemanha
   };
 
-  // Primeiro tentar detectar pelo idioma do navegador diretamente
-  let detectedLanguage = languageMap[languageCode];
+  // Se país foi fornecido, priorizar mapeamento por país
+  let detectedLanguage: string;
   
-  // Se não encontrou pelo idioma, tentar pelo país
-  if (!detectedLanguage) {
-    detectedLanguage = countryToLanguage[countryCode] || 'pt-BR';
+  if (countryCode) {
+    // Priorizar mapeamento direto por país
+    detectedLanguage = countryToLanguage[finalCountryCode] || 'pt-BR';
+  } else {
+    // Primeiro tentar detectar pelo idioma do navegador diretamente
+    detectedLanguage = languageMap[languageCode];
+    
+    // Se não encontrou pelo idioma, tentar pelo país
+    if (!detectedLanguage) {
+      detectedLanguage = countryToLanguage[finalCountryCode] || 'pt-BR';
+    }
   }
 
   // Obter moeda baseada no país
-  const currency = countryToCurrency[countryCode] || 'BRL';
+  const currency = countryToCurrency[finalCountryCode] || 'BRL';
   
   // Obter formato de data baseado no país
-  let dateFormat = countryToDateFormat[countryCode] || 'DD/MM/YYYY';
+  let dateFormat = countryToDateFormat[finalCountryCode] || 'DD/MM/YYYY';
   
   // Ajustar para MM/DD/YYYY se necessário
-  if (mmddyyyyCountries.includes(countryCode)) {
+  if (mmddyyyyCountries.includes(finalCountryCode)) {
     dateFormat = 'MM/DD/YYYY';
   }
 

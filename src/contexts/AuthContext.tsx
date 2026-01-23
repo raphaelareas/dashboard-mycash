@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { detectUserLocale } from '@/utils/localeDetection';
+import { detectCountryByIPWithFallback } from '@/services/ipLocationService';
 
 interface AuthContextType {
   user: User | null;
@@ -105,12 +106,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
       
-      // Para SIGNED_IN, sempre atualizar
+      // Para SIGNED_IN, sempre atualizar e verificar se precisa atualizar preferências
       if (event === 'SIGNED_IN') {
         if (session) {
           console.log('SIGNED_IN detectado:', session.user?.email);
           setSession(session);
           setUser(session.user);
+          
+          // Verificar e atualizar preferências baseadas em IP para usuários existentes
+          updateUserLocaleIfNeeded(session.user.id);
         }
         setLoading(false);
         return;
@@ -122,6 +126,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.log('INITIAL_SESSION detectado:', session.user?.email);
           setSession(session);
           setUser(session.user);
+          
+          // Verificar e atualizar preferências baseadas em IP para usuários existentes
+          updateUserLocaleIfNeeded(session.user.id);
         } else {
           console.log('INITIAL_SESSION: nenhuma sessão encontrada');
           setSession(null);
@@ -178,6 +185,70 @@ export function AuthProvider({ children }: AuthProviderProps) {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Função para atualizar preferências do usuário baseadas em IP (se necessário)
+  const updateUserLocaleIfNeeded = async (userId: string) => {
+    try {
+      // Buscar perfil do usuário
+      const { data: profile, error: fetchError } = await supabase
+        .from('users')
+        .select('language, currency, date_format')
+        .eq('id', userId)
+        .single();
+
+      if (fetchError || !profile) {
+        console.warn('⚠️ Erro ao buscar perfil para atualizar locale:', fetchError);
+        return;
+      }
+
+      // Verificar se o usuário já tem preferências definidas (não são valores padrão genéricos)
+      // Se já tem valores personalizados, não atualizar
+      const hasCustomPreferences = 
+        profile.language && profile.language !== 'pt-BR' ||
+        profile.currency && profile.currency !== 'BRL' ||
+        profile.date_format && profile.date_format !== 'DD/MM/YYYY';
+
+      if (hasCustomPreferences) {
+        console.log('✅ Usuário já tem preferências personalizadas, mantendo:', profile);
+        return;
+      }
+
+      // Se não tem preferências personalizadas, detectar por IP e atualizar
+      console.log('🌍 Detectando país por IP para atualizar preferências do usuário existente...');
+      const detectedCountry = await detectCountryByIPWithFallback();
+      const locale = detectUserLocale(detectedCountry);
+
+      // Atualizar apenas se os valores forem diferentes dos padrões atuais
+      const updates: any = {};
+      
+      if (!profile.language || profile.language === 'pt-BR') {
+        updates.language = locale.language || 'pt-BR';
+      }
+      if (!profile.currency || profile.currency === 'BRL') {
+        updates.currency = locale.currency || 'BRL';
+      }
+      if (!profile.date_format || profile.date_format === 'DD/MM/YYYY') {
+        updates.date_format = locale.dateFormat || 'DD/MM/YYYY';
+      }
+
+      if (Object.keys(updates).length > 0) {
+        console.log('🔄 Atualizando preferências do usuário:', updates);
+        const { error: updateError } = await supabase
+          .from('users')
+          .update(updates)
+          .eq('id', userId);
+
+        if (updateError) {
+          console.error('❌ Erro ao atualizar preferências:', updateError);
+        } else {
+          console.log('✅ Preferências atualizadas com sucesso baseadas no IP');
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Erro ao atualizar locale do usuário (não crítico):', error);
+      // Não bloquear o fluxo em caso de erro
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     // Verificar se Supabase está configurado antes de tentar
@@ -271,9 +342,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       if (data.user) {
-        // Criar perfil do usuário após signup com detecção de localização
+        // Criar perfil do usuário após signup com detecção de localização por IP
         try {
-          const locale = detectUserLocale();
+          // Detectar país por IP
+          console.log('🌍 Detectando país por IP para novo usuário...');
+          const detectedCountry = await detectCountryByIPWithFallback();
+          
+          // Detectar localização baseada no país detectado (ou fallback para navegador)
+          const locale = detectUserLocale(detectedCountry);
+          
+          console.log('✅ Configurações detectadas:', {
+            country: detectedCountry || 'não detectado (usando navegador)',
+            language: locale.language,
+            currency: locale.currency,
+            dateFormat: locale.dateFormat,
+          });
+          
           // @ts-ignore - Database types serão gerados depois das migrations
           await supabase.from('users').insert({
             id: data.user.id,
