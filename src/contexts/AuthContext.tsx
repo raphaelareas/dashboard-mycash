@@ -284,8 +284,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
             .single();
 
           if (!existingUser) {
-            // Criar perfil do usuário na primeira vez com detecção de localização
-            const locale = detectUserLocale();
+            // Criar perfil do usuário na primeira vez usando idioma do localStorage
+            const savedLanguage = localStorage.getItem('language') as LanguageCode;
+            const hasManualLanguage = localStorage.getItem('language_manually_set') === 'true';
+            
+            let finalLanguage: string;
+            let detectedCountry: string | null = null;
+            let locale: ReturnType<typeof detectUserLocale>;
+            
+            if (hasManualLanguage && savedLanguage) {
+              // Usar idioma escolhido pelo usuário
+              console.log('✅ Usando idioma escolhido pelo usuário no login:', savedLanguage);
+              finalLanguage = savedLanguage;
+              detectedCountry = await detectCountryByIPWithFallback();
+              locale = detectUserLocale(detectedCountry);
+              locale.language = savedLanguage;
+            } else {
+              // Detectar por IP
+              detectedCountry = await detectCountryByIPWithFallback();
+              locale = detectUserLocale(detectedCountry);
+              finalLanguage = locale.language || 'pt-BR';
+            }
+            
             // @ts-ignore - Database types serão gerados depois das migrations
             await supabase.from('users').insert({
               id: data.user.id,
@@ -293,7 +313,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               name: data.user.email?.split('@')[0] || 'Usuário',
               currency: locale.currency,
               date_format: locale.dateFormat,
-              language: locale.language || 'pt-BR',
+              language: finalLanguage,
             });
           }
         } catch (insertError: any) {
@@ -343,20 +363,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       if (data.user) {
-        // Criar perfil do usuário após signup com detecção de localização por IP
+        // Criar perfil do usuário após signup usando idioma do localStorage (escolha do usuário)
         try {
-          // Detectar país por IP
-          console.log('🌍 Detectando país por IP para novo usuário...');
-          const detectedCountry = await detectCountryByIPWithFallback();
+          // Priorizar idioma do localStorage (escolha manual do usuário no dropdown)
+          const savedLanguage = localStorage.getItem('language') as LanguageCode;
+          const hasManualLanguage = localStorage.getItem('language_manually_set') === 'true';
           
-          // Detectar localização baseada no país detectado (ou fallback para navegador)
-          const locale = detectUserLocale(detectedCountry);
+          let finalLanguage: string;
+          let detectedCountry: string | null = null;
+          let locale: ReturnType<typeof detectUserLocale>;
           
-          console.log('✅ Configurações detectadas:', {
+          if (hasManualLanguage && savedLanguage) {
+            // Usar idioma escolhido pelo usuário no dropdown
+            console.log('✅ Usando idioma escolhido pelo usuário:', savedLanguage);
+            finalLanguage = savedLanguage;
+            // Detectar país por IP apenas para moeda e formato de data
+            detectedCountry = await detectCountryByIPWithFallback();
+            locale = detectUserLocale(detectedCountry);
+            // Manter o idioma escolhido pelo usuário, mas usar moeda/data do país
+            locale.language = savedLanguage;
+          } else {
+            // Se não há escolha manual, detectar por IP
+            console.log('🌍 Detectando país por IP para novo usuário...');
+            detectedCountry = await detectCountryByIPWithFallback();
+            locale = detectUserLocale(detectedCountry);
+            finalLanguage = locale.language || 'pt-BR';
+          }
+          
+          console.log('✅ Configurações para novo usuário:', {
             country: detectedCountry || 'não detectado (usando navegador)',
-            language: locale.language,
+            language: finalLanguage,
             currency: locale.currency,
             dateFormat: locale.dateFormat,
+            source: hasManualLanguage ? 'escolha do usuário' : 'detecção por IP',
           });
           
           // @ts-ignore - Database types serão gerados depois das migrations
@@ -366,7 +405,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             name,
             currency: locale.currency,
             date_format: locale.dateFormat,
-            language: locale.language || 'pt-BR',
+            language: finalLanguage,
           });
 
           // Criar owner automaticamente com o nome do usuário

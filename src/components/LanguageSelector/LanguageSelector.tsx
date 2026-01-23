@@ -61,11 +61,20 @@ export function LanguageSelector({ onLanguageDetected }: LanguageSelectorProps) 
   }, [isOpen]);
 
   const handleLanguageChange = (lang: LanguageCode) => {
-    setLanguage(lang);
+    // Salvar idioma no localStorage
     localStorage.setItem('language', lang);
     localStorage.setItem('language_manually_set', 'true');
+    
+    // Atualizar contexto
+    setLanguage(lang);
     setIsOpen(false);
     onLanguageDetected?.(lang);
+    
+    // Recarregar página para aplicar o idioma em todo o fluxo
+    // Pequeno delay para garantir que o localStorage foi salvo
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   // Sempre usar o idioma do contexto (já detectado por IP no I18nContext)
