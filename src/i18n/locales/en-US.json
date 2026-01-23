@@ -407,6 +407,37 @@
     "expenseMarkedAsPaid": "Expense marked as paid",
     "expensePaidSuccessfully": "Expense successfully paid"
   },
+  "login": {
+    "welcomeBack": "Welcome back",
+    "welcomeSubtitle": "Log in to your account to continue",
+    "createAccount": "Create Account",
+    "createAccountSubtitle": "Start managing your finances today",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "fullName": "Full name",
+    "namePlaceholder": "Your name",
+    "minPasswordLength": "Minimum 6 characters",
+    "acceptTerms": "I agree to the",
+    "termsOfUse": "terms of use",
+    "termsOfUseApp": "of the application",
+    "enter": "Log in",
+    "createAccountButton": "Create account",
+    "processing": "Processing...",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginHere": "Log in here",
+    "noAccount": "Don't have an account?",
+    "createOne": "Create one",
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "emailNotConfirmed": "Email not confirmed. Check your inbox and confirm your email before logging in.",
+      "nameRequired": "Please enter your name",
+      "termsRequired": "You must accept the terms of use to create an account",
+      "createAccountError": "Error creating account",
+      "unexpectedError": "An unexpected error occurred"
+    }
+  },
   "imageCrop": {
     "cancel": "Cancel",
     "save": "Save"

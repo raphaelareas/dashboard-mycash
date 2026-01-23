@@ -407,6 +407,37 @@
     "cancel": "Annuler",
     "save": "Enregistrer"
   },
+  "login": {
+    "welcomeBack": "Bon retour",
+    "welcomeSubtitle": "Connectez-vous à votre compte pour continuer",
+    "createAccount": "Créer un compte",
+    "createAccountSubtitle": "Commencez à gérer vos finances dès aujourd'hui",
+    "email": "E-mail",
+    "emailPlaceholder": "votre@email.com",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "••••••••",
+    "fullName": "Nom complet",
+    "namePlaceholder": "Votre nom",
+    "minPasswordLength": "Minimum 6 caractères",
+    "acceptTerms": "J'accepte les",
+    "termsOfUse": "conditions d'utilisation",
+    "termsOfUseApp": "de l'application",
+    "enter": "Se connecter",
+    "createAccountButton": "Créer un compte",
+    "processing": "Traitement en cours...",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "loginHere": "Connectez-vous ici",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "createOne": "Créez-en un",
+    "errors": {
+      "invalidCredentials": "E-mail ou mot de passe invalide",
+      "emailNotConfirmed": "E-mail non confirmé. Vérifiez votre boîte de réception et confirmez votre e-mail avant de vous connecter.",
+      "nameRequired": "Veuillez entrer votre nom",
+      "termsRequired": "Vous devez accepter les conditions d'utilisation pour créer un compte",
+      "createAccountError": "Erreur lors de la création du compte",
+      "unexpectedError": "Une erreur inattendue s'est produite"
+    }
+  },
   "cardDetails": {
     "installments": "Versements"
   }

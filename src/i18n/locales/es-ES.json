@@ -408,6 +408,37 @@
     "cancel": "Cancelar",
     "save": "Guardar"
   },
+  "login": {
+    "welcomeBack": "Bienvenido de nuevo",
+    "welcomeSubtitle": "Inicia sesión en tu cuenta para continuar",
+    "createAccount": "Crear Cuenta",
+    "createAccountSubtitle": "Comienza a gestionar tus finanzas hoy",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "tu@email.com",
+    "password": "Contraseña",
+    "passwordPlaceholder": "••••••••",
+    "fullName": "Nombre completo",
+    "namePlaceholder": "Tu nombre",
+    "minPasswordLength": "Mínimo 6 caracteres",
+    "acceptTerms": "Acepto los",
+    "termsOfUse": "términos de uso",
+    "termsOfUseApp": "de la aplicación",
+    "enter": "Entrar",
+    "createAccountButton": "Crear cuenta",
+    "processing": "Procesando...",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "loginHere": "Inicia sesión aquí",
+    "noAccount": "¿No tienes una cuenta?",
+    "createOne": "Crea una",
+    "errors": {
+      "invalidCredentials": "Correo electrónico o contraseña inválidos",
+      "emailNotConfirmed": "Correo electrónico no confirmado. Verifica tu bandeja de entrada y confirma tu correo antes de iniciar sesión.",
+      "nameRequired": "Por favor, ingresa tu nombre",
+      "termsRequired": "Debes aceptar los términos de uso para crear una cuenta",
+      "createAccountError": "Error al crear cuenta",
+      "unexpectedError": "Ocurrió un error inesperado"
+    }
+  },
   "cardDetails": {
     "installments": "Cuotas"
   }

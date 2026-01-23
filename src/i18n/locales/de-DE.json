@@ -407,6 +407,37 @@
     "cancel": "Abbrechen",
     "save": "Speichern"
   },
+  "login": {
+    "welcomeBack": "Willkommen zurück",
+    "welcomeSubtitle": "Melden Sie sich in Ihrem Konto an, um fortzufahren",
+    "createAccount": "Konto erstellen",
+    "createAccountSubtitle": "Beginnen Sie heute mit der Verwaltung Ihrer Finanzen",
+    "email": "E-Mail",
+    "emailPlaceholder": "ihre@email.de",
+    "password": "Passwort",
+    "passwordPlaceholder": "••••••••",
+    "fullName": "Vollständiger Name",
+    "namePlaceholder": "Ihr Name",
+    "minPasswordLength": "Mindestens 6 Zeichen",
+    "acceptTerms": "Ich akzeptiere die",
+    "termsOfUse": "Nutzungsbedingungen",
+    "termsOfUseApp": "der Anwendung",
+    "enter": "Anmelden",
+    "createAccountButton": "Konto erstellen",
+    "processing": "Wird verarbeitet...",
+    "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
+    "loginHere": "Hier anmelden",
+    "noAccount": "Haben Sie kein Konto?",
+    "createOne": "Erstellen Sie eines",
+    "errors": {
+      "invalidCredentials": "Ungültige E-Mail oder Passwort",
+      "emailNotConfirmed": "E-Mail nicht bestätigt. Überprüfen Sie Ihren Posteingang und bestätigen Sie Ihre E-Mail, bevor Sie sich anmelden.",
+      "nameRequired": "Bitte geben Sie Ihren Namen ein",
+      "termsRequired": "Sie müssen den Nutzungsbedingungen zustimmen, um ein Konto zu erstellen",
+      "createAccountError": "Fehler beim Erstellen des Kontos",
+      "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten"
+    }
+  },
   "cardDetails": {
     "installments": "Raten"
   }

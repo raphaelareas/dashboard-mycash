@@ -407,6 +407,37 @@
     "cancel": "Avbryt",
     "save": "Lagre"
   },
+  "login": {
+    "welcomeBack": "Velkommen tilbake",
+    "welcomeSubtitle": "Logg inn på kontoen din for å fortsette",
+    "createAccount": "Opprett konto",
+    "createAccountSubtitle": "Begynn å administrere økonomien din i dag",
+    "email": "E-post",
+    "emailPlaceholder": "din@epost.no",
+    "password": "Passord",
+    "passwordPlaceholder": "••••••••",
+    "fullName": "Fullt navn",
+    "namePlaceholder": "Ditt navn",
+    "minPasswordLength": "Minimum 6 tegn",
+    "acceptTerms": "Jeg godtar",
+    "termsOfUse": "bruksvilkårene",
+    "termsOfUseApp": "for applikasjonen",
+    "enter": "Logg inn",
+    "createAccountButton": "Opprett konto",
+    "processing": "Behandler...",
+    "alreadyHaveAccount": "Har du allerede en konto?",
+    "loginHere": "Logg inn her",
+    "noAccount": "Har du ikke en konto?",
+    "createOne": "Opprett en",
+    "errors": {
+      "invalidCredentials": "Ugyldig e-post eller passord",
+      "emailNotConfirmed": "E-post ikke bekreftet. Sjekk innboksen din og bekreft e-posten før du logger inn.",
+      "nameRequired": "Vennligst oppgi navnet ditt",
+      "termsRequired": "Du må godta bruksvilkårene for å opprette en konto",
+      "createAccountError": "Feil ved opprettelse av konto",
+      "unexpectedError": "En uventet feil oppstod"
+    }
+  },
   "cardDetails": {
     "installments": "Avdrag"
   }

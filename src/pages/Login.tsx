@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { LanguageSelector } from '@/components/LanguageSelector/LanguageSelector';
 
 export default function Login() {
@@ -14,6 +15,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   
   const { signIn, signUp } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,18 +26,18 @@ export default function Login() {
     try {
       if (isSignUp) {
         if (!name.trim()) {
-          setError('Por favor, informe seu nome');
+          setError(t('login.errors.nameRequired'));
           setLoading(false);
           return;
         }
         if (!acceptedTerms) {
-          setError('Você precisa aceitar os termos de uso para criar uma conta');
+          setError(t('login.errors.termsRequired'));
           setLoading(false);
           return;
         }
         const { error } = await signUp(email, password, name);
         if (error) {
-          setError(error.message || 'Erro ao criar conta');
+          setError(error.message || t('login.errors.createAccountError'));
           setLoading(false);
         } else {
           // Signup bem-sucedido - navegar para tela de sucesso
@@ -46,14 +48,14 @@ export default function Login() {
         const { error } = await signIn(email, password);
         if (error) {
           // Tratamento específico para erro de e-mail não confirmado
-          let errorMessage = error.message || 'Email ou senha inválidos';
+          let errorMessage = error.message || t('login.errors.invalidCredentials');
           
           if (error.message?.includes('Email not confirmed') || 
               error.message?.includes('email_not_confirmed') ||
               error.message?.toLowerCase().includes('email') && error.message?.toLowerCase().includes('confirm')) {
-            errorMessage = 'E-mail não confirmado. Verifique sua caixa de entrada e confirme seu e-mail antes de fazer login.';
+            errorMessage = t('login.errors.emailNotConfirmed');
           } else if (error.message?.includes('Invalid login credentials')) {
-            errorMessage = 'Email ou senha inválidos';
+            errorMessage = t('login.errors.invalidCredentials');
           }
           
           setError(errorMessage);
@@ -69,7 +71,7 @@ export default function Login() {
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro inesperado');
+      setError(err.message || t('login.errors.unexpectedError'));
       setLoading(false);
     }
   };
@@ -104,12 +106,12 @@ export default function Login() {
             </span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {isSignUp ? 'Criar Conta' : 'Bem-vindo de volta'}
+            {isSignUp ? t('login.createAccount') : t('login.welcomeBack')}
           </h1>
           <p className="text-sm text-gray-600" style={{ marginTop: '2px' }}>
             {isSignUp 
-              ? 'Comece a gerenciar suas finanças hoje' 
-              : 'Entre na sua conta para continuar'}
+              ? t('login.createAccountSubtitle')
+              : t('login.welcomeSubtitle')}
           </p>
         </div>
 
@@ -119,7 +121,7 @@ export default function Login() {
             {isSignUp && (
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Nome completo
+                  {t('login.fullName')}
                 </label>
                 <input
                   id="name"
@@ -128,14 +130,14 @@ export default function Login() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="Seu nome"
+                  placeholder={t('login.namePlaceholder')}
                 />
               </div>
             )}
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email
+                {t('login.email')}
               </label>
               <input
                 id="email"
@@ -144,13 +146,13 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full h-14 px-4 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="seu@email.com"
+                placeholder={t('login.emailPlaceholder')}
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Senha
+                {t('login.password')}
               </label>
               <div className="relative">
                 <input
@@ -160,7 +162,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full h-14 px-4 pr-12 rounded-[40px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="••••••••"
+                  placeholder={t('login.passwordPlaceholder')}
                   minLength={6}
                 />
                 <button
@@ -182,7 +184,7 @@ export default function Login() {
               </div>
               {isSignUp && (
                 <p className="mt-1 text-xs text-gray-500">
-                  Mínimo de 6 caracteres
+                  {t('login.minPasswordLength')}
                 </p>
               )}
             </div>
@@ -198,11 +200,11 @@ export default function Login() {
                   className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
-                  Eu concordo com os{' '}
+                  {t('login.acceptTerms')}{' '}
                   <a href="#" className="underline transition-colors hover:[color:#99B402]" style={{ color: '#080B12' }} onClick={(e) => e.preventDefault()}>
-                    termos de uso
+                    {t('login.termsOfUse')}
                   </a>{' '}
-                  do aplicativo
+                  {t('login.termsOfUseApp')}
                 </label>
               </div>
             )}
@@ -219,10 +221,10 @@ export default function Login() {
               className="w-full h-14 font-medium rounded-[40px] transition-all disabled:cursor-not-allowed bg-black text-white hover:bg-gray-800 disabled:opacity-50"
             >
               {loading 
-                ? 'Processando...' 
+                ? t('login.processing')
                 : isSignUp 
-                  ? 'Criar conta' 
-                  : 'Entrar'
+                  ? t('login.createAccountButton')
+                  : t('login.enter')
               }
             </button>
           </form>
@@ -237,9 +239,9 @@ export default function Login() {
               className="text-sm text-gray-600 hover:text-gray-900"
             >
               {isSignUp ? (
-                <>Já tem uma conta? <span className="font-medium">Entre aqui</span></>
+                <>{t('login.alreadyHaveAccount')} <span className="font-medium">{t('login.loginHere')}</span></>
               ) : (
-                <>Não tem uma conta? <span className="font-medium">Crie uma</span></>
+                <>{t('login.noAccount')} <span className="font-medium">{t('login.createOne')}</span></>
               )}
             </button>
           </div>

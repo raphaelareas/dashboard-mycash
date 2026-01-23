@@ -219,6 +219,37 @@
     "uploadError": "Erro ao fazer upload da imagem. Tente novamente.",
     "saveError": "Erro ao salvar perfil. Tente novamente."
   },
+  "login": {
+    "welcomeBack": "Bem-vindo de volta",
+    "welcomeSubtitle": "Entre na sua conta para continuar",
+    "createAccount": "Criar Conta",
+    "createAccountSubtitle": "Comece a gerenciar suas finanças hoje",
+    "email": "Email",
+    "emailPlaceholder": "seu@email.com",
+    "password": "Senha",
+    "passwordPlaceholder": "••••••••",
+    "fullName": "Nome completo",
+    "namePlaceholder": "Seu nome",
+    "minPasswordLength": "Mínimo de 6 caracteres",
+    "acceptTerms": "Eu concordo com os",
+    "termsOfUse": "termos de uso",
+    "termsOfUseApp": "do aplicativo",
+    "enter": "Entrar",
+    "createAccountButton": "Criar conta",
+    "processing": "Processando...",
+    "alreadyHaveAccount": "Já tem uma conta?",
+    "loginHere": "Entre aqui",
+    "noAccount": "Não tem uma conta?",
+    "createOne": "Crie uma",
+    "errors": {
+      "invalidCredentials": "Email ou senha inválidos",
+      "emailNotConfirmed": "E-mail não confirmado. Verifique sua caixa de entrada e confirme seu e-mail antes de fazer login.",
+      "nameRequired": "Por favor, informe seu nome",
+      "termsRequired": "Você precisa aceitar os termos de uso para criar uma conta",
+      "createAccountError": "Erro ao criar conta",
+      "unexpectedError": "Ocorreu um erro inesperado"
+    }
+  },
     "imageCrop": {
       "cancel": "Cancelar",
       "save": "Salvar"

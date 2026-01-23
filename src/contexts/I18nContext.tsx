@@ -20,19 +20,22 @@ interface I18nProviderProps {
 export function I18nProvider({ children }: I18nProviderProps) {
   const { user } = useAuth();
   const [language, setLanguageState] = useState<LanguageCode>(() => {
-    // Verificar se há mudança manual primeiro
+    // PRIORIDADE 1: Verificar se há mudança manual primeiro
     const hasManualChange = localStorage.getItem('language_manually_set') === 'true';
     const saved = localStorage.getItem('language') as LanguageCode;
     
     // Se foi mudança manual E o idioma salvo é válido, usar o salvo
     if (hasManualChange && saved && translations[saved]) {
+      console.log('✅ Usando idioma escolhido manualmente na inicialização:', saved);
       return saved;
     }
     
-    // Caso contrário, usar fallback do navegador (será atualizado por IP depois)
+    // PRIORIDADE 2: Usar fallback do navegador (será atualizado por IP depois se não houver escolha manual)
     try {
       const detected = detectUserLocale();
-      return (detected.language as LanguageCode) || defaultLanguage;
+      const detectedLang = (detected.language as LanguageCode) || defaultLanguage;
+      console.log('🌐 Usando idioma do navegador na inicialização:', detectedLang);
+      return detectedLang;
     } catch (error) {
       console.error('Erro ao detectar locale:', error);
       return defaultLanguage;
