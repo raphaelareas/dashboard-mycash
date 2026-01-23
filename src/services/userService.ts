@@ -77,6 +77,31 @@ export const userService = {
     return mapUserFromDb(data);
   },
 
+  // Deletar avatar do usuário
+  async deleteAvatar(userId: string): Promise<UserProfile> {
+    console.log('🗑️ Deletando avatar:', { userId });
+
+    // Atualizar avatar_url para null
+    const { data, error } = await supabase
+      .from('users')
+      .update({ avatar_url: null })
+      .eq('id', userId)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('❌ Erro ao deletar avatar:', error);
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Perfil não encontrado após deletar avatar');
+    }
+
+    console.log('✅ Avatar deletado com sucesso');
+    return mapUserFromDb(data);
+  },
+
   // Atualizar perfil do usuário (para outros campos)
   async updateProfile(userId: string, updates: Partial<{ name: string; phone: string | null; address: string | null; currency: string; dateFormat: string; language: string }>): Promise<UserProfile> {
     const updateData: any = {};

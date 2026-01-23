@@ -96,6 +96,25 @@ export const storageService = {
     if (error) throw error;
   },
 
+  // Deletar avatar do usuário
+  async deleteAvatar(userId: string): Promise<void> {
+    // Tentar deletar diferentes extensões possíveis
+    const extensions = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
+    const pathsToDelete = extensions.map(ext => `${userId}/avatar.${ext}`);
+    
+    const { error } = await supabase.storage
+      .from('avatars')
+      .remove(pathsToDelete);
+
+    // Não lançar erro se o arquivo não existir
+    if (error && !error.message.includes('not found')) {
+      console.error('❌ Erro ao deletar avatar:', error);
+      throw error;
+    }
+
+    console.log('✅ Avatar deletado com sucesso');
+  },
+
   // Obter URL pública (apenas para media bucket)
   getPublicUrl(bucket: BucketName, path: string): string {
     const { data } = supabase.storage.from(bucket).getPublicUrl(path);

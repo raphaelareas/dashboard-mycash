@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { ImageCropModal } from '@/components/modals/ImageCropModal';
+import { Toast } from '@/components/ui/Toast/Toast';
 import { storageService } from '@/services/storageService';
 import { userService, UserProfile } from '@/services/userService';
 
@@ -43,7 +44,12 @@ export default function MyAccount() {
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Toast states
+  const [toastMessage, setToastMessage] = useState('');
+  const [isToastVisible, setIsToastVisible] = useState(false);
 
   // Carregar perfil do usuário
   useEffect(() => {
@@ -132,16 +138,51 @@ export default function MyAccount() {
       setIsCropModalOpen(false);
       setErrors({});
 
-      // 4. Recarregar dados do finance context para atualizar owner na sidebar
-      // O owner será atualizado automaticamente pelo trigger, mas precisamos recarregar
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // Mostrar toast de sucesso
+      setToastMessage(t('myAccount.photoUploadSuccess') || 'Foto enviada com sucesso!');
+      setIsToastVisible(true);
     } catch (error: any) {
       console.error('❌ Erro ao fazer upload da imagem:', error);
       const errorMessage = error?.message || t('myAccount.uploadError') || 'Erro ao fazer upload da imagem. Tente novamente.';
       setErrors({ avatar: errorMessage });
       setIsUploading(false);
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    if (!user?.id || !avatarUrl) return;
+
+    if (!confirm(t('myAccount.confirmDeletePhoto') || 'Tem certeza que deseja deletar sua foto de perfil?')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setErrors({});
+
+    try {
+      // 1. Deletar arquivo do storage
+      console.log('🗑️ Deletando avatar do storage...');
+      await storageService.deleteAvatar(user.id);
+
+      // 2. Atualizar banco (remover avatar_url)
+      console.log('🗑️ Removendo avatar do banco...');
+      const updatedProfile = await userService.deleteAvatar(user.id);
+
+      // 3. Atualizar estado local
+      setProfile(updatedProfile);
+      setAvatarUrl(null);
+
+      console.log('✅ Avatar deletado com sucesso!');
+
+      // Mostrar toast de sucesso
+      setToastMessage(t('myAccount.photoDeletedSuccess') || 'Foto deletada com sucesso!');
+      setIsToastVisible(true);
+    } catch (error: any) {
+      console.error('❌ Erro ao deletar avatar:', error);
+      const errorMessage = error?.message || t('myAccount.deleteError') || 'Erro ao deletar foto. Tente novamente.';
+      setErrors({ avatar: errorMessage });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -201,17 +242,57 @@ export default function MyAccount() {
                 {t('myAccount.profilePhoto')}
               </label>
               <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 overflow-hidden relative">
+                <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 overflow-hidden relative group">
                   {avatarUrl ? (
-                    <img 
-                      src={avatarUrl} 
-                      alt="" 
-                      className="w-full h-full object-cover object-center"
-                      style={{ 
-                        minWidth: '100%',
-                        minHeight: '100%',
-                      }}
-                    />
+                    <>
+                      <img 
+                        src={avatarUrl} 
+                        alt="" 
+                        className="w-full h-full object-cover object-center"
+                        style={{ 
+                          minWidth: '100%',
+                          minHeight: '100%',
+                        }}
+                      />
+                      {/* Overlay com lixeira no hover */}
+                      <div 
+                        className="absolute inset-0 bg-black opacity-0 group-hover:opacity-75 transition-opacity flex items-center justify-center cursor-pointer"
+                        onClick={handleDeleteAvatar}
+                      >
+                        <div className="text-white">
+                          <svg 
+                            width="24" 
+                            height="24" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            xmlns="http://www.w3.org/2000/svg"
+                            className={isDeleting ? 'animate-spin' : ''}
+                          >
+                            <path 
+                              d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round"
+                            />
+                            <path 
+                              d="M10 11V17" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round"
+                            />
+                            <path 
+                              d="M14 11V17" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </>
                   ) : (
                     <div className="w-full h-full rounded-full bg-gray-300" />
                   )}
@@ -235,9 +316,6 @@ export default function MyAccount() {
               </div>
               <p className="mt-2 text-sm text-gray-500">O limite de upload é de 10MB</p>
               {errors.avatar && <p className="mt-2 text-sm text-red-600">{errors.avatar}</p>}
-              {avatarUrl && !errors.avatar && (
-                <p className="mt-2 text-sm text-green-600">{t('myAccount.photoUploadSuccess') || 'Foto enviada com sucesso!'}</p>
-              )}
             </div>
 
             {/* Nome Completo */}
@@ -337,6 +415,14 @@ export default function MyAccount() {
         }}
         onCrop={handleCropComplete}
         imageFile={selectedImageFile}
+      />
+
+      {/* Toast de Sucesso */}
+      <Toast
+        message={toastMessage}
+        isVisible={isToastVisible}
+        onClose={() => setIsToastVisible(false)}
+        duration={5000}
       />
     </>
   );
