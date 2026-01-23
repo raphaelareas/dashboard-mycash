@@ -112,19 +112,38 @@ export function I18nProvider({ children }: I18nProviderProps) {
       try {
         const profile = await userService.getProfile(user.id);
         
-        // Verificar se foi mudança manual
+        // Verificar se foi mudança manual no localStorage (escolha recente do usuário)
         const hasManualLanguageChange = localStorage.getItem('language_manually_set') === 'true';
+        const savedLanguage = localStorage.getItem('language') as LanguageCode;
         
-        if (profile?.language && translations[profile.language as LanguageCode] && hasManualLanguageChange) {
-          // Se o usuário mudou manualmente nas configurações, respeitar a escolha
-          setLanguageState(profile.language as LanguageCode);
-          localStorage.setItem('language', profile.language);
-        } else if (profile?.language && translations[profile.language as LanguageCode]) {
-          // Se o perfil tem idioma mas não foi mudança manual, usar o do perfil
-          setLanguageState(profile.language as LanguageCode);
-          localStorage.setItem('language', profile.language);
+        // Prioridade 1: Idioma escolhido manualmente no localStorage (escolha recente)
+        if (hasManualLanguageChange && savedLanguage && translations[savedLanguage]) {
+          console.log('✅ Usando idioma escolhido manualmente:', savedLanguage);
+          setLanguageState(savedLanguage);
+          localStorage.setItem('language', savedLanguage);
+          
+          // Atualizar perfil do usuário para manter sincronizado
+          if (profile?.language !== savedLanguage) {
+            try {
+              await userService.updateProfile(user.id, {
+                language: savedLanguage,
+              });
+            } catch (updateError) {
+              console.error('Erro ao atualizar idioma no perfil:', updateError);
+            }
+          }
         }
-        // Caso contrário, manter o idioma já detectado por IP
+        // Prioridade 2: Idioma do perfil do usuário (salvo no banco)
+        else if (profile?.language && translations[profile.language as LanguageCode]) {
+          console.log('✅ Usando idioma do perfil do usuário:', profile.language);
+          setLanguageState(profile.language as LanguageCode);
+          localStorage.setItem('language', profile.language);
+          // Não marcar como manual se veio do perfil
+        }
+        // Prioridade 3: Manter o idioma atual (já detectado por IP)
+        else {
+          console.log('✅ Mantendo idioma atual detectado por IP');
+        }
       } catch (error) {
         console.error('Erro ao carregar idioma do perfil:', error);
         // Em caso de erro, manter o idioma atual
