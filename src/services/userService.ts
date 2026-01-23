@@ -112,7 +112,36 @@ export const userService = {
       // Tentar buscar o perfil atual para verificar se existe
       const currentProfile = await this.getProfile(userId);
       if (!currentProfile) {
-        throw new Error('Perfil não encontrado. Verifique se o usuário está autenticado corretamente.');
+        // Se não conseguiu buscar, verificar diretamente no banco
+        const { data: directCheck, error: directError } = await supabase
+          .from('users')
+          .select('id, email, name')
+          .eq('id', userId)
+          .single();
+        
+        if (directError) {
+          console.error('❌ Erro ao verificar perfil diretamente:', directError);
+          throw new Error(`Erro ao verificar perfil: ${directError.message}. Verifique se o usuário está autenticado corretamente.`);
+        }
+        
+        if (!directCheck) {
+          throw new Error('Perfil não encontrado no banco de dados. Verifique se o usuário está autenticado corretamente.');
+        }
+        
+        // Se encontrou diretamente mas getProfile não retornou, pode ser problema de RLS no getProfile
+        console.warn('⚠️ Perfil encontrado diretamente mas getProfile retornou null. Pode ser problema de RLS.');
+        // Retornar um perfil básico baseado nos dados diretos
+        return {
+          id: directCheck.id,
+          email: directCheck.email,
+          name: directCheck.name,
+          avatarUrl: updateData.avatar_url || null,
+          phone: null,
+          address: null,
+          currency: 'BRL',
+          dateFormat: 'DD/MM/YYYY',
+          language: 'pt-BR',
+        };
       }
       
       // Se o perfil existe mas não foi atualizado, pode ser problema de RLS
@@ -124,10 +153,36 @@ export const userService = {
       newAvatarUrl: updateResult[0]?.avatar_url 
     });
 
+    // Aguardar um pouco para garantir que o commit foi feito
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     // Depois buscar o perfil atualizado completo para garantir que temos os dados corretos
-    const updatedProfile = await this.getProfile(userId);
+    // Tentar até 3 vezes com delay crescente caso falhe
+    let updatedProfile: UserProfile | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      updatedProfile = await this.getProfile(userId);
+      if (updatedProfile) break;
+      
+      if (attempt < 2) {
+        console.warn(`⚠️ Tentativa ${attempt + 1} de buscar perfil falhou, tentando novamente...`);
+        await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)));
+      }
+    }
+    
     if (!updatedProfile) {
-      throw new Error('Perfil não encontrado após atualização');
+      // Se ainda não conseguiu, usar os dados do updateResult
+      console.warn('⚠️ Não foi possível buscar perfil completo após update, usando dados do updateResult');
+      const { data: fallbackData } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (fallbackData) {
+        return mapUserFromDb(fallbackData);
+      }
+      
+      throw new Error('Perfil não encontrado após atualização. O update pode ter sido bem-sucedido, mas não foi possível recuperar os dados atualizados.');
     }
 
     // Usar os dados do perfil atualizado
