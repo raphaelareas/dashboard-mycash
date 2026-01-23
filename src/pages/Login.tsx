@@ -224,6 +224,7 @@ export default function Login() {
               type="submit"
               disabled={loading}
               className="w-full h-14 font-medium rounded-[40px] transition-all disabled:cursor-not-allowed bg-black text-white hover:bg-gray-800 disabled:opacity-50"
+              style={{ marginTop: '24px' }}
             >
               {loading 
                 ? t('login.processing')
