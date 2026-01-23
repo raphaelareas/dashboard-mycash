@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { ImageCropModal } from '@/components/modals/ImageCropModal';
+import { ConfirmModal } from '@/components/modals/ConfirmModal/ConfirmModal';
 import { Toast } from '@/components/ui/Toast/Toast';
 import { storageService } from '@/services/storageService';
 import { userService, UserProfile } from '@/services/userService';
@@ -50,6 +51,9 @@ export default function MyAccount() {
   // Toast states
   const [toastMessage, setToastMessage] = useState('');
   const [isToastVisible, setIsToastVisible] = useState(false);
+  
+  // Delete confirmation modal
+  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
 
   // Carregar perfil do usuário
   useEffect(() => {
@@ -83,7 +87,7 @@ export default function MyAccount() {
     loadProfile();
   }, [user?.id, user?.email, owner?.avatarUrl]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -99,9 +103,26 @@ export default function MyAccount() {
       return;
     }
 
+    // Se há foto atual, deletar antes de abrir o crop
+    if (avatarUrl && user?.id) {
+      try {
+        console.log('🗑️ Deletando foto atual antes de trocar...');
+        await storageService.deleteAvatar(user.id);
+        await userService.deleteAvatar(user.id);
+        setAvatarUrl(null);
+        setProfile((prev) => prev ? { ...prev, avatarUrl: null } : null);
+      } catch (error) {
+        console.error('Erro ao deletar foto atual:', error);
+        // Continuar mesmo se falhar ao deletar
+      }
+    }
+
     setSelectedImageFile(file);
     setIsCropModalOpen(true);
     setErrors({});
+    
+    // Limpar input para permitir selecionar o mesmo arquivo novamente
+    e.target.value = '';
   };
 
   const handleCropComplete = async (croppedFile: File) => {
@@ -151,10 +172,6 @@ export default function MyAccount() {
 
   const handleDeleteAvatar = async () => {
     if (!user?.id || !avatarUrl) return;
-
-    if (!confirm(t('myAccount.confirmDeletePhoto') || 'Tem certeza que deseja deletar sua foto de perfil?')) {
-      return;
-    }
 
     setIsDeleting(true);
     setErrors({});
@@ -242,77 +259,79 @@ export default function MyAccount() {
                 {t('myAccount.profilePhoto')}
               </label>
               <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 overflow-hidden relative group">
+                <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 overflow-hidden relative">
                   {avatarUrl ? (
-                    <>
-                      <img 
-                        src={avatarUrl} 
-                        alt="" 
-                        className="w-full h-full object-cover object-center"
-                        style={{ 
-                          minWidth: '100%',
-                          minHeight: '100%',
-                        }}
-                      />
-                      {/* Overlay com lixeira no hover */}
-                      <div 
-                        className="absolute inset-0 bg-black opacity-0 group-hover:opacity-75 transition-opacity flex items-center justify-center cursor-pointer"
-                        onClick={handleDeleteAvatar}
-                      >
-                        <div className="text-white">
-                          <svg 
-                            width="24" 
-                            height="24" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            xmlns="http://www.w3.org/2000/svg"
-                            className={isDeleting ? 'animate-spin' : ''}
-                          >
-                            <path 
-                              d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" 
-                              stroke="currentColor" 
-                              strokeWidth="2" 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round"
-                            />
-                            <path 
-                              d="M10 11V17" 
-                              stroke="currentColor" 
-                              strokeWidth="2" 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round"
-                            />
-                            <path 
-                              d="M14 11V17" 
-                              stroke="currentColor" 
-                              strokeWidth="2" 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    </>
+                    <img 
+                      src={avatarUrl} 
+                      alt="" 
+                      className="w-full h-full object-cover object-center"
+                      style={{ 
+                        minWidth: '100%',
+                        minHeight: '100%',
+                      }}
+                    />
                   ) : (
                     <div className="w-full h-full rounded-full bg-gray-300" />
                   )}
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <UploadIcon />
-                  <span>{isUploading ? (t('myAccount.uploading') || 'Enviando...') : avatarUrl ? (t('myAccount.changePhoto') || 'Alterar Foto') : (t('myAccount.uploadPhoto') || 'Enviar Foto')}</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="px-6 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <UploadIcon />
+                    <span>{isUploading ? (t('myAccount.uploading') || 'Enviando...') : avatarUrl ? (t('myAccount.changePhoto') || 'Alterar Foto') : (t('myAccount.uploadPhoto') || 'Enviar Foto')}</span>
+                  </button>
+                  {avatarUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setIsDeleteConfirmModalOpen(true)}
+                      disabled={isDeleting}
+                      className="px-6 py-3 rounded-[40px] border border-red-300 text-red-600 hover:bg-red-50 transition-colors font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg 
+                        width="20" 
+                        height="20" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={isDeleting ? 'animate-spin' : ''}
+                      >
+                        <path 
+                          d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        />
+                        <path 
+                          d="M10 11V17" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        />
+                        <path 
+                          d="M14 11V17" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>{t('myAccount.deletePhoto') || 'Deletar Foto'}</span>
+                    </button>
+                  )}
+                </div>
               </div>
               <p className="mt-2 text-sm text-gray-500">O limite de upload é de 10MB</p>
               {errors.avatar && <p className="mt-2 text-sm text-red-600">{errors.avatar}</p>}
@@ -415,6 +434,18 @@ export default function MyAccount() {
         }}
         onCrop={handleCropComplete}
         imageFile={selectedImageFile}
+      />
+
+      {/* Modal de Confirmação de Delete */}
+      <ConfirmModal
+        isOpen={isDeleteConfirmModalOpen}
+        onClose={() => setIsDeleteConfirmModalOpen(false)}
+        onConfirm={handleDeleteAvatar}
+        title={t('myAccount.deletePhotoConfirmTitle') || 'Deletar Foto de Perfil'}
+        message={t('myAccount.confirmDeletePhoto') || 'Tem certeza que deseja deletar sua foto de perfil?'}
+        confirmText={t('myAccount.deleteConfirm') || 'Sim, deletar'}
+        cancelText={t('common.cancel') || 'Cancelar'}
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
       />
 
       {/* Toast de Sucesso */}
