@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
-import { formatCurrency } from '@/utils/formatCurrency';
+import { useCurrencyFormat } from '@/hooks/useCurrencyFormat';
 
 const CardIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -45,6 +45,7 @@ interface CreditCardsWidgetProps {
 export function CreditCardsWidget({ onAddCard }: CreditCardsWidgetProps) {
   const { creditCards } = useFinance();
   const { t } = useI18n();
+  const { formatCurrency } = useCurrencyFormat();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);

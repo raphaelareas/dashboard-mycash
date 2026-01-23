@@ -44,6 +44,13 @@
     "logout": "Déconnexion",
     "goals": "Objectifs"
   },
+  "sidebar": {
+    "feedbackButton": "Conseils/Bugs ou Améliorations"
+  },
+  "auth": {
+    "loginSuccess": "Connexion réussie !",
+    "signupSuccess": "Compte créé avec succès !"
+  },
   "settings": {
     "title": "Paramètres",
     "displayPreferences": "Préférences d'Affichage",

@@ -410,7 +410,7 @@ export function Sidebar() {
             <ResearchIcon />
             {isExpanded && (
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                Dicas/Bugs ou Melhorias
+                {t('sidebar.feedbackButton')}
               </span>
             )}
           </a>

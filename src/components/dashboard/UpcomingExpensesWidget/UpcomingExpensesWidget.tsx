@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
-import { formatCurrency } from '@/utils/formatCurrency';
+import { useCurrencyFormat } from '@/hooks/useCurrencyFormat';
 import { formatDateShort } from '@/utils/formatDateShort';
 import { Toast } from '@/components/ui/Toast';
 import { formatInstallmentDisplay } from '@/utils/installmentUtils';
@@ -27,6 +27,7 @@ interface UpcomingExpensesWidgetProps {
 export function UpcomingExpensesWidget({}: UpcomingExpensesWidgetProps) {
   const { getFilteredTransactions, updateTransaction } = useFinance();
   const { t } = useI18n();
+  const { formatCurrency } = useCurrencyFormat();
   const [toastVisible, setToastVisible] = useState(false);
   const [lastMarkedExpenseId, setLastMarkedExpenseId] = useState<string | null>(null);
   

@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { useCountAnimation } from '@/hooks/useCountAnimation';
-import { formatCurrency } from '@/utils/formatCurrency';
+import { useCurrencyFormat } from '@/hooks/useCurrencyFormat';
 
 const BalanceIcon = () => {
   // ViewBox original: 14x24, mantendo proporção: 20px altura = 11.67px largura
@@ -17,6 +17,7 @@ const BalanceIcon = () => {
 export function BalanceCard() {
   const { calculateTotalBalance, setTransactionType } = useFinance();
   const { t } = useI18n();
+  const { formatCurrency } = useCurrencyFormat();
   const navigate = useNavigate();
   const balance = calculateTotalBalance();
   const animatedBalance = useCountAnimation(balance);

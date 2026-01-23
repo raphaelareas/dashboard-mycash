@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { LanguageSelector } from '@/components/LanguageSelector/LanguageSelector';
+import { SuccessToast } from '@/components/ui/Toast/SuccessToast';
 
 export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -13,6 +14,8 @@ export default function Login() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   const { signIn, signUp } = useAuth();
   const { t } = useI18n();
@@ -40,9 +43,14 @@ export default function Login() {
           setError(error.message || t('login.errors.createAccountError'));
           setLoading(false);
         } else {
-          // Signup bem-sucedido - navegar para tela de sucesso
+          // Signup bem-sucedido - mostrar toast e redirecionar
           setLoading(false);
-          navigate('/success', { state: { isSignUp: true } });
+          setSuccessMessage(t('auth.signupSuccess'));
+          setShowSuccessToast(true);
+          // Redirecionar após mostrar toast
+          setTimeout(() => {
+            navigate('/', { replace: true });
+          }, 500);
         }
       } else {
         const { error } = await signIn(email, password);
@@ -61,13 +69,14 @@ export default function Login() {
           setError(errorMessage);
           setLoading(false);
         } else {
-          // Login bem-sucedido - aguardar um momento para garantir que a sessão está estabelecida
-          // antes de navegar (o onAuthStateChange vai atualizar o estado)
+          // Login bem-sucedido - mostrar toast e redirecionar
           setLoading(false);
-          // Pequeno delay para garantir que o estado de autenticação foi atualizado
+          setSuccessMessage(t('auth.loginSuccess'));
+          setShowSuccessToast(true);
+          // Redirecionar após mostrar toast
           setTimeout(() => {
-            navigate('/success', { state: { isSignUp: false } });
-          }, 100);
+            navigate('/', { replace: true });
+          }, 500);
         }
       }
     } catch (err: any) {
@@ -247,6 +256,14 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Toast de sucesso */}
+      <SuccessToast
+        message={successMessage}
+        isVisible={showSuccessToast}
+        onClose={() => setShowSuccessToast(false)}
+        duration={3000}
+      />
     </div>
   );
 }

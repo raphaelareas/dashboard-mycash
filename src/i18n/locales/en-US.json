@@ -44,6 +44,13 @@
     "logout": "Logout",
     "goals": "Goals"
   },
+  "sidebar": {
+    "feedbackButton": "Tips/Bugs or Improvements"
+  },
+  "auth": {
+    "loginSuccess": "Login successful!",
+    "signupSuccess": "Account created successfully!"
+  },
   "settings": {
     "title": "Settings",
     "displayPreferences": "Display Preferences",

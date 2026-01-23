@@ -44,6 +44,13 @@
     "logout": "Sair",
     "goals": "Metas"
   },
+  "sidebar": {
+    "feedbackButton": "Dicas/Bugs ou Melhorias"
+  },
+  "auth": {
+    "loginSuccess": "Login realizado com sucesso!",
+    "signupSuccess": "Conta criada com sucesso!"
+  },
   "settings": {
     "title": "Configurações",
     "displayPreferences": "Preferências de Exibição",

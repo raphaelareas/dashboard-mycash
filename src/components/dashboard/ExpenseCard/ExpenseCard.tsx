@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { useCountAnimation } from '@/hooks/useCountAnimation';
-import { formatCurrency } from '@/utils/formatCurrency';
+import { useCurrencyFormat } from '@/hooks/useCurrencyFormat';
 
 const ExpenseIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -13,6 +13,7 @@ const ExpenseIcon = () => (
 export function ExpenseCard() {
   const { calculateExpensesForPeriod, setTransactionType } = useFinance();
   const { t } = useI18n();
+  const { formatCurrency } = useCurrencyFormat();
   const navigate = useNavigate();
   const expenses = calculateExpensesForPeriod();
   const animatedExpenses = useCountAnimation(expenses);

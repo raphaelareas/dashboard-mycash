@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useI18n } from '@/contexts/I18nContext';
-import { formatCurrency } from '@/utils/formatCurrency';
+import { useCurrencyFormat } from '@/hooks/useCurrencyFormat';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Transaction } from '@/types';
 
@@ -26,12 +26,7 @@ interface FinancialFlowPoint {
   despesas: number;
 }
 
-function formatYAxis(value: number) {
-  if (value >= 1000) {
-    return `R$ ${(value / 1000).toFixed(0)}k`;
-  }
-  return `R$ ${value}`;
-}
+// formatYAxis será criado dentro do componente para usar o hook
 
 function getMonthDaysBuckets(dateRange: { startDate: Date; endDate: Date }): number[] {
   const { startDate } = dateRange;
@@ -114,6 +109,7 @@ interface CustomTooltipProps {
 
 function CustomTooltip({ active, payload, label, transactions, dateRange }: CustomTooltipProps) {
   const { t } = useI18n();
+  const { formatCurrency } = useCurrencyFormat();
   
   if (!active || !payload || !payload.length || !transactions || !dateRange) {
     return null;
@@ -162,7 +158,7 @@ function CustomTooltip({ active, payload, label, transactions, dateRange }: Cust
         max-w-xs
       ">
         <p className="font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {`Dia ${endDay}`}
+          {`${t('common.day')} ${endDay}`}
         </p>
         <div className="space-y-1 max-h-64 overflow-y-auto">
           {intervalTransactions.map((transaction) => (
@@ -231,9 +227,15 @@ function CustomTooltip({ active, payload, label, transactions, dateRange }: Cust
 export function FinancialFlowChart() {
   const { t } = useI18n();
   const { getFilteredTransactions, dateRange } = useFinance();
+  const { formatCurrency, formatCompactCurrency } = useCurrencyFormat();
 
   const transactions = getFilteredTransactions();
   const chartData: FinancialFlowPoint[] = buildFinancialFlowData(transactions, dateRange);
+
+  // Função para formatar eixo Y com moeda do usuário
+  const formatYAxis = (value: number) => {
+    return formatCompactCurrency(value);
+  };
 
   return (
     <div className="

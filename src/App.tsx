@@ -55,7 +55,6 @@ function AppRoutesInner() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-      <Route path="/success" element={<Success />} />
       <Route
         path="/"
         element={

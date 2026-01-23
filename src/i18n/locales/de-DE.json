@@ -44,6 +44,13 @@
     "logout": "Abmelden",
     "goals": "Ziele"
   },
+  "sidebar": {
+    "feedbackButton": "Tipps/Fehler oder Verbesserungen"
+  },
+  "auth": {
+    "loginSuccess": "Anmeldung erfolgreich!",
+    "signupSuccess": "Konto erfolgreich erstellt!"
+  },
   "settings": {
     "title": "Einstellungen",
     "displayPreferences": "Anzeigeeinstellungen",
