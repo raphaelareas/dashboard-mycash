@@ -5,6 +5,7 @@
     "delete": "Löschen",
     "edit": "Bearbeiten",
     "close": "Schließen",
+    "ok": "OK",
     "confirm": "Bestätigen",
     "loading": "Lädt...",
     "saving": "Speichert...",
@@ -212,7 +213,11 @@
     "familyMembers": "Familienmitglieder",
     "addFamilyMemberDescription": "Fügen Sie Familienmitglieder hinzu, um Finanzen zu teilen",
     "owner": "Eigentümer",
-    "you": "Sie"
+    "you": "Sie",
+    "cannotDeleteOwner": "Der Kontoinhaber kann nicht gelöscht werden",
+    "cannotEditOwner": "Der Kontoinhaber kann nicht über dieses Modal bearbeitet werden. Der Eigentümer wird automatisch verwaltet.",
+    "confirmDeleteMember": "Sind Sie sicher, dass Sie {{name}} aus der Familie entfernen möchten?",
+    "deleteMemberError": "Fehler beim Löschen des Mitglieds. Bitte versuchen Sie es erneut."
   },
   "myAccount": {
     "title": "Mein Konto",

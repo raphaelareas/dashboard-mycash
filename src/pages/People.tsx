@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
+import { AlertDialog } from '@/components/ui/AlertDialog';
 import { FamilyMember } from '@/types';
 import { getOriginalRole } from '@/services/familyMemberService';
 
@@ -29,28 +30,56 @@ export default function People() {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [alertDialog, setAlertDialog] = useState<{
+    isOpen: boolean;
+    title?: string;
+    message: string;
+    type?: 'info' | 'warning' | 'error' | 'confirm';
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    message: '',
+  });
 
   const handleDelete = async (member: FamilyMember) => {
     // Não permitir deletar o owner
     if (member.role.toLowerCase() === 'owner') {
-      alert('Não é possível deletar o dono da conta');
+      setAlertDialog({
+        isOpen: true,
+        message: t('people.cannotDeleteOwner'),
+        type: 'error',
+      });
       return;
     }
 
-    if (window.confirm(`Tem certeza que deseja remover ${member.name} da família?`)) {
-      try {
-        await deleteFamilyMember(member.id);
-      } catch (error) {
-        console.error('Erro ao deletar membro:', error);
-        alert('Erro ao deletar membro. Tente novamente.');
-      }
-    }
+    const message = t('people.confirmDeleteMember').replace('{{name}}', member.name);
+    setAlertDialog({
+      isOpen: true,
+      message,
+      type: 'confirm',
+      onConfirm: async () => {
+        try {
+          await deleteFamilyMember(member.id);
+        } catch (error) {
+          console.error('Erro ao deletar membro:', error);
+          setAlertDialog({
+            isOpen: true,
+            message: t('people.deleteMemberError'),
+            type: 'error',
+          });
+        }
+      },
+    });
   };
 
   const handleEdit = (member: FamilyMember) => {
     // Não permitir editar owner através do modal
     if (member.role.toLowerCase() === 'owner') {
-      alert('Não é possível editar o dono da conta através deste modal. O owner é gerenciado automaticamente.');
+      setAlertDialog({
+        isOpen: true,
+        message: t('people.cannotEditOwner'),
+        type: 'info',
+      });
       return;
     }
     setEditingMember(member);
@@ -210,6 +239,14 @@ export default function People() {
           setEditingMember(null);
         }}
         editingMember={editingMember}
+      />
+
+      <AlertDialog
+        isOpen={alertDialog.isOpen}
+        onClose={() => setAlertDialog({ ...alertDialog, isOpen: false })}
+        message={alertDialog.message}
+        type={alertDialog.type}
+        onConfirm={alertDialog.onConfirm}
       />
     </>
   );

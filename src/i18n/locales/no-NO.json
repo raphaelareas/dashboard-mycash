@@ -5,6 +5,7 @@
     "delete": "Slett",
     "edit": "Rediger",
     "close": "Lukk",
+    "ok": "OK",
     "confirm": "Bekreft",
     "loading": "Laster...",
     "saving": "Lagrer...",
@@ -212,7 +213,11 @@
     "familyMembers": "Familiemedlemmer",
     "addFamilyMemberDescription": "Legg til familiemedlemmer for å dele økonomi",
     "owner": "Eier",
-    "you": "deg"
+    "you": "Deg",
+    "cannotDeleteOwner": "Kan ikke slette kontoeieren",
+    "cannotEditOwner": "Kan ikke redigere kontoeieren gjennom denne modalen. Eieren administreres automatisk.",
+    "confirmDeleteMember": "Er du sikker på at du vil fjerne {{name}} fra familien?",
+    "deleteMemberError": "Feil ved sletting av medlem. Prøv igjen."
   },
   "myAccount": {
     "title": "Min Konto",

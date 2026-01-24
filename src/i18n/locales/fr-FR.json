@@ -5,6 +5,7 @@
     "delete": "Supprimer",
     "edit": "Modifier",
     "close": "Fermer",
+    "ok": "OK",
     "confirm": "Confirmer",
     "loading": "Chargement...",
     "saving": "Enregistrement...",
@@ -212,7 +213,11 @@
     "familyMembers": "Membres de la Famille",
     "addFamilyMemberDescription": "Ajoutez des membres de votre famille pour partager les finances",
     "owner": "Propriétaire",
-    "you": "vous"
+    "you": "Vous",
+    "cannotDeleteOwner": "Impossible de supprimer le propriétaire du compte",
+    "cannotEditOwner": "Impossible de modifier le propriétaire du compte via ce modal. Le propriétaire est géré automatiquement.",
+    "confirmDeleteMember": "Êtes-vous sûr de vouloir retirer {{name}} de la famille?",
+    "deleteMemberError": "Erreur lors de la suppression du membre. Veuillez réessayer."
   },
   "myAccount": {
     "title": "Mon Compte",

@@ -5,6 +5,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "close": "Close",
+    "ok": "OK",
     "confirm": "Confirm",
     "loading": "Loading...",
     "saving": "Saving...",
@@ -213,7 +214,11 @@
     "familyMembers": "Family Members",
     "addFamilyMemberDescription": "Add family members to share finances",
     "owner": "Owner",
-    "you": "you"
+    "you": "You",
+    "cannotDeleteOwner": "Cannot delete the account owner",
+    "cannotEditOwner": "Cannot edit the account owner through this modal. The owner is managed automatically.",
+    "confirmDeleteMember": "Are you sure you want to remove {{name}} from the family?",
+    "deleteMemberError": "Error deleting member. Please try again."
   },
   "myAccount": {
     "title": "My Account",
