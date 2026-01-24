@@ -323,9 +323,13 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   const updateTransaction = async (id: string, updates: Partial<Transaction>) => {
     try {
       const updated = await transactionService.update(id, updates);
+      // Atualizar estado local
       setTransactions((prev) =>
         prev.map((t) => (t.id === id ? updated : t))
       );
+      // Recarregar todas as transações do banco para garantir sincronização
+      // especialmente importante quando muda para fixa e cria transações futuras
+      await refreshTransactions();
     } catch (error) {
       console.error('Erro ao atualizar transação:', error);
       throw error;

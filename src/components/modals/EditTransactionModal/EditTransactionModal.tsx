@@ -145,7 +145,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
     setAmount(numeric.toString());
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
 
     const numericAmount = parseFloat(amount);
@@ -186,22 +186,27 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       setErrors(newErrors);
       return;
     }
-    updateTransaction(transaction.id, {
-      type,
-      category: category as TransactionCategory | string,
-      amount: numericAmount,
-      description,
-      date: transactionDate,
-      accountId,
-      memberId,
-      installments: paymentType === 'installment' ? parseInt(totalInstallments) : (paymentType === 'fixed' ? 999 : 1),
-      installmentNumber: paymentType === 'installment' ? parseInt(installmentNumber) : (paymentType === 'fixed' ? 1 : undefined),
-      installmentRecurrence: paymentType === 'fixed' ? fixedRecurrence : (paymentType === 'installment' ? installmentRecurrence : undefined),
-      isRecurring: paymentType === 'fixed',
-      isPaid: transaction.isPaid,
-    } as any);
-
-    onClose();
+    try {
+      await updateTransaction(transaction.id, {
+        type,
+        category: category as TransactionCategory | string,
+        amount: numericAmount,
+        description,
+        date: transactionDate,
+        accountId,
+        memberId,
+        installments: paymentType === 'installment' ? parseInt(totalInstallments) : (paymentType === 'fixed' ? 999 : 1),
+        installmentNumber: paymentType === 'installment' ? parseInt(installmentNumber) : (paymentType === 'fixed' ? 1 : undefined),
+        installmentRecurrence: paymentType === 'fixed' ? fixedRecurrence : (paymentType === 'installment' ? installmentRecurrence : undefined),
+        isRecurring: paymentType === 'fixed',
+        isPaid: transaction.isPaid,
+      } as any);
+      onClose();
+    } catch (error) {
+      console.error('Erro ao atualizar transação:', error);
+      // Mostrar erro para o usuário
+      setErrors({ submit: 'Erro ao salvar transação. Tente novamente.' });
+    }
   };
 
   return (

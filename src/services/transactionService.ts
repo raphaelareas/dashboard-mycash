@@ -442,7 +442,7 @@ export const transactionService = {
 
     // Se está mudando para fixa (installments >= 999), criar transações futuras
     const isChangingToFixed = updates.installments !== undefined && updates.installments >= 999;
-    const wasNotFixed = currentTransaction.total_installments < 999;
+    const wasNotFixed = (currentTransaction.total_installments || 1) < 999;
     
     if (isChangingToFixed && wasNotFixed) {
       const recurrence = (updates as any).installmentRecurrence || 'monthly';
