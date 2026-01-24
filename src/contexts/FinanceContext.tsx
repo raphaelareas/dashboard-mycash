@@ -623,15 +623,18 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   };
 
   const calculateCategoryPercentage = (category: string): number => {
-    const income = calculateIncomeForPeriod();
-    if (income === 0) return 0;
-
     const filtered = getFilteredTransactions();
+    const totalExpenses = filtered
+      .filter((t) => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    if (totalExpenses === 0) return 0;
+
     const categoryExpenses = filtered
       .filter((t) => t.type === 'expense' && t.category === category)
       .reduce((sum, t) => sum + t.amount, 0);
 
-    return (categoryExpenses / income) * 100;
+    return (categoryExpenses / totalExpenses) * 100;
   };
 
   const calculateSavingsRate = (): number => {
