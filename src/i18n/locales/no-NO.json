@@ -210,7 +210,9 @@
     "addMember": "Legg til Medlem",
     "myProfile": "Min Profil",
     "familyMembers": "Familiemedlemmer",
-    "addFamilyMemberDescription": "Legg til familiemedlemmer for å dele økonomi"
+    "addFamilyMemberDescription": "Legg til familiemedlemmer for å dele økonomi",
+    "owner": "Eier",
+    "you": "deg"
   },
   "myAccount": {
     "title": "Min Konto",

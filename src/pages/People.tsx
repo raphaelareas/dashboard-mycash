@@ -164,8 +164,17 @@ export default function People() {
 
                   {/* Informações do membro */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">{member.name}</p>
-                    <p className="text-sm text-gray-600">{roleDisplay}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-gray-900 truncate">{member.name}</p>
+                      {member.role.toLowerCase() === 'owner' && (
+                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                          {t('people.you')}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {member.role.toLowerCase() === 'owner' ? t('people.owner') : roleDisplay}
+                    </p>
                   </div>
 
                   {/* Botões de ação no canto direito */}

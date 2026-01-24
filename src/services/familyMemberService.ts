@@ -128,10 +128,24 @@ export const familyMemberService = {
     
     console.log(`Membros retornados do banco: ${data.length}`);
     
+    // Buscar avatar do usuário para sincronizar com owner
+    const { data: userData } = await supabase
+      .from('users')
+      .select('avatar_url')
+      .eq('id', userId)
+      .single();
+    
     // Limpar cache de roles originais antes de mapear
     originalRoles.clear();
     
-    const members = data.map(mapFamilyMemberFromDb);
+    const members = data.map((row) => {
+      // Se for owner, usar avatar do usuário se disponível
+      if (row.role.toLowerCase() === 'owner' && userData?.avatar_url) {
+        row.avatar_url = userData.avatar_url;
+      }
+      return mapFamilyMemberFromDb(row);
+    });
+    
     return members;
   },
 

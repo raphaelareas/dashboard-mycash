@@ -211,7 +211,9 @@
     "addMember": "Adicionar Membro",
     "myProfile": "Meu Perfil",
     "familyMembers": "Membros da Família",
-    "addFamilyMemberDescription": "Adicione membros da sua família para compartilhar as finanças"
+    "addFamilyMemberDescription": "Adicione membros da sua família para compartilhar as finanças",
+    "owner": "Proprietário",
+    "you": "você"
   },
   "myAccount": {
     "title": "Minha Conta",

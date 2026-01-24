@@ -211,7 +211,9 @@
     "addMember": "Add Member",
     "myProfile": "My Profile",
     "familyMembers": "Family Members",
-    "addFamilyMemberDescription": "Add family members to share finances"
+    "addFamilyMemberDescription": "Add family members to share finances",
+    "owner": "Owner",
+    "you": "you"
   },
   "myAccount": {
     "title": "My Account",

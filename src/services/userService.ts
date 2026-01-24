@@ -82,8 +82,19 @@ export const userService = {
       throw new Error('Perfil não encontrado após atualização');
     }
 
+    // Sincronizar avatar com o owner
+    try {
+      await supabase
+        .from('family_members')
+        .update({ avatar_url: avatarUrl })
+        .eq('user_id', userId)
+        .eq('role', 'Owner')
+        .eq('is_active', true);
+    } catch (syncError) {
+      console.warn('⚠️ Erro ao sincronizar avatar com owner (não crítico):', syncError);
+    }
+
     console.log('✅ Avatar atualizado com sucesso');
-    // O trigger no banco vai sincronizar automaticamente com o owner
     return mapUserFromDb(data);
   },
 
@@ -106,6 +117,18 @@ export const userService = {
 
     if (!data) {
       throw new Error('Perfil não encontrado após deletar avatar');
+    }
+
+    // Sincronizar remoção de avatar com o owner
+    try {
+      await supabase
+        .from('family_members')
+        .update({ avatar_url: null })
+        .eq('user_id', userId)
+        .eq('role', 'Owner')
+        .eq('is_active', true);
+    } catch (syncError) {
+      console.warn('⚠️ Erro ao sincronizar remoção de avatar com owner (não crítico):', syncError);
     }
 
     console.log('✅ Avatar deletado com sucesso');
