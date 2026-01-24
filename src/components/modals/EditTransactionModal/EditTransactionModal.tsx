@@ -8,6 +8,7 @@ import { DatePicker } from '@/components/ui/DatePicker';
 import { CreateCategoryModal } from '@/components/modals/CreateCategoryModal';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { CreateMethodModal } from '@/components/modals/CreateMethodModal';
+import { DeleteTransactionModal } from '@/components/modals/DeleteTransactionModal/DeleteTransactionModal';
 import { TransactionCategory, Transaction } from '@/types';
 import { formatCurrencyInput } from '@/utils/currency.utils';
 import { defaultCategoryColors } from '@/utils/categoryColors';
@@ -39,7 +40,7 @@ const ExpenseArrowIcon = ({ color = "currentColor" }: { color?: string }) => (
 const defaultCategories: TransactionCategory[] = ['rent', 'food', 'shopping', 'household', 'transport', 'entertainment', 'health', 'education', 'other'];
 
 export function EditTransactionModal({ isOpen, onClose, transaction }: EditTransactionModalProps) {
-  const { updateTransaction, bankAccounts, creditCards, familyMembers, categories: customCategories, addCategory } = useFinance();
+  const { updateTransaction, deleteTransaction, bankAccounts, creditCards, familyMembers, categories: customCategories, addCategory } = useFinance();
   const { t } = useI18n();
   const { currency } = useCurrencyFormat();
   
@@ -111,6 +112,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [isCreateMethodModalOpen, setIsCreateMethodModalOpen] = useState(false);
   const [createMethodTab, setCreateMethodTab] = useState<'account' | 'card'>('account');
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Inicializar valores quando o modal abrir ou a transação mudar
@@ -591,20 +593,40 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-white rounded-b-[16px]">
+      <div className="flex items-center justify-between gap-3 p-6 border-t border-gray-200 bg-white rounded-b-[16px]">
         <button
-          onClick={onClose}
-          className="px-6 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 transition-colors"
+          onClick={() => setIsDeleteModalOpen(true)}
+          className="px-6 py-3 rounded-[40px] border border-red-300 text-red-600 hover:bg-red-50 transition-colors font-semibold"
         >
-          {t('common.cancel')}
+          {t('common.delete')}
         </button>
-        <button
-          onClick={handleSubmit}
-          className="px-8 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold"
-        >
-          {t('modals.newTransaction.saveTransaction')}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="px-6 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 transition-colors"
+          >
+            {t('common.cancel')}
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-8 py-3 rounded-[40px] bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold"
+          >
+            {t('modals.newTransaction.saveTransaction')}
+          </button>
+        </div>
       </div>
+
+      {/* Delete Transaction Modal */}
+      <DeleteTransactionModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        transaction={transaction}
+          onDelete={async (scope: 'current' | 'currentAndFuture' | 'all') => {
+            await deleteTransaction(transaction.id, scope);
+            setIsDeleteModalOpen(false);
+            onClose();
+          }}
+      />
 
       {/* Modal de Criar Categoria */}
       <CreateCategoryModal

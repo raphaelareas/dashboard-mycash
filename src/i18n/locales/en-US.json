@@ -3,6 +3,7 @@
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
+    "deleting": "Deleting...",
     "edit": "Edit",
     "close": "Close",
     "ok": "OK",
@@ -307,6 +308,21 @@
       "installmentsDisabledForRecurring": "Installments disabled for recurring expenses",
       "createNewMethod": "Create new method",
       "newCategoryName": "New category name"
+    },
+    "deleteTransaction": {
+      "title": "Delete Transaction",
+      "subtitle": "This action cannot be undone",
+      "confirmSingle": "Are you sure you want to delete \"{description}\"?",
+      "confirmInstallment": "Are you sure you want to delete \"{description}\"?",
+      "currentOnly": "Delete only this transaction",
+      "currentOnlyInstallment": "Remove only installment {installmentNumber}/{totalInstallments}",
+      "currentOnlyFixed": "Remove only this occurrence of the fixed expense",
+      "currentAndFuture": "Delete this and future ones",
+      "currentAndFutureInstallment": "Remove installment {installmentNumber}/{totalInstallments} and all subsequent ones",
+      "currentAndFutureFixed": "Remove this and all future occurrences of the fixed expense",
+      "all": "Delete all",
+      "allInstallment": "Remove all {totalInstallments} installments",
+      "allFixed": "Remove all occurrences of this fixed expense"
     },
     "addCard": {
       "title": "New Credit Card",

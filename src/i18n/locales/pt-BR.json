@@ -3,6 +3,7 @@
     "save": "Salvar",
     "cancel": "Cancelar",
     "delete": "Deletar",
+    "deleting": "Deletando...",
     "edit": "Editar",
     "close": "Fechar",
     "ok": "OK",
@@ -338,6 +339,21 @@
       "installmentsDisabledForRecurring": "Parcelamento desabilitado para despesas recorrentes",
       "createNewMethod": "Criar novo método",
       "newCategoryName": "Nome da nova categoria"
+    },
+    "deleteTransaction": {
+      "title": "Deletar Transação",
+      "subtitle": "Esta ação não pode ser desfeita",
+      "confirmSingle": "Você tem certeza que deseja deletar \"{description}\"?",
+      "confirmInstallment": "Você tem certeza que deseja deletar \"{description}\"?",
+      "currentOnly": "Deletar apenas esta transação",
+      "currentOnlyInstallment": "Remove apenas a parcela {installmentNumber}/{totalInstallments}",
+      "currentOnlyFixed": "Remove apenas esta ocorrência da despesa fixa",
+      "currentAndFuture": "Deletar esta e as próximas",
+      "currentAndFutureInstallment": "Remove a parcela {installmentNumber}/{totalInstallments} e todas as posteriores",
+      "currentAndFutureFixed": "Remove esta e todas as ocorrências futuras da despesa fixa",
+      "all": "Deletar todas",
+      "allInstallment": "Remove todas as {totalInstallments} parcelas",
+      "allFixed": "Remove todas as ocorrências desta despesa fixa"
     },
     "addCard": {
       "title": "Novo Cartão de Crédito",

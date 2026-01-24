@@ -7,6 +7,7 @@ import { formatDateShort } from '@/utils/formatDateShort';
 import { formatInstallmentDisplay } from '@/utils/installmentUtils';
 import { Transaction } from '@/types';
 import { EditTransactionModal } from '@/components/modals/EditTransactionModal';
+import { DeleteTransactionModal } from '@/components/modals/DeleteTransactionModal/DeleteTransactionModal';
 import './TransactionsTable.css';
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -74,13 +75,22 @@ const EditIcon = () => (
   </svg>
 );
 
+const TrashIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 4H3.33333H14M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68696 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31305 14.6667 3.97391 14.5262 3.72386 14.2761C3.47381 14.0261 3.33333 13.687 3.33333 13.3333V4H12.6667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M6.66667 7.33333V11.3333M9.33333 7.33333V11.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 export function TransactionsTable() {
-  const { getFilteredTransactions, bankAccounts, creditCards, familyMembers, categories: customCategories } = useFinance();
+  const { getFilteredTransactions, deleteTransaction, bankAccounts, creditCards, familyMembers, categories: customCategories } = useFinance();
   const { t } = useI18n();
   const navigate = useNavigate();
   const [localSearch, setLocalSearch] = useState('');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   // Obter nomes de categorias via tradução
   const categoryNames: Record<string, string> = {
@@ -369,8 +379,8 @@ export function TransactionsTable() {
                     </span>
                   </div>
 
-                  {/* Actions - Edit Button */}
-                  <div className="flex items-center justify-center">
+                  {/* Actions - Edit and Delete Buttons */}
+                  <div className="flex items-center justify-center gap-2">
                     <button
                       onClick={() => handleEditTransaction(transaction)}
                       className="
@@ -384,6 +394,23 @@ export function TransactionsTable() {
                       title={t('transactions.edit') || 'Editar'}
                     >
                       <EditIcon />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeletingTransaction(transaction);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      className="
+                        w-8 h-8 rounded-full
+                        flex items-center justify-center
+                        hover:bg-red-100 dark:hover:bg-red-900/30
+                        transition-colors duration-150
+                        text-red-600 dark:text-red-400
+                        hover:text-red-700 dark:hover:text-red-300
+                      "
+                      title={t('transactions.delete') || 'Deletar'}
+                    >
+                      <TrashIcon />
                     </button>
                   </div>
                 </div>
@@ -459,10 +486,29 @@ export function TransactionsTable() {
                   })()}
                   <div className="text-right">
                     <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('transactions.value')}</p>
-                    <p className={`text-lg font-bold ${transaction.type === 'income' ? 'text-green-700 dark:text-green-400' : 'text-gray-900 dark:text-gray-100'}`}>
-                      {transaction.type === 'income' ? '+' : '-'}
-                      {formatCurrency(transaction.amount)}
-                    </p>
+                    <div className="flex items-center justify-end gap-2">
+                      <p className={`text-lg font-bold ${transaction.type === 'income' ? 'text-green-700 dark:text-green-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {formatCurrency(transaction.amount)}
+                      </p>
+                      <button
+                        onClick={() => {
+                          setDeletingTransaction(transaction);
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="
+                          w-8 h-8 rounded-full
+                          flex items-center justify-center
+                          hover:bg-red-100 dark:hover:bg-red-900/30
+                          transition-colors duration-150
+                          text-red-600 dark:text-red-400
+                          hover:text-red-700 dark:hover:text-red-300
+                        "
+                        title={t('transactions.delete') || 'Deletar'}
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -555,6 +601,23 @@ export function TransactionsTable() {
           isOpen={isEditModalOpen}
           onClose={handleCloseEditModal}
           transaction={editingTransaction}
+        />
+      )}
+
+      {/* Delete Transaction Modal */}
+      {deletingTransaction && (
+        <DeleteTransactionModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setDeletingTransaction(null);
+          }}
+          transaction={deletingTransaction}
+          onDelete={async (scope: 'current' | 'currentAndFuture' | 'all') => {
+            await deleteTransaction(deletingTransaction.id, scope);
+            setIsDeleteModalOpen(false);
+            setDeletingTransaction(null);
+          }}
         />
       )}
     </div>

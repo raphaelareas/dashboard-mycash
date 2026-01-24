@@ -556,8 +556,86 @@ export const transactionService = {
   },
 
   // Deletar transação
-  async delete(id: string): Promise<void> {
-    const { error } = await supabase.from('transactions').delete().eq('id', id);
-    if (error) throw error;
+  async delete(id: string, scope: 'current' | 'currentAndFuture' | 'all' = 'current'): Promise<void> {
+    // Buscar a transação atual
+    const { data: transaction, error: fetchError } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!transaction) throw new Error('Transação não encontrada');
+
+    const totalInstallments = transaction.total_installments || 1;
+    const currentInstallment = transaction.installment_number || 1;
+    const isFixed = totalInstallments >= 999;
+    const isInstallment = totalInstallments > 1 && totalInstallments < 999;
+
+    if (scope === 'current') {
+      // Deletar apenas a transação atual
+      const { error } = await supabase.from('transactions').delete().eq('id', id);
+      if (error) throw error;
+    } else if (scope === 'currentAndFuture') {
+      // Deletar a atual e todas as futuras
+      if (isFixed || isInstallment) {
+        // Buscar todas as transações com mesma descrição e mesma categoria
+        // que sejam da mesma série (mesmo total_installments)
+        // e que tenham installment_number >= currentInstallment
+        const { data: futureTransactions, error: findError } = await supabase
+          .from('transactions')
+          .select('id')
+          .eq('description', transaction.description)
+          .eq('category_id', transaction.category_id)
+          .eq('total_installments', transaction.total_installments)
+          .gte('installment_number', currentInstallment)
+          .eq('user_id', transaction.user_id);
+
+        if (findError) throw findError;
+
+        if (futureTransactions && futureTransactions.length > 0) {
+          const idsToDelete = futureTransactions.map(t => t.id);
+          const { error: deleteError } = await supabase
+            .from('transactions')
+            .delete()
+            .in('id', idsToDelete);
+
+          if (deleteError) throw deleteError;
+        }
+      } else {
+        // Se não é parcela, deletar apenas a atual
+        const { error } = await supabase.from('transactions').delete().eq('id', id);
+        if (error) throw error;
+      }
+    } else if (scope === 'all') {
+      // Deletar todas as transações da série
+      if (isFixed || isInstallment) {
+        // Buscar todas as transações com mesma descrição e mesma categoria
+        // que sejam da mesma série (mesmo total_installments)
+        const { data: allTransactions, error: findError } = await supabase
+          .from('transactions')
+          .select('id')
+          .eq('description', transaction.description)
+          .eq('category_id', transaction.category_id)
+          .eq('total_installments', transaction.total_installments)
+          .eq('user_id', transaction.user_id);
+
+        if (findError) throw findError;
+
+        if (allTransactions && allTransactions.length > 0) {
+          const idsToDelete = allTransactions.map(t => t.id);
+          const { error: deleteError } = await supabase
+            .from('transactions')
+            .delete()
+            .in('id', idsToDelete);
+
+          if (deleteError) throw deleteError;
+        }
+      } else {
+        // Se não é parcela, deletar apenas a atual
+        const { error } = await supabase.from('transactions').delete().eq('id', id);
+        if (error) throw error;
+      }
+    }
   },
 };

@@ -60,7 +60,7 @@ interface FinanceContextType {
   // CRUD Transactions
   addTransaction: (transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateTransaction: (id: string, transaction: Partial<Transaction>) => Promise<void>;
-  deleteTransaction: (id: string) => Promise<void>;
+  deleteTransaction: (id: string, scope?: 'current' | 'currentAndFuture' | 'all') => Promise<void>;
   refreshTransactions: () => Promise<void>;
 
   // CRUD Goals (mantido para compatibilidade, implementar depois)
@@ -340,10 +340,11 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
     }
   };
 
-  const deleteTransaction = async (id: string) => {
+  const deleteTransaction = async (id: string, scope: 'current' | 'currentAndFuture' | 'all' = 'current') => {
     try {
-      await transactionService.delete(id);
-      setTransactions((prev) => prev.filter((t) => t.id !== id));
+      await transactionService.delete(id, scope);
+      // Recarregar todas as transações para garantir sincronização
+      await refreshTransactions();
     } catch (error) {
       console.error('Erro ao deletar transação:', error);
       throw error;
