@@ -215,7 +215,8 @@
     "owner": "Eigentümer",
     "you": "Sie",
     "cannotDeleteOwner": "Der Kontoinhaber kann nicht gelöscht werden",
-    "cannotEditOwner": "Der Kontoinhaber kann nicht über dieses Modal bearbeitet werden. Der Eigentümer wird automatisch verwaltet.",
+    "cannotEditOwner": "Der Kontoinhaber kann nicht über die Familienmitglieder bearbeitet werden. Verwalten Sie Ihr Profil über den Bildschirm \"Mein Konto\".",
+    "goToMyAccount": "Zu meinem Konto gehen",
     "confirmDeleteMember": "Sind Sie sicher, dass Sie {name} aus der Familie entfernen möchten?",
     "deleteMemberError": "Fehler beim Löschen des Mitglieds. Bitte versuchen Sie es erneut."
   },

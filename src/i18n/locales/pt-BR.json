@@ -216,7 +216,8 @@
     "owner": "Proprietário",
     "you": "Você",
     "cannotDeleteOwner": "Não é possível deletar o dono da conta",
-    "cannotEditOwner": "Não é possível editar o dono da conta através deste modal. O owner é gerenciado automaticamente.",
+    "cannotEditOwner": "Não é possível editar o dono da conta através os membros da família. Gerencie seu perfil através da tela de \"Minha conta\".",
+    "goToMyAccount": "Ir para minha conta",
     "confirmDeleteMember": "Tem certeza que deseja remover {name} da família?",
     "deleteMemberError": "Erro ao deletar membro. Tente novamente."
   },

@@ -215,7 +215,8 @@
     "owner": "Propriétaire",
     "you": "Vous",
     "cannotDeleteOwner": "Impossible de supprimer le propriétaire du compte",
-    "cannotEditOwner": "Impossible de modifier le propriétaire du compte via ce modal. Le propriétaire est géré automatiquement.",
+    "cannotEditOwner": "Impossible de modifier le propriétaire du compte via les membres de la famille. Gérez votre profil via l'écran \"Mon Compte\".",
+    "goToMyAccount": "Aller à mon compte",
     "confirmDeleteMember": "Êtes-vous sûr de vouloir retirer {name} de la famille?",
     "deleteMemberError": "Erreur lors de la suppression du membre. Veuillez réessayer."
   },

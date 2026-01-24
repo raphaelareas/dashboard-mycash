@@ -216,7 +216,8 @@
     "owner": "Owner",
     "you": "You",
     "cannotDeleteOwner": "Cannot delete the account owner",
-    "cannotEditOwner": "Cannot edit the account owner through this modal. The owner is managed automatically.",
+    "cannotEditOwner": "Cannot edit the account owner through family members. Manage your profile through the \"My Account\" screen.",
+    "goToMyAccount": "Go to my account",
     "confirmDeleteMember": "Are you sure you want to remove {name} from the family?",
     "deleteMemberError": "Error deleting member. Please try again."
   },

@@ -215,7 +215,8 @@
     "owner": "Eier",
     "you": "Deg",
     "cannotDeleteOwner": "Kan ikke slette kontoeieren",
-    "cannotEditOwner": "Kan ikke redigere kontoeieren gjennom denne modalen. Eieren administreres automatisk.",
+    "cannotEditOwner": "Kan ikke redigere kontoeieren gjennom familiemedlemmene. Administrer profilen din gjennom \"Min Konto\"-skjermen.",
+    "goToMyAccount": "Gå til min konto",
     "confirmDeleteMember": "Er du sikker på at du vil fjerne {name} fra familien?",
     "deleteMemberError": "Feil ved sletting av medlem. Prøv igjen."
   },

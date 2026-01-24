@@ -10,6 +10,9 @@ interface AlertDialogProps {
   onConfirm?: () => void;
   confirmText?: string;
   cancelText?: string;
+  secondaryButtonText?: string;
+  onSecondaryClick?: () => void;
+  hideCloseButton?: boolean;
 }
 
 const CloseIcon = () => (
@@ -66,17 +69,21 @@ export function AlertDialog({
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
-        {title && (
-          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-        )}
-        <button
-          onClick={onClose}
-          className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600"
-        >
-          <CloseIcon />
-        </button>
-      </div>
+      {(title || !hideCloseButton) && (
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 rounded-t-[16px]">
+          {title && (
+            <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+          )}
+          {!hideCloseButton && (
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600"
+            >
+              <CloseIcon />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="p-6">
@@ -109,7 +116,18 @@ export function AlertDialog({
 
       {/* Footer */}
       <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 rounded-b-[16px]">
-        {type === 'confirm' && (
+        {secondaryButtonText && onSecondaryClick && (
+          <button
+            onClick={() => {
+              onSecondaryClick();
+              onClose();
+            }}
+            className="px-6 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 transition-colors"
+          >
+            {secondaryButtonText}
+          </button>
+        )}
+        {type === 'confirm' && !secondaryButtonText && (
           <button
             onClick={onClose}
             className="px-6 py-3 rounded-[40px] border border-gray-200 hover:bg-gray-50 transition-colors"

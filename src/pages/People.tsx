@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { AddMemberModal } from '@/components/modals/AddMemberModal';
@@ -79,6 +80,11 @@ export default function People() {
         isOpen: true,
         message: t('people.cannotEditOwner'),
         type: 'info',
+        hideCloseButton: true,
+        secondaryButtonText: t('people.goToMyAccount'),
+        onSecondaryClick: () => {
+          navigate('/minha-conta');
+        },
       });
       return;
     }
@@ -247,6 +253,9 @@ export default function People() {
         message={alertDialog.message}
         type={alertDialog.type}
         onConfirm={alertDialog.onConfirm}
+        secondaryButtonText={alertDialog.secondaryButtonText}
+        onSecondaryClick={alertDialog.onSecondaryClick}
+        hideCloseButton={alertDialog.hideCloseButton}
       />
     </>
   );
