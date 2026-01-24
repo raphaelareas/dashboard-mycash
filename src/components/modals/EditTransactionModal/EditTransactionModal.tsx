@@ -176,9 +176,13 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       }
     }
 
-    if (!accountId) {
-      newErrors.accountId = t('modals.newTransaction.accountError') || 'Selecione uma conta ou cartão';
+    // Conta é obrigatória para receitas, opcional para despesas
+    if (type === 'income' && !accountId) {
+      newErrors.accountId = t('modals.newTransaction.accountRequiredForIncome') || 'Selecione uma conta de origem para a receita';
     }
+    
+    // Para despesas, conta é opcional (pode ser débito automático ou não ter conta)
+    // Mas se selecionar, deve ser válida
 
     if (!transactionDate) {
       newErrors.date = t('modals.newTransaction.dateError') ?? 'Selecione a data da transação';

@@ -309,6 +309,7 @@
       "descriptionError": "Descrição deve ter pelo menos 3 caracteres",
       "categoryError": "Selecione uma categoria",
       "accountError": "Selecione uma conta ou cartão",
+      "accountRequiredForIncome": "Selecione uma conta de origem para a receita",
       "dateError": "Selecione a data da transação",
       "installmentsError": "Total de parcelas deve ser entre 1 e 360",
       "installmentNumberError": "Parcela atual deve ser entre 1 e 360",
@@ -468,7 +469,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "totalBalance": "Saldo Total",
+    "totalBalance": "Balanço",
     "monthlyIncome": "Receitas do Mês",
     "monthlyExpenses": "Despesas do Mês",
     "balance": "Saldo",

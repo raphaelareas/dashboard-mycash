@@ -278,6 +278,7 @@
       "descriptionError": "Description must be at least 3 characters",
       "categoryError": "Select a category",
       "accountError": "Select an account or card",
+      "accountRequiredForIncome": "Select an origin account for the income",
       "dateError": "Select the transaction date",
       "installmentsError": "Total installments must be between 1 and 360",
       "installmentNumberError": "Current installment must be between 1 and 360",
@@ -430,7 +431,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "totalBalance": "Total Balance",
+    "totalBalance": "Balance",
     "monthlyIncome": "Monthly Income",
     "monthlyExpenses": "Monthly Expenses",
     "balance": "Balance",

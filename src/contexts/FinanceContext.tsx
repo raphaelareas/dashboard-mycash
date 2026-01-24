@@ -584,15 +584,10 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   };
 
   const calculateTotalBalance = (): number => {
-    const accountsBalance = bankAccounts
-      .filter((a) => a.isActive)
-      .reduce((sum, a) => sum + a.balance, 0);
-
-    const cardsBalance = creditCards
-      .filter((c) => c.isActive)
-      .reduce((sum, c) => sum + c.currentBalance, 0);
-
-    return accountsBalance - cardsBalance;
+    // Balanço = Receitas - Despesas (do período filtrado)
+    const income = calculateIncomeForPeriod();
+    const expenses = calculateExpensesForPeriod();
+    return income - expenses;
   };
 
   const calculateIncomeForPeriod = (): number => {
