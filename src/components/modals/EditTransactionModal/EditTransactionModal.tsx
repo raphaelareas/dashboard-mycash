@@ -315,27 +315,37 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                   placeholder="0,00"
                 />
               </div>
-              {/* Toggle Total/Parcela */}
-              <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px]">
+              {/* Toggle Total/Parcela/Fixa */}
+              <div className="flex gap-2 p-1 bg-gray-100 rounded-[40px] h-14 items-center">
                 <button
                   type="button"
-                  onClick={() => setIsInstallment(false)}
+                  onClick={() => setPaymentType('total')}
                   className={`
-                    px-4 py-2 rounded-[40px] font-medium transition-all text-sm
-                    ${!isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
+                    h-full px-4 rounded-[40px] font-medium transition-all text-sm flex items-center
+                    ${paymentType === 'total' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
                   `}
                 >
                   {t('modals.newTransaction.total') || 'Total'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsInstallment(true)}
+                  onClick={() => setPaymentType('installment')}
                   className={`
-                    px-4 py-2 rounded-[40px] font-medium transition-all text-sm
-                    ${isInstallment ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
+                    h-full px-4 rounded-[40px] font-medium transition-all text-sm flex items-center
+                    ${paymentType === 'installment' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
                   `}
                 >
                   {t('modals.newTransaction.installment') || 'Parcela'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentType('fixed')}
+                  className={`
+                    h-full px-4 rounded-[40px] font-medium transition-all text-sm flex items-center
+                    ${paymentType === 'fixed' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}
+                  `}
+                >
+                  {t('modals.newTransaction.fixed') || 'Fixa'}
                 </button>
               </div>
             </div>
