@@ -25,6 +25,12 @@ const DragHandleIcon = () => (
   </svg>
 );
 
+const ExternalLinkIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V12C2 12.5304 2.21071 13.0391 2.58579 13.4142C2.96086 13.7893 3.46957 14 4 14H10C10.5304 14 11.0391 13.7893 11.4142 13.4142C11.7893 13.0391 12 12.5304 12 12V10M10 2H14M14 2V6M14 2L6 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 export default function People() {
   const { familyMembers, deleteFamilyMember } = useFinance();
   const { t } = useI18n();
@@ -78,18 +84,9 @@ export default function People() {
   };
 
   const handleEdit = (member: FamilyMember) => {
-    // Não permitir editar owner através do modal
+    // Se for owner, navegar para Minha Conta
     if (member.role.toLowerCase() === 'owner') {
-      setAlertDialog({
-        isOpen: true,
-        message: t('people.cannotEditOwner'),
-        type: 'info',
-        hideCloseButton: true,
-        secondaryButtonText: t('people.goToMyAccount'),
-        onSecondaryClick: () => {
-          navigate('/minha-conta');
-        },
-      });
+      navigate('/minha-conta');
       return;
     }
     setEditingMember(member);
@@ -218,21 +215,31 @@ export default function People() {
 
                   {/* Botões de ação no canto direito */}
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => handleEdit(member)}
-                      className="p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-900"
-                      title="Editar membro"
-                    >
-                      <EditIcon />
-                    </button>
-                    {member.role.toLowerCase() !== 'owner' && (
+                    {member.role.toLowerCase() === 'owner' ? (
                       <button
-                        onClick={() => handleDelete(member)}
-                        className="p-2 rounded-lg hover:bg-red-50 transition-colors text-red-600 hover:text-red-700"
-                        title="Deletar membro"
+                        onClick={() => handleEdit(member)}
+                        className="p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-900"
+                        title={t('people.goToMyAccount')}
                       >
-                        <DeleteIcon />
+                        <ExternalLinkIcon />
                       </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleEdit(member)}
+                          className="p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-900"
+                          title="Editar membro"
+                        >
+                          <EditIcon />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(member)}
+                          className="p-2 rounded-lg hover:bg-red-50 transition-colors text-red-600 hover:text-red-700"
+                          title="Deletar membro"
+                        >
+                          <DeleteIcon />
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
