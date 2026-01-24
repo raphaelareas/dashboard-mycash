@@ -266,7 +266,18 @@ export const transactionService = {
       `)
       .single();
 
-    if (firstError) throw firstError;
+    if (firstError) {
+      console.error('Erro ao criar primeira transação:', firstError);
+      throw firstError;
+    }
+    
+    console.log('Transação criada:', {
+      id: firstTransaction.id,
+      description: firstTransaction.description,
+      total_installments: firstTransaction.total_installments,
+      is_recurring: firstTransaction.is_recurring,
+      isFixed
+    });
 
     // Se há parcelas restantes, criar as próximas transações automaticamente
     // Exemplo: se usuário adiciona parcela 2/5, criar apenas parcelas 3, 4, 5 (futuras)
@@ -394,6 +405,9 @@ export const transactionService = {
 
           if (futureError) {
             console.error('Erro ao criar parcelas fixas:', futureError);
+            throw futureError; // Lançar erro para que o usuário saiba que falhou
+          } else {
+            console.log(`Criadas ${batch.length} transações fixas futuras (lote ${Math.floor(i / batchSize) + 1})`);
           }
         }
       }
