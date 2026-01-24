@@ -51,8 +51,12 @@ export function BalanceCard() {
       {/* Título (menor) - mesmo estilo para todos os cards */}
       <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t('dashboard.totalBalance')}</p>
 
-      {/* Valor (maior) */}
-      <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+      {/* Valor (maior) - verde se positivo, vermelho se negativo */}
+      <p className={`text-3xl font-bold ${
+        animatedBalance >= 0 
+          ? 'text-green-600 dark:text-green-400' 
+          : 'text-red-600 dark:text-red-400'
+      }`}>
         {formatCurrency(animatedBalance)}
       </p>
     </div>
