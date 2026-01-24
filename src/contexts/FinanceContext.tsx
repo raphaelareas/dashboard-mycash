@@ -313,7 +313,11 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
   const addTransaction = async (transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       const newTransaction = await transactionService.create(transaction);
+      // Atualizar estado local
       setTransactions((prev) => [newTransaction, ...prev]);
+      // Recarregar todas as transações do banco para garantir sincronização
+      // especialmente importante quando cria fixa e cria transações futuras
+      await refreshTransactions();
     } catch (error) {
       console.error('Erro ao criar transação:', error);
       throw error;

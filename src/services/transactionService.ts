@@ -340,8 +340,31 @@ export const transactionService = {
       const futureTransactions = [];
       let currentDate = new Date(transaction.date);
       
+      // Calcular próxima data baseado na recorrência
       for (let i = 1; i <= 24; i++) {
-        currentDate.setMonth(currentDate.getMonth() + 1);
+        currentDate = new Date(currentDate);
+        
+        // Calcular próxima data baseado na recorrência
+        switch (recurrence) {
+          case 'weekly':
+            currentDate.setDate(currentDate.getDate() + 7);
+            break;
+          case 'biweekly':
+            currentDate.setDate(currentDate.getDate() + 14);
+            break;
+          case 'monthly':
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            break;
+          case 'semiannual':
+            currentDate.setMonth(currentDate.getMonth() + 6);
+            break;
+          case 'yearly':
+            currentDate.setFullYear(currentDate.getFullYear() + 1);
+            break;
+          default:
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            break;
+        }
         
         futureTransactions.push({
           user_id: userId,

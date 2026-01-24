@@ -138,7 +138,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
     setAmount(numeric.toString());
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
 
     const numericAmount = parseFloat(amount);
@@ -180,22 +180,26 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       return;
     }
 
-    addTransaction({
-      type,
-      category: category as TransactionCategory | string,
-      amount: numericAmount,
-      description,
-      date: transactionDate,
-      accountId,
-      memberId,
-      installments: paymentType === 'installment' ? parseInt(totalInstallments) : (paymentType === 'fixed' ? 999 : 1),
-      installmentNumber: paymentType === 'installment' ? parseInt(installmentNumber) : (paymentType === 'fixed' ? 1 : undefined),
-      installmentRecurrence: paymentType === 'fixed' ? fixedRecurrence : (paymentType === 'installment' ? installmentRecurrence : undefined),
-      isRecurring: paymentType === 'fixed',
-      isPaid: false,
-    } as any);
-
-    onClose();
+    try {
+      await addTransaction({
+        type,
+        category: category as TransactionCategory | string,
+        amount: numericAmount,
+        description,
+        date: transactionDate,
+        accountId,
+        memberId,
+        installments: paymentType === 'installment' ? parseInt(totalInstallments) : (paymentType === 'fixed' ? 999 : 1),
+        installmentNumber: paymentType === 'installment' ? parseInt(installmentNumber) : (paymentType === 'fixed' ? 1 : undefined),
+        installmentRecurrence: paymentType === 'fixed' ? fixedRecurrence : (paymentType === 'installment' ? installmentRecurrence : undefined),
+        isRecurring: paymentType === 'fixed',
+        isPaid: false,
+      } as any);
+      onClose();
+    } catch (error) {
+      console.error('Erro ao criar transação:', error);
+      setErrors({ submit: 'Erro ao salvar transação. Tente novamente.' });
+    }
   };
 
   return (
