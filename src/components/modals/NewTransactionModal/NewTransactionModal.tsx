@@ -118,9 +118,10 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       // Membro é opcional, não pré-selecionar
       setMemberId(null);
       setAccountId('');
-      setIsInstallment(false);
+      setPaymentType('total');
       setTotalInstallments('1');
       setInstallmentNumber('1');
+      setFixedRecurrence('monthly');
       setInstallmentRecurrence('monthly');
       setTransactionDate(new Date());
       setIsCreateCategoryModalOpen(false);
