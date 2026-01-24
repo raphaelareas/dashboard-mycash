@@ -216,7 +216,7 @@
     "you": "Deg",
     "cannotDeleteOwner": "Kan ikke slette kontoeieren",
     "cannotEditOwner": "Kan ikke redigere kontoeieren gjennom denne modalen. Eieren administreres automatisk.",
-    "confirmDeleteMember": "Er du sikker på at du vil fjerne {{name}} fra familien?",
+    "confirmDeleteMember": "Er du sikker på at du vil fjerne {name} fra familien?",
     "deleteMemberError": "Feil ved sletting av medlem. Prøv igjen."
   },
   "myAccount": {

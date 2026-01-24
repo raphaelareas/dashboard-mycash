@@ -52,7 +52,7 @@ export default function People() {
       return;
     }
 
-    const message = t('people.confirmDeleteMember').replace('{{name}}', member.name);
+    const message = t('people.confirmDeleteMember', { name: member.name });
     setAlertDialog({
       isOpen: true,
       message,

@@ -217,7 +217,7 @@
     "you": "You",
     "cannotDeleteOwner": "Cannot delete the account owner",
     "cannotEditOwner": "Cannot edit the account owner through this modal. The owner is managed automatically.",
-    "confirmDeleteMember": "Are you sure you want to remove {{name}} from the family?",
+    "confirmDeleteMember": "Are you sure you want to remove {name} from the family?",
     "deleteMemberError": "Error deleting member. Please try again."
   },
   "myAccount": {
