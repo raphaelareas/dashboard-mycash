@@ -28,6 +28,7 @@ const DragHandleIcon = () => (
 export default function People() {
   const { familyMembers, deleteFamilyMember } = useFinance();
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -37,6 +38,9 @@ export default function People() {
     message: string;
     type?: 'info' | 'warning' | 'error' | 'confirm';
     onConfirm?: () => void;
+    secondaryButtonText?: string;
+    onSecondaryClick?: () => void;
+    hideCloseButton?: boolean;
   }>({
     isOpen: false,
     message: '',

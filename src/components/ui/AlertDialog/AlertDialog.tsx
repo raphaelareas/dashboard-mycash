@@ -30,6 +30,9 @@ export function AlertDialog({
   onConfirm,
   confirmText,
   cancelText,
+  secondaryButtonText,
+  onSecondaryClick,
+  hideCloseButton = false,
 }: AlertDialogProps) {
   const { t } = useI18n();
 
