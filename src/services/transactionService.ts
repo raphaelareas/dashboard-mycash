@@ -381,6 +381,18 @@ export const transactionService = {
 
   // Atualizar transação
   async update(id: string, updates: Partial<Transaction>): Promise<Transaction> {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) throw new Error('User not authenticated');
+
+    // Buscar transação atual para verificar se está mudando para fixa
+    const { data: currentTransaction } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (!currentTransaction) throw new Error('Transaction not found');
+
     const updateData: any = {};
 
     if (updates.type) updateData.type = mapTransactionTypeToDb(updates.type);
@@ -389,24 +401,28 @@ export const transactionService = {
     if (updates.date) updateData.date = updates.date.toISOString().split('T')[0];
     if (updates.accountId !== undefined) updateData.account_id = updates.accountId || null;
     if (updates.memberId !== undefined) updateData.member_id = updates.memberId || null;
-    if (updates.installments) updateData.total_installments = updates.installments;
+    if (updates.installments !== undefined) updateData.total_installments = updates.installments;
+    if (updates.installmentNumber !== undefined) updateData.installment_number = updates.installmentNumber || null;
     if (updates.isRecurring !== undefined) updateData.is_recurring = updates.isRecurring;
     if (updates.isPaid !== undefined) updateData.status = updates.isPaid ? 'COMPLETED' : 'PENDING';
 
     // Buscar category_id se categoria foi alterada
+    let categoryId: string | null = null;
     if (updates.category) {
       // Converter enum para nome em português antes de buscar no banco
       const categoryName = mapCategoryEnumToName(updates.category);
       
-      const userId = (await supabase.auth.getUser()).data.user?.id;
       // @ts-ignore - Database types serão gerados depois das migrations
       const { data: category } = await supabase
         .from('categories')
         .select('id')
         .eq('name', categoryName)
-        .eq('user_id', userId || '')
+        .eq('user_id', userId)
         .single();
-      updateData.category_id = (category as any)?.id || null;
+      categoryId = (category as any)?.id || null;
+      updateData.category_id = categoryId;
+    } else {
+      categoryId = currentTransaction.category_id;
     }
 
     // @ts-ignore - Database types serão gerados depois das migrations
@@ -423,6 +439,82 @@ export const transactionService = {
       .single();
 
     if (error) throw error;
+
+    // Se está mudando para fixa (installments >= 999), criar transações futuras
+    const isChangingToFixed = updates.installments !== undefined && updates.installments >= 999;
+    const wasNotFixed = currentTransaction.total_installments < 999;
+    
+    if (isChangingToFixed && wasNotFixed) {
+      const recurrence = (updates as any).installmentRecurrence || 'monthly';
+      const transactionDate = updates.date || new Date(currentTransaction.date);
+      const amount = updates.amount !== undefined ? updates.amount : parseFloat(currentTransaction.amount.toString());
+      const description = updates.description || currentTransaction.description;
+      const accountId = updates.accountId !== undefined ? updates.accountId : currentTransaction.account_id;
+      const memberId = updates.memberId !== undefined ? updates.memberId : currentTransaction.member_id;
+
+      const futureTransactions = [];
+      let currentDate = new Date(transactionDate);
+      
+      // Criar 24 meses à frente
+      for (let i = 1; i <= 24; i++) {
+        currentDate = new Date(currentDate);
+        
+        // Calcular próxima data baseado na recorrência
+        switch (recurrence) {
+          case 'weekly':
+            currentDate.setDate(currentDate.getDate() + 7);
+            break;
+          case 'biweekly':
+            currentDate.setDate(currentDate.getDate() + 14);
+            break;
+          case 'monthly':
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            break;
+          case 'semiannual':
+            currentDate.setMonth(currentDate.getMonth() + 6);
+            break;
+          case 'yearly':
+            currentDate.setFullYear(currentDate.getFullYear() + 1);
+            break;
+          default:
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            break;
+        }
+        
+        futureTransactions.push({
+          user_id: userId,
+          type: updateData.type || currentTransaction.type,
+          amount: amount,
+          description: description,
+          date: currentDate.toISOString().split('T')[0],
+          category_id: categoryId,
+          account_id: accountId,
+          member_id: memberId,
+          total_installments: 999,
+          installment_number: i + 1,
+          is_recurring: true,
+          status: 'PENDING',
+        });
+      }
+
+      // Inserir todas as parcelas futuras de uma vez (em lotes de 50)
+      if (futureTransactions.length > 0) {
+        const batchSize = 50;
+        for (let i = 0; i < futureTransactions.length; i += batchSize) {
+          const batch = futureTransactions.slice(i, i + batchSize);
+          // @ts-ignore - Database types serão gerados depois das migrations
+          const { error: futureError } = await supabase
+            .from('transactions')
+            .insert(batch);
+
+          if (futureError) {
+            console.error('Erro ao criar parcelas fixas na atualização:', futureError);
+            // Não lançar erro aqui para não quebrar a atualização da transação
+          }
+        }
+      }
+    }
+
     return mapTransactionFromDb(data);
   },
 
