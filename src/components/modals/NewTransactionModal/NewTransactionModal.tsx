@@ -186,10 +186,10 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
       date: transactionDate,
       accountId,
       memberId,
-      installments: isInstallment ? parseInt(totalInstallments) : 1,
-      installmentNumber: isInstallment ? parseInt(installmentNumber) : undefined,
+      installments: isInstallment && installmentRecurrence !== 'fixed' ? parseInt(totalInstallments) : (installmentRecurrence === 'fixed' ? 999 : 1),
+      installmentNumber: isInstallment && installmentRecurrence !== 'fixed' ? parseInt(installmentNumber) : (installmentRecurrence === 'fixed' ? 1 : undefined),
       installmentRecurrence: isInstallment ? installmentRecurrence : undefined,
-      isRecurring: false,
+      isRecurring: installmentRecurrence === 'fixed',
       isPaid: false,
     } as any);
 
@@ -333,8 +333,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
             </div>
             {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
             
-            {/* Campos de Parcelas (aparecem quando Parcela está selecionado) */}
-            {isInstallment && (
+            {/* Campos de Parcelas (aparecem quando Parcela está selecionado e recorrência não é Fixa) */}
+            {isInstallment && installmentRecurrence !== 'fixed' && (
               <div className="mt-4 space-y-4 animate-fade-in">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -414,6 +414,31 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                     <option value="yearly">{t('modals.newTransaction.yearly') || 'Anual'}</option>
                     <option value="fixed">{t('modals.newTransaction.fixed') || 'Fixa'}</option>
                   </select>
+                </div>
+              </div>
+            )}
+            {/* Campo de Recorrência quando é Fixa (sem campos de parcela) */}
+            {isInstallment && installmentRecurrence === 'fixed' && (
+              <div className="mt-4 space-y-4 animate-fade-in">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('modals.newTransaction.recurrence') || 'Recorrência'}
+                  </label>
+                  <select
+                    value={installmentRecurrence}
+                    onChange={(e) => setInstallmentRecurrence(e.target.value as 'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed')}
+                    className="w-full h-14 px-4 rounded-[40px] border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="weekly">{t('modals.newTransaction.weekly') || 'Semanal'}</option>
+                    <option value="biweekly">{t('modals.newTransaction.biweekly') || 'Quinzenal'}</option>
+                    <option value="monthly">{t('modals.newTransaction.monthly') || 'Mensal'}</option>
+                    <option value="semiannual">{t('modals.newTransaction.semiannual') || 'Semestral'}</option>
+                    <option value="yearly">{t('modals.newTransaction.yearly') || 'Anual'}</option>
+                    <option value="fixed">{t('modals.newTransaction.fixed') || 'Fixa'}</option>
+                  </select>
+                  <p className="mt-2 text-xs text-gray-500">
+                    {t('modals.newTransaction.fixedDescription') || 'Despesas fixas se repetem automaticamente todo mês a partir da data selecionada.'}
+                  </p>
                 </div>
               </div>
             )}

@@ -219,17 +219,22 @@ export const transactionService = {
       }
     }
 
-    const totalInstallments = transaction.installments || 1;
-    const currentInstallment = transaction.installmentNumber || 1;
-    const isInstallment = totalInstallments > 1 && currentInstallment > 0;
-    
-    // Calcular quantas parcelas restam (ex: 7/12 = 6 parcelas restantes)
-    const remainingInstallments = isInstallment 
-      ? totalInstallments - currentInstallment + 1 
-      : totalInstallments;
-    
     // Determinar recorrência baseada no installmentRecurrence
     const recurrence = (transaction as any).installmentRecurrence || 'monthly';
+    const isFixed = recurrence === 'fixed';
+    
+    // Para despesas fixas, usar valores especiais
+    const totalInstallments = isFixed ? 999 : (transaction.installments || 1);
+    const currentInstallment = isFixed ? 1 : (transaction.installmentNumber || 1);
+    const isInstallment = (totalInstallments > 1 && currentInstallment > 0) || isFixed;
+    
+    // Calcular quantas parcelas restam (ex: 7/12 = 6 parcelas restantes)
+    // Para fixas, criar 24 meses à frente
+    const remainingInstallments = isFixed 
+      ? 24 // Criar 24 meses à frente para despesas fixas
+      : (isInstallment 
+        ? totalInstallments - currentInstallment + 1 
+        : totalInstallments);
 
     // Criar a primeira transação (a que o usuário está registrando)
     const firstTransactionData = {
@@ -243,7 +248,7 @@ export const transactionService = {
       member_id: transaction.memberId || null,
       total_installments: totalInstallments,
       installment_number: currentInstallment,
-      is_recurring: false,
+      is_recurring: isFixed,
       status: transaction.isPaid ? 'COMPLETED' : 'PENDING',
     };
 
@@ -262,11 +267,12 @@ export const transactionService = {
     if (firstError) throw firstError;
 
     // Se há parcelas restantes, criar as próximas transações automaticamente
-    if (isInstallment && remainingInstallments > 1) {
+    // Exemplo: se usuário adiciona parcela 2/5, criar apenas parcelas 3, 4, 5 (futuras)
+    if (isInstallment && !isFixed && remainingInstallments > 1) {
       const futureTransactions = [];
       let currentDate = new Date(transaction.date);
       
-      // Criar as próximas parcelas (ex: se é 7/12, criar 8, 9, 10, 11, 12)
+      // Criar as próximas parcelas (ex: se é 2/5, criar 3, 4, 5)
       for (let i = 1; i < remainingInstallments; i++) {
         // Avançar data conforme recorrência
         currentDate = new Date(currentDate);
@@ -289,7 +295,6 @@ export const transactionService = {
           case 'yearly':
             currentDate.setFullYear(currentDate.getFullYear() + 1);
             break;
-          case 'fixed':
           default:
             // Mensal como padrão
             currentDate.setMonth(currentDate.getMonth() + 1);
@@ -306,22 +311,65 @@ export const transactionService = {
           account_id: transaction.accountId || null,
           member_id: transaction.memberId || null,
           total_installments: totalInstallments,
-          installment_number: currentInstallment + i, // 8, 9, 10, 11, 12
+          installment_number: currentInstallment + i, // 3, 4, 5
           is_recurring: false,
           status: 'PENDING', // Futuras parcelas começam como pendentes
         });
       }
 
-      // Inserir todas as parcelas futuras de uma vez
+      // Inserir todas as parcelas futuras de uma vez (em lotes de 50 para evitar limite)
       if (futureTransactions.length > 0) {
-        // @ts-ignore - Database types serão gerados depois das migrations
-        const { error: futureError } = await supabase
-          .from('transactions')
-          .insert(futureTransactions);
+        const batchSize = 50;
+        for (let i = 0; i < futureTransactions.length; i += batchSize) {
+          const batch = futureTransactions.slice(i, i + batchSize);
+          // @ts-ignore - Database types serão gerados depois das migrations
+          const { error: futureError } = await supabase
+            .from('transactions')
+            .insert(batch);
 
-        if (futureError) {
-          console.error('Erro ao criar parcelas futuras:', futureError);
-          // Não lançar erro aqui para não quebrar a criação da primeira transação
+          if (futureError) {
+            console.error('Erro ao criar parcelas futuras:', futureError);
+            // Não lançar erro aqui para não quebrar a criação da primeira transação
+          }
+        }
+      }
+    } else if (isFixed) {
+      // Para despesas fixas, criar 24 meses à frente
+      const futureTransactions = [];
+      let currentDate = new Date(transaction.date);
+      
+      for (let i = 1; i <= 24; i++) {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        
+        futureTransactions.push({
+          user_id: userId,
+          type: mapTransactionTypeToDb(transaction.type),
+          amount: transaction.amount,
+          description: transaction.description,
+          date: currentDate.toISOString().split('T')[0],
+          category_id: categoryId,
+          account_id: transaction.accountId || null,
+          member_id: transaction.memberId || null,
+          total_installments: 999,
+          installment_number: i + 1,
+          is_recurring: true,
+          status: 'PENDING',
+        });
+      }
+
+      // Inserir todas as parcelas futuras de uma vez (em lotes de 50)
+      if (futureTransactions.length > 0) {
+        const batchSize = 50;
+        for (let i = 0; i < futureTransactions.length; i += batchSize) {
+          const batch = futureTransactions.slice(i, i + batchSize);
+          // @ts-ignore - Database types serão gerados depois das migrations
+          const { error: futureError } = await supabase
+            .from('transactions')
+            .insert(batch);
+
+          if (futureError) {
+            console.error('Erro ao criar parcelas fixas:', futureError);
+          }
         }
       }
     }

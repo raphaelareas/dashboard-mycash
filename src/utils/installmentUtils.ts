@@ -6,16 +6,27 @@
  * - Se é parcela 1 de 3, mostra "1/3"
  * - Se é parcela 2 de 3, mostra "2/3"
  * - Se é parcela 3 de 3, mostra "3/3"
+ * - Se é fixa (totalInstallments >= 999), mostra "Fixa"
  * 
  * @param installmentNumber Número da parcela atual (ex: 1, 2, 3)
- * @param totalInstallments Total de parcelas (ex: 3)
- * @returns String no formato "X/Y" ou null se não for parcela
+ * @param totalInstallments Total de parcelas (ex: 3). Se >= 999, é considerada fixa
+ * @returns String no formato "X/Y" ou "Fixa" ou null se não for parcela
  */
 export function formatInstallmentDisplay(
   installmentNumber: number | undefined,
   totalInstallments: number | undefined
 ): string | null {
-  if (!installmentNumber || !totalInstallments || totalInstallments <= 1) {
+  if (!installmentNumber || !totalInstallments) {
+    return null;
+  }
+
+  // Se totalInstallments >= 999, é uma despesa fixa
+  if (totalInstallments >= 999) {
+    return 'Fixa';
+  }
+
+  // Se totalInstallments <= 1, não é parcela
+  if (totalInstallments <= 1) {
     return null;
   }
 

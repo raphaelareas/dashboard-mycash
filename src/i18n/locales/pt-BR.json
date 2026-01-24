@@ -327,6 +327,7 @@
       "semiannual": "Semestral",
       "yearly": "Anual",
       "fixed": "Fixa",
+      "fixedDescription": "Despesas fixas se repetem automaticamente todo mês a partir da data selecionada.",
       "recurrence": "Recorrência",
       "total": "Total",
       "installment": "Parcela",

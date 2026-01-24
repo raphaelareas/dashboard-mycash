@@ -296,6 +296,7 @@
       "semiannual": "Semiannual",
       "yearly": "Yearly",
       "fixed": "Fixed",
+      "fixedDescription": "Fixed expenses automatically repeat every month from the selected date.",
       "recurrence": "Recurrence",
       "total": "Total",
       "installment": "Installment",

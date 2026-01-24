@@ -295,6 +295,7 @@
       "semiannual": "Halbjährlich",
       "yearly": "Jährlich",
       "fixed": "Fest",
+      "fixedDescription": "Feste Ausgaben wiederholen sich automatisch jeden Monat ab dem ausgewählten Datum.",
       "recurrence": "Wiederholung",
       "total": "Gesamt",
       "installment": "Rate",

@@ -295,6 +295,7 @@
       "semiannual": "Semestriel",
       "yearly": "Annuel",
       "fixed": "Fixe",
+      "fixedDescription": "Les dépenses fixes se répètent automatiquement chaque mois à partir de la date sélectionnée.",
       "recurrence": "Récurrence",
       "total": "Total",
       "installment": "Échéance",

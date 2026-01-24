@@ -296,6 +296,7 @@
       "semiannual": "Semestral",
       "yearly": "Anual",
       "fixed": "Fija",
+      "fixedDescription": "Los gastos fijos se repiten automáticamente todos los meses a partir de la fecha seleccionada.",
       "recurrence": "Recurrencia",
       "total": "Total",
       "installment": "Cuota",

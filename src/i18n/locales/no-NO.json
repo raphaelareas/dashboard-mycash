@@ -295,6 +295,7 @@
       "semiannual": "Halvårlig",
       "yearly": "Årlig",
       "fixed": "Fast",
+      "fixedDescription": "Faste utgifter gjentas automatisk hver måned fra den valgte datoen.",
       "recurrence": "Gjentakelse",
       "total": "Totalt",
       "installment": "Avdrag",
