@@ -318,6 +318,8 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
       // Recarregar todas as transações do banco para garantir sincronização
       // especialmente importante quando cria fixa e cria transações futuras
       await refreshTransactions();
+      // Recarregar contas para atualizar saldo do cartão
+      await refreshAccounts();
     } catch (error) {
       console.error('Erro ao criar transação:', error);
       throw error;
@@ -345,6 +347,8 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
       await transactionService.delete(id, scope);
       // Recarregar todas as transações para garantir sincronização
       await refreshTransactions();
+      // Recarregar contas para atualizar saldo do cartão
+      await refreshAccounts();
     } catch (error) {
       console.error('Erro ao deletar transação:', error);
       throw error;
