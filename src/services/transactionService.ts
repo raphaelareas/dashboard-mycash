@@ -219,14 +219,16 @@ export const transactionService = {
       }
     }
 
-    // Determinar recorrência baseada no installmentRecurrence
-    const recurrence = (transaction as any).installmentRecurrence || 'monthly';
-    const isFixed = recurrence === 'fixed';
-    
-    // Para despesas fixas, usar valores especiais
-    const totalInstallments = isFixed ? 999 : (transaction.installments || 1);
+    // Determinar se é fixa baseado em installments = 999
+    const totalInstallments = transaction.installments || 1;
+    const isFixed = totalInstallments >= 999;
     const currentInstallment = isFixed ? 1 : (transaction.installmentNumber || 1);
-    const isInstallment = (totalInstallments > 1 && currentInstallment > 0) || isFixed;
+    const isInstallment = totalInstallments > 1 && currentInstallment > 0 && !isFixed;
+    
+    // Determinar recorrência baseada no installmentRecurrence
+    const recurrence = isFixed 
+      ? ((transaction as any).installmentRecurrence || 'monthly')
+      : ((transaction as any).installmentRecurrence || 'monthly');
     
     // Calcular quantas parcelas restam (ex: 7/12 = 6 parcelas restantes)
     // Para fixas, criar 24 meses à frente

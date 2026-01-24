@@ -92,10 +92,20 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
   const [category, setCategory] = useState<TransactionCategory | string | ''>(transaction.category);
   const [memberId, setMemberId] = useState<string | null>(transaction.memberId || null);
   const [accountId, setAccountId] = useState(transaction.accountId);
-  const [isInstallment, setIsInstallment] = useState((transaction.installments || 1) > 1);
+  // Determinar tipo de pagamento baseado na transação
+  const getPaymentType = (installments: number | undefined): 'total' | 'installment' | 'fixed' => {
+    if (!installments || installments <= 1) return 'total';
+    if (installments >= 999) return 'fixed';
+    return 'installment';
+  };
+  
+  const [paymentType, setPaymentType] = useState<'total' | 'installment' | 'fixed'>(() => 
+    getPaymentType(transaction.installments)
+  );
   const [totalInstallments, setTotalInstallments] = useState<string>((transaction.installments || 1).toString());
   const [installmentNumber, setInstallmentNumber] = useState<string>((transaction.installmentNumber || 1).toString());
-  const [installmentRecurrence, setInstallmentRecurrence] = useState<'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed'>('monthly');
+  const [fixedRecurrence, setFixedRecurrence] = useState<'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly'>('monthly');
+  const [installmentRecurrence, setInstallmentRecurrence] = useState<'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly'>('monthly');
   const [transactionDate, setTransactionDate] = useState<Date | null>(() => new Date(transaction.date));
   const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
@@ -111,7 +121,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       setCategory(transaction.category);
       setMemberId(transaction.memberId || null);
       setAccountId(transaction.accountId);
-      setIsInstallment((transaction.installments || 1) > 1);
+      setPaymentType(getPaymentType(transaction.installments));
       setTotalInstallments((transaction.installments || 1).toString());
       setInstallmentNumber((transaction.installmentNumber || 1).toString());
       setTransactionDate(new Date(transaction.date));
@@ -151,7 +161,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       newErrors.category = t('modals.newTransaction.categoryError') || 'Selecione uma categoria';
     }
 
-    if (isInstallment) {
+    if (paymentType === 'installment') {
       const totalNum = parseInt(totalInstallments);
       const currentNum = parseInt(installmentNumber);
       
@@ -184,9 +194,10 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
       date: transactionDate,
       accountId,
       memberId,
-      installments: isInstallment ? parseInt(totalInstallments) : 1,
-      installmentNumber: isInstallment ? parseInt(installmentNumber) : undefined,
-      isRecurring: false,
+      installments: paymentType === 'installment' ? parseInt(totalInstallments) : (paymentType === 'fixed' ? 999 : 1),
+      installmentNumber: paymentType === 'installment' ? parseInt(installmentNumber) : (paymentType === 'fixed' ? 1 : undefined),
+      installmentRecurrence: paymentType === 'fixed' ? fixedRecurrence : (paymentType === 'installment' ? installmentRecurrence : undefined),
+      isRecurring: paymentType === 'fixed',
       isPaid: transaction.isPaid,
     } as any);
 
@@ -331,7 +342,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
             {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
             
             {/* Campos de Parcelas (aparecem quando Parcela está selecionado) */}
-            {isInstallment && (
+            {paymentType === 'installment' && (
               <div className="mt-4 space-y-4 animate-fade-in">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -401,7 +412,7 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                   </label>
                   <select
                     value={installmentRecurrence}
-                    onChange={(e) => setInstallmentRecurrence(e.target.value as 'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly' | 'fixed')}
+                    onChange={(e) => setInstallmentRecurrence(e.target.value as 'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly')}
                     className="w-full h-14 px-4 rounded-[40px] border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="weekly">{t('modals.newTransaction.weekly') || 'Semanal'}</option>
@@ -409,7 +420,27 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
                     <option value="monthly">{t('modals.newTransaction.monthly') || 'Mensal'}</option>
                     <option value="semiannual">{t('modals.newTransaction.semiannual') || 'Semestral'}</option>
                     <option value="yearly">{t('modals.newTransaction.yearly') || 'Anual'}</option>
-                    <option value="fixed">{t('modals.newTransaction.fixed') || 'Fixa'}</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            {/* Campo de Recorrência quando é Fixa (sem campos de parcela) */}
+            {paymentType === 'fixed' && (
+              <div className="mt-4 space-y-4 animate-fade-in">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('modals.newTransaction.recurrence') || 'Recorrência'}
+                  </label>
+                  <select
+                    value={fixedRecurrence}
+                    onChange={(e) => setFixedRecurrence(e.target.value as 'weekly' | 'biweekly' | 'monthly' | 'semiannual' | 'yearly')}
+                    className="w-full h-14 px-4 rounded-[40px] border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="weekly">{t('modals.newTransaction.weekly') || 'Semanal'}</option>
+                    <option value="biweekly">{t('modals.newTransaction.biweekly') || 'Quinzenal'}</option>
+                    <option value="monthly">{t('modals.newTransaction.monthly') || 'Mensal'}</option>
+                    <option value="semiannual">{t('modals.newTransaction.semiannual') || 'Semestral'}</option>
+                    <option value="yearly">{t('modals.newTransaction.yearly') || 'Anual'}</option>
                   </select>
                 </div>
               </div>
