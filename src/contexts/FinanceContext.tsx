@@ -336,6 +336,8 @@ export function FinanceProvider({ children }: FinanceProviderProps) {
       // Recarregar todas as transações do banco para garantir sincronização
       // especialmente importante quando muda para fixa e cria transações futuras
       await refreshTransactions();
+      // Recarregar contas para atualizar saldo do cartão
+      await refreshAccounts();
     } catch (error) {
       console.error('Erro ao atualizar transação:', error);
       throw error;
